@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Simulateur – Conciergerie Zenata</title>
+  <link rel="icon" type="image/png" href="logo/logo_officiel_couleur_picto.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -14,29 +15,16 @@
         extend: {
           fontFamily: { sans: ['Manrope', 'ui-sans-serif', 'system-ui'] },
           colors: {
-            zen: {
-              50: '#f7fafc',
-              100: '#eef5f9',
-              200: '#d9e8f2',
-              300: '#b8d4e6',
-              400: '#7fb4d3',
-              500: '#2f8fbf',
-              600: '#1f6e99',
-              700: '#18567a',
-              800: '#123f5a',
-              900: '#0c2b3f'
-            }
+            zen: { 50:'#f7fafc',100:'#eef5f9',200:'#d9e8f2',300:'#b8d4e6',400:'#7fb4d3',500:'#2f8fbf',600:'#1f6e99',700:'#18567a',800:'#123f5a',900:'#0c2b3f' }
           }
         }
       }
     }
   </script>
   <style>
-    /* Scope Tailwind utilities under .tw to avoid clashes with the rest of the site */
     .tw * { box-sizing: border-box; }
     .tw .container { max-width: 1200px; }
-    /* fix iOS zoom on inputs */
-    input[type=number] { font-size:16px; }
+    input[type=number]{ font-size:16px; }
   </style>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -46,16 +34,17 @@
   <!-- NAV -->
   <header class="tw sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-zen-100">
     <nav class="tw container mx-auto px-4 py-3 flex items-center justify-between">
-      <a class="tw inline-flex items-center gap-3" href="index.html">
-        <img src="logo/logo_officiel_couleur.png" alt="Conciergerie Zenata" class="h-8 w-auto" onerror="this.style.display='none'">
-        <span class="tw font-extrabold tracking-tight">Conciergerie Zenata</span>
+      <a class="tw inline-flex items-center" href="index.html" title="Accueil">
+        <!-- Logo picto (agrandi) sans libellé texte -->
+        <img src="logo/logo_officiel_couleur_picto.png" alt="Conciergerie Zenata" class="h-12 w-auto" onerror="this.style.display='none'">
       </a>
       <div class="tw hidden sm:flex items-center gap-6 text-sm">
         <a class="hover:underline" href="index.html">Accueil</a>
         <a class="font-semibold text-zen-700" href="simulateur.html">Simulateur</a>
         <a class="hover:underline" href="#faq">FAQ</a>
       </div>
-      <a href="#simulateur" class="tw sm:hidden inline-flex items-center px-3 py-2 rounded-xl bg-zen-900 text-white text-sm">Simuler</a>
+      <!-- CTA clair → démarre la simulation (ancre) -->
+      <a href="#simulateur" class="tw inline-flex items-center px-3 py-2 rounded-xl bg-zen-900 text-white text-sm">Faire une simulation</a>
     </nav>
   </header>
 
@@ -66,10 +55,10 @@
       <div class="tw absolute inset-0 bg-zen-900/50"></div>
     </div>
     <div class="tw container mx-auto px-4 py-14 md:py-20 text-white">
-      <h1 class="tw text-3xl md:text-5xl font-extrabold leading-tight">Simulateur de revenu locatif – Zenata Eco‑City</h1>
-      <p class="tw mt-3 md:text-lg text-zen-100 max-w-2xl">Estimez vos revenus nets en fonction du type de bien, de la vue, de la saison et de l’occupation. Entièrement interactif.</p>
+      <h1 class="tw text-3xl md:text-5xl font-extrabold leading-tight">Simulateur de revenu locatif – Zenata Eco-City</h1>
+      <p class="tw mt-3 md:text-lg text-zen-100 max-w-2xl">Estimez vos revenus nets en fonction du type de bien, de la vue, de la saison et de l’occupation.</p>
       <div class="tw mt-6 flex flex-wrap gap-3">
-        <a href="#simulateur" class="tw inline-flex items-center px-4 py-2 rounded-2xl bg-white text-zen-900 font-semibold">Commencer</a>
+        <a href="#simulateur" class="tw inline-flex items-center px-4 py-2 rounded-2xl bg-white text-zen-900 font-semibold">Faire une simulation</a>
         <a href="index.html" class="tw inline-flex items-center px-4 py-2 rounded-2xl border border-white/60 text-white">Retour à l’accueil</a>
       </div>
     </div>
@@ -85,25 +74,26 @@
     <div class="tw grid md:grid-cols-3 gap-6">
       <div class="tw p-5 rounded-2xl bg-white shadow-sm border">
         <h3 class="tw font-bold">Comment sont fixés les prix ?</h3>
-        <p class="tw text-sm text-zen-700 mt-2">Ils s’appuient sur les références réelles de Zenata (Airbnb/Booking) et une saisonnalité locale, puis sont ajustables dans l’outil.</p>
+        <p class="tw text-sm text-zen-700 mt-2">Références réelles de Zenata (Airbnb/Booking) + saisonnalité locale, ajustables dans l’outil.</p>
       </div>
       <div class="tw p-5 rounded-2xl bg-white shadow-sm border">
-        <h3 class="tw font-bold">Que reste‑t‑il à ma charge ?</h3>
-        <p class="tw text-sm text-zen-700 mt-2">Notre commission de gestion + quelques consommables (savon, papier, sacs). Les charges fixes (copro, internet…) peuvent être incluses dans le calcul.</p>
+        <h3 class="tw font-bold">Que reste-t-il à ma charge ?</h3>
+        <p class="tw text-sm text-zen-700 mt-2">Commission de gestion + consommables (savon, papier, sacs). Les charges fixes peuvent être incluses dans le calcul.</p>
       </div>
       <div class="tw p-5 rounded-2xl bg-white shadow-sm border">
-        <h3 class="tw font-bold">Puis‑je exporter les résultats ?</h3>
-        <p class="tw text-sm text-zen-700 mt-2">Oui, nous pouvons ajouter un export CSV et un PDF à la demande.</p>
+        <h3 class="tw font-bold">Exporter les résultats</h3>
+        <p class="tw text-sm text-zen-700 mt-2">On peut ajouter un export CSV/PDF sur demande.</p>
       </div>
     </div>
   </section>
 
   <footer class="tw border-t bg-white">
     <div class="tw container mx-auto px-4 py-6 text-sm text-zen-700">
-      © Conciergerie Zenata — Simulateur indicatif, non contractuel.
+      © Simulateur indicatif, non contractuel.
     </div>
   </footer>
 
+  <!-- App React -->
   <script type="text/babel">
     const MAD = new Intl.NumberFormat("fr-MA", { style: "currency", currency: "MAD", maximumFractionDigits: 0 });
     const TYPES = [
@@ -189,7 +179,16 @@
       const [menageParSejour, setMenageParSejour] = React.useState(0);
       const [dureeMois, setDureeMois] = React.useState(30);
 
-      // Calculs
+      const setAdrFromInput = (val) => {
+        const n = parseFloat(val);
+        setIsCustomAdr(true);
+        setAdr(Number.isFinite(n) ? n : 0);
+      };
+      const resetAdrPreset = () => {
+        setIsCustomAdr(false);
+        setAdr(ADR_DEFAULTS[type][vue][saison]);
+      };
+
       const calc = (k) => {
         const nuits = Math.round(dureeMois * k);
         const revenuBrut = adr * nuits;
@@ -228,11 +227,9 @@
                   </select>
                 </Field>
                 <Field label={"ADR (prix/nuit) – " + MAD.format(adr)}>
-                  <div className="tw flex gap-2">
-                    <input type="number" className="tw border rounded-xl px-3 py-2 w-full" value={adr} onChange={(e)=>{setIsCustomAdr(True);}} />
-                    <button type="button" className="tw px-3 py-2 rounded-xl border text-sm" onclick="">
-                      Preset
-                    </button>
+                  <div className="tw grid grid-cols-[1fr_auto] gap-2">
+                    <input type="number" className="tw border rounded-xl px-3 py-2 w-full" value={adr} onChange={(e)=>setAdrFromInput(e.target.value)} />
+                    <button type="button" className="tw px-3 py-2 rounded-xl border text-sm" onClick={resetAdrPreset}>Preset</button>
                   </div>
                 </Field>
               </div>
@@ -329,20 +326,7 @@
       );
     }
 
-    // Fix: minor bug in ADR input handler
-    // Replace faulty True/onclick etc.
-    // We'll override after component mounts by redefining the ADR Field properly.
-  </script>
-
-  <script type="text/babel">
-    // Corrected version with proper handlers (split to avoid JSX confusion above)
-    function AppWrapper(){
-      return React.createElement( (function(){
-        // reuse component code from previous script by evaluating it in the same scope
-        return SimulateurZenata;
-      })() );
-    }
-    ReactDOM.createRoot(document.getElementById('zenata-sim-root')).render(React.createElement(SimulateurZenata));
+    ReactDOM.createRoot(document.getElementById('zenata-sim-root')).render(<SimulateurZenata />);
   </script>
 </body>
 </html>
