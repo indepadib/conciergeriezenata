@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Conciergerie Zenata – Maximisez vos revenus locatifs</title>
+<!-- Favicon SVG minimal -->
+<link href="c:\Users\Adib\Downloads\conciergerie zenata.png" rel="icon"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="c:\Users\Adib\Downloads\conciergerie zenata.png" rel="icon" type="image/png"/>
+<style>
+    /* -------------------- Design system / palette -------------------- */
+    :root{
+    --ink:#0c3237;          /* bleu-vert foncé (logo) */
+    --sea:#0f6b78;          /* bleu mer */
+    --sand:#cfad5b;         /* doré doux */
+    --foam:#eff6f5;         /* blanc cassé/écume */
+    --card:#ffffff;
+    --muted:#6c7a7a;
+    --radius:22px;
+    --shadow:0 20px 50px rgba(12,50,55,.15);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;font-family:Manrope,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:#fbfaf6}
+  .container{max-width:1200px;margin:0 auto;padding:clamp(16px,3vw,32px)}
+  .section{padding:clamp(48px,8vw,96px) 0}
+  .btn{display:inline-flex;align-items:center;gap:.6rem;padding:14px 22px;border-radius:999px;border:2px solid transparent;background:var(--sea);color:#fff;font-weight:700;text-decoration:none;box-shadow:0 10px 30px rgba(15,107,120,.25);transition:.25s}
+  .btn:hover{transform:translateY(-2px)}
+  .btn.outline{background:transparent;color:var(--foam);border-color:var(--foam);box-shadow:none}
+  .pill{display:inline-block;padding:8px 14px;border-radius:999px;background:#e9f4f2;color:var(--sea);font-weight:700}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .reveal{opacity:0;transform:translateY(24px);transition:all .7s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+    img{max-width:100%;display:block}
+    .container{max-width:1180px;margin-inline:auto;padding-inline:clamp(16px,5vw,64px)}
+    .section{padding:clamp(48px,8vw,96px) 0}
+    h1,h2,h3{margin:0 0 .4em 0;line-height:1.1}
+    h2{font-size:clamp(28px,3.6vw,40px)}
+    h3{font-size:clamp(20px,2.2vw,24px)}
+    .muted{color:#6f8a96}
+    .lead{font-size:clamp(16px,2vw,18px)}
+
+    /* -------------------- Header -------------------- */
+    header{position:sticky;top:0;background:#fff;z-index:20;border-bottom:1px solid var(--border);backdrop-filter:saturate(1.2) blur(6px)}
+    .nav{display:flex;align-items:center;gap:18px;min-height:66px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+    .brand img{height:42px;width:auto}
+    nav{margin-left:auto;display:flex;gap:16px;flex-wrap:wrap}
+    nav a{color:var(--ink);text-decoration:none;padding:8px 10px;border-radius:999px}
+    nav a:hover{background:var(--sand)}
+    .cta{background:var(--sea);color:#fff;border-radius:999px;padding:12px 18px;font-weight:700;display:inline-flex;gap:10px;align-items:center;text-decoration:none}
+    .cta.secondary{background:#fff;color:var(--sea);border:1px solid var(--sea)}
+    .section{ padding-block: clamp(56px,6vw,96px); }
+.container{ max-width: 1120px; margin-inline:auto; padding-inline: clamp(16px,3vw,32px); }
+
+
+    /* -------------------- Hero -------------------- */
+   .hero .hero-bg{
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; transform:scale(1.05);
+    filter:contrast(1.05) saturate(1.05);
+  }
+  .hero .hero-overlay{background:linear-gradient(180deg, rgba(7,28,31,.25), rgba(7,28,31,.70) 60%, rgba(7,28,31,.85))}
+  .hero .hero-overlay{
+    position:absolute; inset:0;
+    background:
+      linear-gradient(to bottom, rgba(12,50,55,.15) 0%, rgba(12,50,55,.55) 55%, rgba(12,50,55,.75) 100%),
+      linear-gradient(to right, rgba(12,50,55,.35), rgba(12,50,55,.05));
+    z-index:1;
+    .hero{
+  position:relative; overflow:hidden;
+}
+.hero::after{
+  content:""; position:absolute; inset:0;
+  background: linear-gradient(0deg, rgba(0,25,28,.62), rgba(0,25,28,.18) 45%, transparent 70%);
+  pointer-events:none;
+}
+.hero h1, .hero p{ color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.25); }
+  }
+
+    /* -------------------- Cards & helpers -------------------- */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:var(--pad)}
+    .glass{backdrop-filter:saturate(1.3) blur(6px);background:rgba(255,255,255,.75)}
+    .tag{display:inline-flex;gap:8px;border:1px solid var(--border);padding:6px 12px;border-radius:999px;background:#fff}
+    .chips{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+    .chip{border:1px solid var(--border);padding:6px 10px;border-radius:999px;background:#fff}
+
+    /* -------------------- Offre -50% -------------------- */
+    #offer .offer{text-align:center}
+    .offer-grid{display:grid;grid-template-columns:auto 1fr;gap:16px;justify-content:center;align-items:end;margin:8px 0 12px}
+    .offer-big{font-size:clamp(48px,10vw,96px);font-weight:900;line-height:.9;color:var(--sea)}
+    .offer-copy{font-size:clamp(16px,2.2vw,20px)}
+    .offer-points{display:grid;grid-template-columns:repeat(2,minmax(140px,1fr));gap:8px 18px;justify-items:center;margin:18px 0 8px;padding:0;list-style:none}
+    @media (max-width:560px){.offer-points{grid-template-columns:1fr}.offer-grid{grid-template-columns:1fr}}
+
+    /* -------------------- Split "Esprit Zenata" -------------------- */
+    .split{display:grid;grid-template-columns:1.2fr 1fr;gap:28px;align-items:center}
+    .split .media{overflow:hidden;border-radius:var(--radius);box-shadow:var(--shadow)}
+    .split .media img{width:100%;height:100%;object-fit:cover;transform:scale(1.02);transition:transform .6s ease}
+    .split .media:hover img{transform:scale(1.06)}
+    @media (max-width:980px){.split{grid-template-columns:1fr}}
+
+    .marquee{overflow:hidden;border:1px solid var(--border);border-radius:999px;margin-top:22px;background:#fff}
+    .marquee-track{display:flex;gap:28px;padding:12px 0;white-space:nowrap;animation:marquee 20s linear infinite}
+    .marquee span{padding:0 10px;color:#3c5661;font-weight:700;opacity:.85}
+    @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+    /* -------------------- Process timeline -------------------- */
+/* ========= PROCESS / TIMELINE ========= */
+:root{
+  --ink:#0e2f33;             /* texte titre (proche de ton logo) */
+  --teal:#0f6a77;            /* accent mer */
+  --sea:#9fd7d1;             /* ligne claire */
+  --sand:#e8e2d3;            /* fond doux */
+  --card:#ffffff;
+  --shadow:0 10px 35px rgba(14,47,51,.08),0 2px 12px rgba(14,47,51,.06);
+}
+
+.section--process{
+  padding-block: clamp(56px,6vw,96px);
+  background: #fbfaf6;
+}
+
+.process__title{
+  color:var(--ink);
+  font-size: clamp(28px,4vw,56px);
+  line-height:1.05;
+  letter-spacing:-.02em;
+  margin: 0 0 28px;
+}
+
+.process__grid{
+  position:relative;
+  display:grid;
+  grid-template-columns: repeat(3, minmax(260px,1fr));
+  gap: clamp(18px,2vw,28px);
+  align-items: stretch;
+  padding-inline: clamp(10px,2vw,24px);
+}
+
+/* Ligne de connexion */
+.process__track{
+  position:absolute;
+  left: clamp(8px,1.5vw,24px);
+  right: clamp(8px,1.5vw,24px);
+  top: calc(50% + 12px);
+  height:6px;
+  border-radius:999px;
+  background: linear-gradient(90deg, var(--teal), var(--sea), #e6d7a2);
+  opacity:.35;
+  pointer-events:none;
+}
+
+/* Cartes */
+.step-card{
+  position:relative;
+  background:var(--card);
+  border-radius:28px;
+  padding: clamp(22px,2.6vw,32px);
+  box-shadow: var(--shadow);
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  min-height: 300px;
+  isolation:isolate;
+  transform: translateY(18px);
+  opacity:0;
+  transition: transform .6s cubic-bezier(.2,.7,.2,1), opacity .6s;
+}
+.step-card.in-view{ transform:none; opacity:1; }
+
+.step-card__icon{
+  width:48px;height:48px;border-radius:14px;
+  display:grid;place-items:center;
+  background:linear-gradient(135deg,#eef8f7,#ffffff);
+  box-shadow: 0 6px 16px rgba(14,47,51,.08);
+  font-size:24px;
+}
+.step-card__title{
+  font-weight:800;
+  font-size: clamp(20px,2.6vw,30px);
+  line-height:1.12;
+  color:var(--ink);
+  letter-spacing:-.01em;
+}
+.step-card__desc{
+  color:#2c3d40b3;
+  font-size: clamp(15px,1.6vw,18px);
+  line-height:1.55;
+}
+/* Repère sur la ligne */
+.step-card::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  translate:-50% 0;
+  top:-10px;
+  width:14px;height:14px;border-radius:50%;
+  background: var(--teal);
+  box-shadow:0 0 0 6px rgba(15,106,119,.12);
+}
+/* Responsive : colonne + ligne verticale à gauche */
+@media (max-width: 980px){
+  .process__grid{ grid-template-columns:1fr; }
+  .process__track{ display:none; }
+  .step-card{ min-height:unset; padding:22px; }
+  .step-card::before{
+    content:""; position:absolute; left:20px; top:-24px; bottom:-24px; width:4px;
+    background:linear-gradient(var(--teal),var(--sea));
+    border-radius:999px; opacity:.25;
+  }
+  .step-card::after{ left:20px; translate:-50% 0; }
+}
+
+  /* faq la pauvre*/
+   details{padding:14px 16px;border-bottom:1px solid #eef2f2}
+  details:last-child{border-bottom:none}
+  summary{cursor:pointer;font-weight:700}
+  summary::marker{color:var(--sea)}
+
+
+
+    /* -------------------- Carousel témoignages -------------------- */
+    .section--testimonials{
+  padding-block: clamp(56px,6vw,92px);
+  background:#fbfaf6;
+}
+.t-title{
+  color:var(--ink);
+  font-size: clamp(28px,4vw,56px);
+  line-height:1.05;
+  margin:0 0 24px;
+}
+/* scroller snap */
+.t-scroller{
+  display:flex;
+  gap: clamp(18px,2vw,24px);
+  overflow-x:auto;
+  scroll-snap-type: x mandatory;
+  padding: 6px clamp(12px,3vw,24px);
+  -webkit-overflow-scrolling: touch;
+  /* soft edge fade */
+  mask-image: linear-gradient(90deg, transparent 0, #000 5%, #000 95%, transparent 100%);
+}
+.t-card{
+  scroll-snap-align:center;
+  min-width: min(640px, 88vw);
+  background: var(--card);
+  border-radius: 26px;
+  padding: clamp(20px,2.4vw,28px);
+  box-shadow: var(--shadow);
+}
+.t-author{
+  display:flex; align-items:center; gap:14px; margin-bottom:12px;
+  color: #0f2f33; font-weight:700;
+}
+.t-avatar{
+  width:40px;height:40px;border-radius:50%;
+  background: linear-gradient(135deg,#e9f6f4,#ffffff);
+  display:grid;place-items:center;font-weight:800;color:var(--teal);
+}
+.t-quote{
+  font-size: clamp(16px,2vw,20px);
+  color:#243a3ebf; line-height:1.6; margin: 6px 0 14px;
+}
+.t-stars{ color:#ffb400; letter-spacing:3px; font-size:18px; }
+/* Dots */
+.t-dots{ display:flex; gap:8px; justify-content:center; margin-top:16px; }
+.t-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:#c8dedd; opacity:.6; transition:opacity .25s, transform .25s;
+}
+.t-dot.is-active{ opacity:1; transform:scale(1.2); background:var(--teal); }
+
+
+    /* -------------------- Contact -------------------- */
+    form .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    form input, form textarea{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:12px;font:inherit}
+    form textarea{min-height:120px}
+    @media (max-width:760px){form .row{grid-template-columns:1fr}}
+
+    /* -------------------- Footer -------------------- */
+    footer{background:#0d2330;color:#cde0e7;padding:36px 0;margin-top:36px}
+    footer a{color:#cde0e7;text-decoration:none}
+    .footer-grid{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:18px}
+    @media (max-width:900px){.footer-grid{grid-template-columns:1fr}}
+    .footer-actions{display:flex;gap:12px;flex-wrap:wrap}
+    .btn-ghost{border:1px solid var(--border);background:#fff;color:var(--sea);padding:10px 14px;border-radius:999px;display:inline-flex;gap:8px;align-items:center;text-decoration:none}
+    .btn-ghost:hover{border-color:var(--sea);color:var(--sea)}
+
+    /* -------------------- Animations -------------------- */
+    .reveal{opacity:0;transform:translateY(10px);transition:opacity .6s ease, transform .6s ease}
+    .reveal.in{opacity:1;transform:none}
+    /* fallback si JS cassé */
+    .no-js .reveal{opacity:1;transform:none}
+
+    :root{
+  --ink:#0f2f36; --sea:#0a6b78; --leaf:#3b7f2f; --sand:#e8e1d5; --gold:#caa74e;
+  --bg:#faf8f2;
+}
+html,body{background:var(--bg); color:var(--ink);}
+.hero{position:relative; min-height:78vh; display:grid; place-items:center; overflow:hidden;}
+.hero::before{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(180deg,rgba(15,47,54,.55) 0%, rgba(15,47,54,.35) 40%, rgba(15,47,54,.55) 100%);
+  pointer-events:none; transition:opacity .4s ease;
+}
+.hero img.bg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:saturate(1.05) contrast(1.02); transform:scale(1.05); will-change:transform;}
+.hero .inner{position:relative; z-index:2; width:min(1100px,92vw); padding:clamp(12px,2vw,24px);}
+.kicker{display:inline-block; padding:.45rem .9rem; border-radius:999px; background:#fff; color:var(--sea); font-weight:700; box-shadow:0 6px 26px rgba(0,0,0,.15);}
+h1.hero-title{font-size:clamp(36px,5vw,64px); line-height:1.06; letter-spacing:.2px; color:#fff; margin:.75rem 0 1rem;}
+.hero p{color:#e8f3f5; font-size:clamp(16px,1.4vw,18px); max-width:58ch}
+.btn{display:inline-flex; align-items:center; gap:.6rem; padding:.95rem 1.25rem; border-radius:999px; font-weight:700; cursor:pointer; text-decoration:none;}
+.btn.primary{background:var(--sea); color:#fff; box-shadow:0 12px 30px rgba(10,107,120,.25);}
+.btn.primary:hover{transform:translateY(-2px);}
+.btn.ghost{border:2px solid rgba(255,255,255,.85); color:#fff;}
+.hero-actions{display:flex; gap:.85rem; margin-top:1rem; flex-wrap:wrap;}
+/* Offre de bienvenue */
+.offer{width:min(1200px,92vw); margin:-70px auto 64px; background:#fff; border-radius:28px; padding:clamp(20px,3.5vw,42px); box-shadow:0 30px 60px rgba(15,47,54,.12);}
+.offer .chip{display:inline-block; padding:.5rem 1rem; border:2px solid #e6eef0; border-radius:999px; color:var(--sea); font-weight:700; background:#f7fbfc;}
+.offer h2{font-size:clamp(28px,3.6vw,44px); margin:.8rem 0 1.2rem; color:var(--ink);}
+.offer-grid{display:grid; grid-template-columns:1.2fr 1fr; gap:clamp(16px,3vw,48px); align-items:center}
+@media(max-width:900px){.offer-grid{grid-template-columns:1fr}}
+.big{-webkit-text-stroke:0; font-weight:800; font-size:clamp(46px,7.5vw,90px); color:var(--sea);}
+.bullets{display:grid; gap:14px; grid-template-columns:1fr 1fr}
+.bullets span{display:flex; align-items:center; gap:.6rem}
+.bullets i{width:10px;height:10px;border-radius:50%; background:#7b5cf7; box-shadow:0 0 0 6px #f1ecff}
+.cta-row{display:flex; gap:16px; flex-wrap:wrap; margin-top:10px}
+.btn.cta{background:linear-gradient(135deg,var(--sea),#094d55); color:#fff; padding:1.1rem 1.35rem;}
+.btn.cta:hover{filter:brightness(1.05)}
+.btn.outline{border:2px solid var(--foam); color:var(--foam); background:transparent}
+.pulse{animation:pulse 2.2s ease infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(10,107,120,.35)}70%{box-shadow:0 0 0 22px rgba(10,107,120,0)}100%{box-shadow:0 0 0 0 rgba(10,107,120,0)}}
+/* Marquee logos */
+.brands{margin:24px auto 64px; width:min(1200px,92vw)}
+.marquee{display:flex; gap:42px; align-items:center; overflow:hidden; border-radius:999px; padding:14px 22px; background:#fff; box-shadow:0 14px 40px rgba(15,47,54,.08)}
+.marquee .track{display:flex; gap:42px; animation:scroll 18s linear infinite}
+.marquee:hover .track{animation-play-state:paused}
+.brand{opacity:.9; transition:.2s; filter:grayscale(100%) contrast(1.1); height:28px}
+.brand:hover{opacity:1; filter:none}
+@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+/* Esprit Zenata */
+.split{width:min(1200px,92vw); margin:64px auto; display:grid; grid-template-columns:1.1fr .9fr; gap:38px; align-items:center}
+@media(max-width:980px){.split{grid-template-columns:1fr}}
+.split .imgwrap{position:relative}
+.split .imgwrap img{width:100%; border-radius:24px; box-shadow:0 30px 60px rgba(15,47,54,.12)}
+.badges{display:flex; gap:12px; margin-top:14px; flex-wrap:wrap}
+.badges span{padding:.55rem 1rem; border-radius:999px; background:#fff; border:1px solid #eef2f3}
+/* Process timeline wow */
+.timeline{width:min(1200px,92vw); margin:72px auto}
+.timeline h2{font-size:clamp(28px,4vw,48px)}
+.steps{position:relative; margin-top:24px}
+.steps::before{content:""; position:absolute; left:0; right:0; top:50%; height:6px; background:linear-gradient(90deg,#e9f6f7, #b7e1e6, #e9f6f7); border-radius:6px; filter:blur(.5px)}
+.step{position:relative; width:32%; min-width:240px; background:#fff; border-radius:22px; padding:22px; box-shadow:0 18px 40px rgba(15,47,54,.08); transform:translateY(0); transition:transform .35s ease, box-shadow .35s; }
+.step:hover{transform:translateY(-6px); box-shadow:0 26px 60px rgba(15,47,54,.12)}
+.steps-row{display:flex; gap:2.5%; flex-wrap:wrap; justify-content:space-between}
+.step .badge{position:absolute; top:-14px; left:22px; background:var(--gold); color:#fff; font-weight:800; width:36px;height:36px; display:grid; place-items:center; border-radius:12px}
+.step h3{margin:.3rem 0 .5rem}
+/* Testimonials carousel */
+.testi{width:min(1200px,92vw); margin:76px auto}
+.slider{position:relative; overflow:hidden}
+.track{display:flex; gap:20px; scroll-behavior:smooth}
+.card{min-width:calc(33.33% - 14px); background:#fff; border-radius:22px; padding:22px; box-shadow:0 18px 40px rgba(15,47,54,.08)}
+@media(max-width:900px){.card{min-width:calc(100% - 14px)}}
+.dots{display:flex; gap:8px; justify-content:center; margin-top:16px}
+.dot{width:8px;height:8px;border-radius:999px;background:#d8e6e8;cursor:pointer}
+.dot.active{background:var(--sea)}
+/* Footer buttons clearer */
+.footer-actions .btn{background:#fff;color:var(--sea); border:2px solid var(--sea)}
+/* On-scroll reveal */
+.reveal{opacity:0; transform:translateY(18px); transition:all .6s cubic-bezier(.2,.8,.2,1)}
+.reveal.show{opacity:1; transform:none}
+  </style>
+<style>img{max-width:100%;height:auto}</style></head>
+<body class="no-js">
+<header>
+<div class="container nav">
+<div class="brand">
+<!-- IMPORTANT: place le fichier dans le même dossier que cette page -->
+<img alt="Conciergerie Zenata" onerror="this.style.display='none'" src="logo/conciergerie zenata.png"/>
+<!-- <span>Conciergerie Zenata</span> -->
+</div>
+<nav>
+<a href="#services">Services</a>
+<a href="#process">Processus</a>
+<a href="#offer">Offre</a>
+<a class="cta" href="#contact">Obtenir un devis</a>
+</nav>
+</div>
+</header>
+<section class="hero" style="position:relative;min-height:72vh;display:grid;align-items:end">
+<img alt="Zenata éco‑cité" class="hero-bg" src="https://www.reichen-robert.fr/files/project/3/_sizes/1440_project_2268_image_fr.jpg">
+<div class="hero-overlay"></div>
+<div class="container" style="position:relative;z-index:2;padding-bottom:clamp(32px,8vw,72px)">
+<span class="pill reveal">Service premium à Zenata</span>
+<h1 class="reveal" style="font-size:clamp(32px,5vw,64px);line-height:1.05;margin:.6rem 0 1rem;color:#fff">
+      Maximisez vos revenus locatifs<br/>en toute sérénité
+    </h1>
+<p class="reveal" style="max-width:760px;color:#eef6f5;font-size:clamp(16px,2.2vw,20px)">
+      On gère A→Z : tarification dynamique, invités, ménage hôtelier &amp; maintenance. Vous encaissez, on s’occupe du reste.
+    </p>
+<div class="reveal" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:18px">
+<a class="btn" id="cta-wa">WhatsApp Direct</a>
+<a class="btn outline" href="#devis">Commencer aujourd’hui</a>
+</div>
+</div>
+</img></section>
+<section class="section container reveal" id="services">
+<h2>Nos services <span style="color:var(--gold)">complets</span></h2>
+<div class="grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:14px">
+<div class="card tilt"><h3>Optimisation Locative</h3><p class="muted">Tarification dynamique multi‑plateformes et calendrier synchronisé pour maximiser l’occupation.</p></div>
+<div class="card tilt"><h3>Expérience Invités</h3><p class="muted">Check‑in fluide, réponse rapide, livret d’accueil et assistance 24/7.</p></div>
+<div class="card tilt"><h3>Ménage &amp; Maintenance</h3><p class="muted">Nettoyage hôtelier, linge pro, maintenance préventive.</p></div>
+<div class="card tilt"><h3>Tranquillité d’esprit</h3><p class="muted">Conformité légale, assurance et gestion sécurisée des cautions.</p></div>
+</div>
+</section>
+<section class="offer reveal" id="offre">
+<span class="chip">OFFRE DE BIENVENUE</span>
+<h2>Offre Spéciale</h2>
+<div class="offer-grid">
+<div>
+<div class="big">–50%</div>
+<p style="font-size:clamp(18px,2vw,24px);margin:.25rem 0 1rem">
+        sur nos frais de gestion <strong>pendant le premier mois</strong>
+</p>
+<div class="bullets">
+<span><i></i> Mise en ligne immédiate</span>
+<span><i></i> Nettoyage hôtelier</span>
+<span><i></i> Gestion complète des invités</span>
+<span><i></i> Support 24/7</span>
+</div>
+<div class="cta-row">
+<a class="btn cta pulse wa-link" href="#">Profiter de l’offre 🚀</a>
+<a class="btn outline" href="#faq">Voir les conditions</a>
+</div>
+</div>
+<div style="align-self:center">
+<img alt="vie a zenata" src="jeune-femme-debout-a-l-arriere-et-regardant-la-mer.jpg" style="width:100%;border-radius:24px;box-shadow:0 30px 60px rgba(15,47,54,.12)"/>
+</div>
+</div>
+</section>
+
+<section class="section container reveal">
+<div class="split">
+<div class="media parallax-zoom">
+<!-- Place ton image locale dans le dossier et renomme en design-interieur.jpg -->
+<img alt="Intérieur lumineux zen" src="design-interieur-moderne-interieur.jpg"/>
+</div>
+<div class="content">
+<h2>Esprit <span style="color:var(--sea)">Zenata</span>, nature &amp; mer</h2>
+<p class="lead">Nous célébrons l’identité de Zenata dans vos annonces : couleurs, lumière, bord de mer, tons naturels. Un storytelling qui convertit.</p>
+<ul class="stagger" style="padding-left:18px;margin:10px 0 6px">
+<li>Charte visuelle alignée au logo</li>
+<li>Mise en avant nature / océan</li>
+<li>Micro‑animations élégantes</li>
+</ul>
+<div class="chips"><span class="chip">Mer</span><span class="chip">Nature</span><span class="chip">Design</span></div>
+</div>
+</div>
+<section aria-label="Plateformes" class="brands reveal">
+<div class="marquee">
+<div class="track">
+<!-- Duplique le bloc ci-dessous pour allonger la boucle -->
+<img alt="Airbnb" class="brand" src="https://upload.wikimedia.org/wikipedia/commons/6/69/Airbnb_Logo_Bélo.svg"/>
+<img alt="Booking" class="brand" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Booking.com_Logo_Grey.svg/1200px-Booking.com_Logo_Grey.svg.png"/>
+<img alt="Expedia" class="brand" src="https://cdn.freebiesupply.com/logos/large/2x/expedia-logo-black-and-white.png"/>
+<img alt="Vrbo" class="brand" src="https://www.logo.wine/a/logo/Vrbo/Vrbo-Logo.wine.svg"/>
+<img alt="Google Travel" class="brand" src="https://cdn.worldvectorlogo.com/logos/google-travel.svg"/>
+<img alt="Airbnb" class="brand" src="https://upload.wikimedia.org/wikipedia/commons/6/69/Airbnb_Logo_Bélo.svg"/>
+<img alt="Booking" class="brand" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Booking.com_Logo_Grey.svg/1200px-Booking.com_Logo_Grey.svg.png"/>
+<img alt="Expedia" class="brand" src="https://cdn.freebiesupply.com/logos/large/2x/expedia-logo-black-and-white.png"/>
+<img alt="Vrbo" class="brand" src="https://www.logo.wine/a/logo/Vrbo/Vrbo-Logo.wine.svg"/>
+<img alt="Google Travel" class="brand" src="https://cdn.worldvectorlogo.com/logos/google-travel.svg"/>
+<img alt="Airbnb" class="brand" src="https://upload.wikimedia.org/wikipedia/commons/6/69/Airbnb_Logo_Bélo.svg"/>
+<img alt="Booking" class="brand" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Booking.com_Logo_Grey.svg/1200px-Booking.com_Logo_Grey.svg.png"/>
+<img alt="Expedia" class="brand" src="https://cdn.freebiesupply.com/logos/large/2x/expedia-logo-black-and-white.png"/>
+<img alt="Vrbo" class="brand" src="https://www.logo.wine/a/logo/Vrbo/Vrbo-Logo.wine.svg"/>
+<img alt="Google Travel" class="brand" src="https://cdn.worldvectorlogo.com/logos/google-travel.svg"/>
+</div>
+</div>
+</section>
+<!------------------ Process --------------------->
+<section class="section--process" id="process">
+<div class="container">
+<h2 class="process__title">Comment ça fonctionne</h2>
+<div class="process__grid">
+<div class="process__track"></div>
+<article class="step-card">
+<div class="step-card__icon">📊</div>
+<h3 class="step-card__title">Contact &amp; audit</h3>
+<p class="step-card__desc">
+          Évaluation gratuite, estimation des revenus, plan d’action personnalisé.
+        </p>
+</article>
+<article class="step-card">
+<div class="step-card__icon">📷</div>
+<h3 class="step-card__title">Préparation &amp; mise en ligne</h3>
+<p class="step-card__desc">
+          Photos pro, annonces optimisées multi‑plateformes.
+        </p>
+</article>
+<article class="step-card">
+<div class="step-card__icon">💰</div>
+<h3 class="step-card__title">Exploitation &amp; optimisation</h3>
+<p class="step-card__desc">
+          Invités, ménage hôtelier, maintenance, pricing dynamique.
+        </p>
+</article>
+</div>
+</div>
+</section>
+<!------------------ Témoignages --------------------->
+<section class="section--testimonials" id="avis">
+<div class="container">
+<h2 class="t-title">Ils nous font confiance</h2>
+<div class="t-scroller" id="tScroller">
+<article class="t-card">
+<div class="t-author"><span class="t-avatar">Y</span> Yassine · Zenata</div>
+<p class="t-quote">“Taux d’occupation ×2 en 6 semaines.”</p>
+<div class="t-stars">★★★★★</div>
+</article>
+<article class="t-card">
+<div class="t-author"><span class="t-avatar">S</span> Sarah · Mohammedia</div>
+<p class="t-quote">“Zéro stress, notes 5★, invités ravis.”</p>
+<div class="t-stars">★★★★★</div>
+</article>
+<article class="t-card">
+<div class="t-author"><span class="t-avatar">R</span> Rachid · Investisseur</div>
+<p class="t-quote">“Reporting pro &amp; virement ponctuel.”</p>
+<div class="t-stars">★★★★★</div>
+</article>
+</div>
+<div aria-hidden="true" class="t-dots" id="tDots"></div>
+</div>
+</section>
+<!------------------ mini hero--------------------->
+<section class="section hero-mini reveal" style="position:relative;isolation:isolate">
+<div class="bg-img" style="position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1500375592092-40eb2168fd21?q=80&amp;w=1920&amp;auto=format&amp;fit=crop') center/cover no-repeat;z-index:-1"></div>
+<div class="container">
+<div class="card glass" style="max-width:820px;margin-inline:auto;text-align:center">
+<h2>Prêt à faire performer votre bien ?</h2>
+<p>On s’occupe de tout, vous recevez les virements.</p>
+<a class="cta" href="#contact">Demander une estimation</a>
+</div>
+</div>
+</section>
+<!------------------ Formulaire --------------------->
+<section class="section container reveal" id="contact">
+<h2>Prêt à commencer <span style="color:var(--gold)">votre succès</span> ?</h2>
+<div class="grid" style="display:grid;grid-template-columns:1.2fr .8fr;gap:18px">
+<form class="card" id="quoteForm">
+<div class="row">
+<div><label>Nom complet *</label><input name="name" required=""/></div>
+<div><label>Email *</label><input name="email" required="" type="email"/></div>
+</div>
+<div class="row">
+<div><label>Téléphone *</label><input name="phone" required=""/></div>
+<div><label>Localisation</label><input name="location" placeholder="Zenata / Mohammedia ..."/></div>
+</div>
+<div style="margin-top:8px"><label>Détails de la propriété *</label><textarea name="details" placeholder="Type, surface, chambres, état..." required=""></textarea></div>
+<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px">
+<button class="cta" type="submit">Envoyer ma demande ✈︎</button>
+<a class="cta secondary wa-link" href="https://wa.me/212665889233" target="_blank">WhatsApp prérempli</a>
+</div>
+<p class="muted" style="margin:8px 0 0">En cliquant, vous acceptez d’être contacté par notre équipe. Aucun spam.</p>
+</form>
+<div class="card">
+<h3>Contactez‑nous directement</h3>
+<p>WhatsApp : <a class="wa-link" href="https://wa.me/212665889233" target="_blank">+212 665 889 233 ↗</a><br/> Email : <a href="mailto:conciergeriezenata@gmail.com">conciergeriezenata@gmail.com</a><br/> Localisation : Zenata Eco‑City, Maroc</p>
+<h3>Pourquoi nous choisir ?</h3>
+<ul>
+<li>Service familial de confiance</li>
+<li>Expertise locale de Zenata</li>
+<li>Tarification transparente</li>
+<li>Assistance 24/7</li>
+</ul>
+</div>
+</div>
+</section>
+<section class="section" id="faq">
+<div class="container">
+<h2 class="reveal" style="font-size:clamp(28px,4.2vw,48px)">FAQ</h2>
+<div class="card reveal" style="padding:10px">
+<details>
+<summary>Quelles plateformes utilisez‑vous ?</summary>
+<p>Airbnb, Booking, VRBO, Google Travel + nos canaux directs. Choix selon votre bien et marché.</p>
+</details>
+<details>
+<summary>Quels sont vos frais de gestion ?</summary>
+<p>Commission transparente sur les loyers encaissés, entretien et ménage facturés au réel. Offre de bienvenue à –50% le premier mois.</p>
+</details>
+<details>
+<summary>Puis‑je bloquer des dates pour usage perso ?</summary>
+<p>Oui, vous gardez la main sur le calendrier (préavis conseillé pour éviter les conflits de réservation).</p>
+</details>
+</div>
+</div>
+</section>
+<footer>
+<div class="container footer-grid">
+<div>
+<div class="brand"><img alt="" onerror="this.style.display='none'" src="logo/logo_blanc.png"/> <strong>Conciergerie Zenata</strong></div>
+<p style="max-width:520px">Service de conciergerie spécialisé dans la gestion de propriétés locatives à Zenata. Maximisez vos revenus en toute sérénité.</p>
+<div class="footer-actions">
+<a class="btn-ghost wa-link" href="https://wa.me/212665889233">🟢 WhatsApp</a>
+<a class="btn-ghost" href="mailto:conciergeriezenata@gmail.com">✉️ Email</a>
+</div>
+</div>
+<div>
+<h4>Navigation</h4>
+<p><a href="#">Accueil</a><br/><a href="#services">Services</a><br/><a href="#process">Process</a><br/><a href="#contact">Contact</a></p>
+</div>
+<div>
+<h4>Nos Services</h4>
+<p>Optimisation locative<br/>Gestion des invités<br/>Nettoyage pro<br/>Offre spéciale</p>
+</div>
+</div>
+<div class="container" style="border-top:1px solid rgba(255,255,255,.08);margin-top:18px;padding-top:18px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+<small>© 2025 Conciergerie Zenata. Tous droits réservés.</small>
+<small><a href="#faq">FAQ</a> • <a href="#">Témoignages</a></small>
+</div>
+</footer>
+<script>
+// tiny helpers
+const $  = (s, ctx=document)=>ctx.querySelector(s);
+const $$ = (s, ctx=document)=>[...ctx.querySelectorAll(s)];
+
+/* ------------------ HERO parallax (safe) ------------------ */
+const heroImg = $('.hero img.bg');
+if (heroImg){
+  document.addEventListener('mousemove', e=>{
+    const x=(e.clientX/window.innerWidth - .5)*4;
+    const y=(e.clientY/window.innerHeight - .5)*4;
+    heroImg.style.transform = `scale(1.06) translate(${x}px, ${y}px)`;
+  }, {passive:true});
+}
+
+/* ------------------ WhatsApp prefill ------------------ */
+const waNumber = '212665889233';
+function buildWA(){
+  const message = `Bonjour Conciergerie Zenata,
+Je souhaite une évaluation gratuite de ma propriété.
+Ville: __
+Type: __
+Chambres: __
+Quand êtes-vous disponibles ?`;
+  return `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
+}
+$$('.wa-link').forEach(a=>{
+  a.addEventListener('click', e=>{
+    e.preventDefault();
+    window.open(buildWA(), '_blank');
+  });
+});
+
+/* ------------------ PROCESS reveal ------------------ */
+const stepCards = $$('.step-card');
+if (stepCards.length){
+  // Fallback: show them immediately (prevents "empty section" if JS fails)
+  stepCards.forEach(el => el.classList.add('in-view'));
+
+  // Nice reveal when supported
+  if ('IntersectionObserver' in window){
+    const processObserver = new IntersectionObserver((entries)=>{
+      entries.forEach(ent=>{
+        if (ent.isIntersecting) ent.target.classList.add('in-view');
+      });
+    }, {threshold:.15});
+    stepCards.forEach(el => processObserver.observe(el));
+  }
+}
+
+/* ------------------ TESTIMONIALS scroller + dots ------------------ */
+/* HTML expected:
+   <div id="tScroller" class="t-scroller"> ... <article class="t-card">...</article> ... </div>
+   <div id="tDots" class="t-dots"></div>
+*/
+const tScroller = $('#tScroller');
+if (tScroller){
+  const tCards   = $$('.t-card', tScroller);
+  const tDots    = $('#tDots');
+
+  function buildDots(){
+    if (!tDots) return;
+    tDots.innerHTML = '';
+    tCards.forEach((_,i)=>{
+      const d = document.createElement('span');
+      d.className = 't-dot' + (i===0 ? ' is-active' : '');
+      d.addEventListener('click', () => tScroller.scrollTo({
+        left: tCards[i].offsetLeft - 16, behavior:'smooth'
+      }));
+      tDots.appendChild(d);
+    });
+  }
+  function setActiveDot(){
+    if (!tDots) return;
+    const mid = tScroller.scrollLeft + tScroller.clientWidth/2;
+    let idx = 0;
+    tCards.forEach((c,i)=>{
+      if (mid >= c.offsetLeft && mid <= c.offsetLeft + c.offsetWidth) idx = i;
+    });
+    $$('.t-dot', tDots).forEach((d,i)=> d.classList.toggle('is-active', i===idx));
+  }
+
+  buildDots();
+  tScroller.addEventListener('scroll', setActiveDot, {passive:true});
+
+  // auto-slide with pause on interaction
+  let auto = setInterval(()=>{
+    const current = Math.round(tScroller.scrollLeft / tScroller.clientWidth);
+    const next = (current + 1) % tCards.length;
+    tScroller.scrollTo({ left: tCards[next].offsetLeft - 16, behavior:'smooth' });
+  }, 4500);
+  ['mouseenter','touchstart','focusin'].forEach(ev=>{
+    tScroller.addEventListener(ev, ()=>clearInterval(auto), {passive:true});
+  });
+}
+
+/* ------------------ Marquee (optional) ------------------ */
+$$('.marquee .track').forEach(t=>{
+  if (t.children.length < 10) t.innerHTML += t.innerHTML;
+});
+</script>
+</section>
+<section class="sz-sim-cta" style="padding:48px 16px; background:#fafafa; border-top:1px solid #eee; border-bottom:1px solid #eee;">
+<div style="max-width:1100px;margin:0 auto;">
+<h2 style="font-size:clamp(22px,3.5vw,32px);margin:0 0 8px 0;font-weight:800;">Calculez vos revenus à Zenata</h2>
+<p style="color:#555;margin:0 0 16px 0;">Essayez notre simulateur interactif et obtenez une estimation nette en 30 secondes.</p>
+<a href="simulateur.html" style="display:inline-block;padding:12px 18px;border-radius:999px;background:#000;color:#fff;text-decoration:none;font-weight:600;">Ouvrir le simulateur</a>
+</div>
+</section>
+</body>
+</html>

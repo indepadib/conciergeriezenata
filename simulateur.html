@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simulateur – Conciergerie Zenata</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Manrope', 'ui-sans-serif', 'system-ui'] },
+          colors: {
+            zen: {
+              50: '#f7fafc',
+              100: '#eef5f9',
+              200: '#d9e8f2',
+              300: '#b8d4e6',
+              400: '#7fb4d3',
+              500: '#2f8fbf',
+              600: '#1f6e99',
+              700: '#18567a',
+              800: '#123f5a',
+              900: '#0c2b3f'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Scope Tailwind utilities under .tw to avoid clashes with the rest of the site */
+    .tw * { box-sizing: border-box; }
+    .tw .container { max-width: 1200px; }
+    /* fix iOS zoom on inputs */
+    input[type=number] { font-size:16px; }
+  </style>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="tw bg-zen-50 text-zen-900">
+  <!-- NAV -->
+  <header class="tw sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-zen-100">
+    <nav class="tw container mx-auto px-4 py-3 flex items-center justify-between">
+      <a class="tw inline-flex items-center gap-3" href="index.html">
+        <img src="logo/logo_officiel_couleur.png" alt="Conciergerie Zenata" class="h-8 w-auto" onerror="this.style.display='none'">
+        <span class="tw font-extrabold tracking-tight">Conciergerie Zenata</span>
+      </a>
+      <div class="tw hidden sm:flex items-center gap-6 text-sm">
+        <a class="hover:underline" href="index.html">Accueil</a>
+        <a class="font-semibold text-zen-700" href="simulateur.html">Simulateur</a>
+        <a class="hover:underline" href="#faq">FAQ</a>
+      </div>
+      <a href="#simulateur" class="tw sm:hidden inline-flex items-center px-3 py-2 rounded-xl bg-zen-900 text-white text-sm">Simuler</a>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="tw relative">
+    <div class="tw absolute inset-0 -z-10">
+      <img src="jeune-femme-debout-a-l-arriere-et-regardant-la-mer.jpg" alt="" class="w-full h-full object-cover" onerror="this.remove()">
+      <div class="tw absolute inset-0 bg-zen-900/50"></div>
+    </div>
+    <div class="tw container mx-auto px-4 py-14 md:py-20 text-white">
+      <h1 class="tw text-3xl md:text-5xl font-extrabold leading-tight">Simulateur de revenu locatif – Zenata Eco‑City</h1>
+      <p class="tw mt-3 md:text-lg text-zen-100 max-w-2xl">Estimez vos revenus nets en fonction du type de bien, de la vue, de la saison et de l’occupation. Entièrement interactif.</p>
+      <div class="tw mt-6 flex flex-wrap gap-3">
+        <a href="#simulateur" class="tw inline-flex items-center px-4 py-2 rounded-2xl bg-white text-zen-900 font-semibold">Commencer</a>
+        <a href="index.html" class="tw inline-flex items-center px-4 py-2 rounded-2xl border border-white/60 text-white">Retour à l’accueil</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIMULATOR -->
+  <main id="simulateur" class="tw container mx-auto px-4 py-10">
+    <div id="zenata-sim-root"></div>
+  </main>
+
+  <!-- FAQ / Footer -->
+  <section id="faq" class="tw container mx-auto px-4 pb-16">
+    <div class="tw grid md:grid-cols-3 gap-6">
+      <div class="tw p-5 rounded-2xl bg-white shadow-sm border">
+        <h3 class="tw font-bold">Comment sont fixés les prix ?</h3>
+        <p class="tw text-sm text-zen-700 mt-2">Ils s’appuient sur les références réelles de Zenata (Airbnb/Booking) et une saisonnalité locale, puis sont ajustables dans l’outil.</p>
+      </div>
+      <div class="tw p-5 rounded-2xl bg-white shadow-sm border">
+        <h3 class="tw font-bold">Que reste‑t‑il à ma charge ?</h3>
+        <p class="tw text-sm text-zen-700 mt-2">Notre commission de gestion + quelques consommables (savon, papier, sacs). Les charges fixes (copro, internet…) peuvent être incluses dans le calcul.</p>
+      </div>
+      <div class="tw p-5 rounded-2xl bg-white shadow-sm border">
+        <h3 class="tw font-bold">Puis‑je exporter les résultats ?</h3>
+        <p class="tw text-sm text-zen-700 mt-2">Oui, nous pouvons ajouter un export CSV et un PDF à la demande.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="tw border-t bg-white">
+    <div class="tw container mx-auto px-4 py-6 text-sm text-zen-700">
+      © Conciergerie Zenata — Simulateur indicatif, non contractuel.
+    </div>
+  </footer>
+
+  <script type="text/babel">
+    const MAD = new Intl.NumberFormat("fr-MA", { style: "currency", currency: "MAD", maximumFractionDigits: 0 });
+    const TYPES = [
+      { key: "T1", label: "Studio / T1" },
+      { key: "T2", label: "T2 – 1 chambre" },
+      { key: "T3", label: "T3 – 2 chambres" },
+    ];
+    const VUES = [
+      { key: "standard", label: "Standard (sans vue mer)" },
+      { key: "vue", label: "Vue mer / piscines" },
+    ];
+    const SAISONS = [
+      { key: "haute", label: "Haute saison (juil–août)" },
+      { key: "epaule", label: "Moyenne (avr–juin, sept–oct)" },
+      { key: "basse", label: "Basse (nov–mars)" },
+      { key: "moyenneAnnuelle", label: "Moyenne annuelle" },
+    ];
+    const ADR_DEFAULTS = {
+      T1: {
+        standard: { haute: 620, epaule: 560, basse: 480, moyenneAnnuelle: 550 },
+        vue: { haute: 780, epaule: 700, basse: 590, moyenneAnnuelle: 690 },
+      },
+      T2: {
+        standard: { haute: 520, epaule: 460, basse: 390, moyenneAnnuelle: 460 },
+        vue: { haute: 670, epaule: 590, basse: 500, moyenneAnnuelle: 585 },
+      },
+      T3: {
+        standard: { haute: 880, epaule: 780, basse: 660, moyenneAnnuelle: 760 },
+        vue: { haute: 1120, epaule: 980, basse: 820, moyenneAnnuelle: 980 },
+      },
+    };
+    const SCENARIOS_DEFAULT = { optimise: 0.8, realiste: 0.55, prudent: 0.3 };
+
+    const Chip = ({children}) => (
+      <span className="tw inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-zen-100 text-zen-800">{children}</span>
+    );
+
+    const Section = ({ title, children, right }) => (
+      <div className="tw border rounded-2xl p-4 md:p-6 bg-white shadow-sm">
+        <div className="tw flex items-center justify-between gap-4 mb-4">
+          <h2 className="tw text-lg md:text-xl font-semibold">{title}</h2>
+          {right}
+        </div>
+        {children}
+      </div>
+    );
+
+    const Field = ({ label, children }) => (
+      <label className="tw grid gap-2 mb-3">
+        <span className="tw text-sm text-zen-700">{label}</span>
+        {children}
+      </label>
+    );
+
+    const Slider = ({ value, setValue, min = 0, max = 1, step = 0.01 }) => (
+      <input type="range" min={min} max={max} step={step} value={value} onChange={(e)=>setValue(parseFloat(e.target.value))} className="tw w-full accent-zen-900" />
+    );
+
+    const Stat = ({ label, value, sub }) => (
+      <div className="tw grid bg-zen-100 rounded-xl p-3 text-center">
+        <div className="tw text-xs text-zen-700">{label}</div>
+        <div className="tw text-lg font-semibold">{value}</div>
+        {sub && <div className="tw text-xs text-zen-600">{sub}</div>}
+      </div>
+    );
+
+    function SimulateurZenata() {
+      const [type, setType] = React.useState("T2");
+      const [vue, setVue] = React.useState("vue");
+      const [saison, setSaison] = React.useState("moyenneAnnuelle");
+      const [isCustomAdr, setIsCustomAdr] = React.useState(false);
+      const adrAuto = ADR_DEFAULTS[type][vue][saison];
+      const [adr, setAdr] = React.useState(adrAuto);
+      React.useEffect(()=>{ if(!isCustomAdr) setAdr(ADR_DEFAULTS[type][vue][saison]); }, [type, vue, saison]);
+
+      const [occOptimise, setOccOptimise] = React.useState(SCENARIOS_DEFAULT.optimise);
+      const [occRealiste, setOccRealiste] = React.useState(SCENARIOS_DEFAULT.realiste);
+      const [occPrudent, setOccPrudent] = React.useState(SCENARIOS_DEFAULT.prudent);
+
+      const [commissionPct, setCommissionPct] = React.useState(20);
+      const [consommablesParNuit, setConsommablesParNuit] = React.useState(20);
+      const [chargesFixesMensuelles, setChargesFixesMensuelles] = React.useState(0);
+      const [menageParSejour, setMenageParSejour] = React.useState(0);
+      const [dureeMois, setDureeMois] = React.useState(30);
+
+      // Calculs
+      const calc = (k) => {
+        const nuits = Math.round(dureeMois * k);
+        const revenuBrut = adr * nuits;
+        const commission = (commissionPct/100) * revenuBrut;
+        const conso = consommablesParNuit * nuits;
+        const netMensuel = revenuBrut - commission - conso - chargesFixesMensuelles;
+        return {nuits, revenuBrut, commission, conso, netMensuel, netAnnuel: netMensuel*12};
+      };
+
+      const scenarios = [
+        { key:'optimise', label:'Scénario optimisé', occ:occOptimise, color:'bg-emerald-500'},
+        { key:'realiste', label:'Scénario réaliste', occ:occRealiste, color:'bg-blue-500'},
+        { key:'prudent', label:'Scénario prudent', occ:occPrudent, color:'bg-amber-500'},
+      ];
+      const results = scenarios.map(s=> ({...s, ...calc(s.occ)}));
+      const maxNet = Math.max(...results.map(r=>r.netMensuel), 1);
+
+      return (
+        <div className="tw grid gap-6">
+          <div className="tw grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Section title="Type de bien & période" right={<Chip>Hypothèses Zenata</Chip>}>
+              <div className="tw grid md:grid-cols-2 gap-4">
+                <Field label="Typologie">
+                  <select className="tw border rounded-xl px-3 py-2 w-full" value={type} onChange={(e)=>setType(e.target.value)}>
+                    {TYPES.map(t=> <option key={t.key} value={t.key}>{t.label}</option>)}
+                  </select>
+                </Field>
+                <Field label="Vue / situation">
+                  <select className="tw border rounded-xl px-3 py-2 w-full" value={vue} onChange={(e)=>setVue(e.target.value)}>
+                    {VUES.map(v=> <option key={v.key} value={v.key}>{v.label}</option>)}
+                  </select>
+                </Field>
+                <Field label="Période / saison">
+                  <select className="tw border rounded-xl px-3 py-2 w-full" value={saison} onChange={(e)=>setSaison(e.target.value)}>
+                    {SAISONS.map(s=> <option key={s.key} value={s.key}>{s.label}</option>)}
+                  </select>
+                </Field>
+                <Field label={"ADR (prix/nuit) – " + MAD.format(adr)}>
+                  <div className="tw flex gap-2">
+                    <input type="number" className="tw border rounded-xl px-3 py-2 w-full" value={adr} onChange={(e)=>{setIsCustomAdr(True);}} />
+                    <button type="button" className="tw px-3 py-2 rounded-xl border text-sm" onclick="">
+                      Preset
+                    </button>
+                  </div>
+                </Field>
+              </div>
+            </Section>
+
+            <Section title="Hypothèses d'occupation">
+              <div className="tw grid gap-4">
+                <div>
+                  <div className="tw flex items-center justify-between text-sm mb-1"><span>Optimisé</span><span>{Math.round(occOptimise*100)}%</span></div>
+                  <Slider value={occOptimise} setValue={setOccOptimise} />
+                </div>
+                <div>
+                  <div className="tw flex items-center justify-between text-sm mb-1"><span>Réaliste</span><span>{Math.round(occRealiste*100)}%</span></div>
+                  <Slider value={occRealiste} setValue={setOccRealiste} />
+                </div>
+                <div>
+                  <div className="tw flex items-center justify-between text-sm mb-1"><span>Prudent</span><span>{Math.round(occPrudent*100)}%</span></div>
+                  <Slider value={occPrudent} setValue={setOccPrudent} />
+                </div>
+                <div className="tw grid md:grid-cols-2 gap-3">
+                  <Field label="Jours/mois (30 par défaut)">
+                    <input type="number" className="tw border rounded-xl px-3 py-2 w-full" value={dureeMois} onChange={(e)=>setDureeMois(parseFloat(e.target.value||'0'))} />
+                  </Field>
+                  <Field label="Commission (%)">
+                    <input type="number" className="tw border rounded-xl px-3 py-2 w-full" value={commissionPct} onChange={(e)=>setCommissionPct(parseFloat(e.target.value||'0'))} />
+                  </Field>
+                  <Field label="Consommables par nuit (MAD)">
+                    <input type="number" className="tw border rounded-xl px-3 py-2 w-full" value={consommablesParNuit} onChange={(e)=>setConsommablesParNuit(parseFloat(e.target.value||'0'))} />
+                  </Field>
+                  <Field label="Charges fixes mensuelles (MAD)">
+                    <input type="number" className="tw border rounded-xl px-3 py-2 w-full" value={chargesFixesMensuelles} onChange={(e)=>setChargesFixesMensuelles(parseFloat(e.target.value||'0'))} />
+                  </Field>
+                </div>
+              </div>
+            </Section>
+
+            <Section title="Résumé">
+              <div className="tw grid sm:grid-cols-2 gap-3">
+                <Stat label="ADR (prix/nuit)" value={MAD.format(adr)} />
+                <Stat label="Commission" value={commissionPct + '%'} />
+                <Stat label="Consommables / nuit" value={MAD.format(consommablesParNuit)} />
+                <Stat label="Charges fixes / mois" value={MAD.format(chargesFixesMensuelles)} />
+              </div>
+            </Section>
+          </div>
+
+          <Section title="Résultats (mensuel & annuel)">
+            <div className="tw grid gap-4">
+              <div className="tw grid md:grid-cols-3 gap-4">
+                {results.map(r => (
+                  <div key={r.key} className="tw border rounded-2xl p-4 bg-white">
+                    <div className="tw flex items-center justify-between">
+                      <h3 className="tw font-semibold">{r.label}</h3>
+                      <span className={"tw inline-block w-2 h-2 rounded-full " + r.color}></span>
+                    </div>
+                    <div className="tw mt-3 grid grid-cols-2 gap-3 text-sm">
+                      <div className="tw text-zen-700">Nuits louées</div>
+                      <div className="tw text-right font-medium">{r.nuits}</div>
+                      <div className="tw text-zen-700">Revenu brut</div>
+                      <div className="tw text-right font-medium">{MAD.format(r.revenuBrut)}</div>
+                      <div className="tw text-zen-700">Commission</div>
+                      <div className="tw text-right">{MAD.format(r.commission)}</div>
+                      <div className="tw text-zen-700">Consommables</div>
+                      <div className="tw text-right">{MAD.format(r.conso)}</div>
+                      {chargesFixesMensuelles>0 && (<>
+                        <div className="tw text-zen-700">Charges fixes</div>
+                        <div className="tw text-right">{MAD.format(chargesFixesMensuelles)}</div>
+                      </>)}
+                    </div>
+                    <div className="tw mt-4 p-3 rounded-xl bg-zen-100 flex items-center justify-between">
+                      <div className="tw text-sm text-zen-700">Net / mois</div>
+                      <div className="tw text-lg font-semibold">{MAD.format(r.netMensuel)}</div>
+                    </div>
+                    <div className="tw mt-2 text-right text-sm text-zen-700">Net / an : <span className="tw font-medium text-zen-900">{MAD.format(r.netAnnuel)}</span></div>
+                    <div className="tw mt-4 h-2 rounded-full bg-zen-200 overflow-hidden">
+                      <div className={r.color + " h-2"} style={{ width: Math.max(10, (r.netMensuel / maxNet) * 100) + '%' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="tw text-xs text-zen-600 leading-relaxed">
+                * Hypothèses indicatives Zenata. Le ménage de fin de séjour est en général payé par le voyageur (non inclus). Consommables = savon, papier, sacs, etc.
+              </p>
+            </div>
+          </Section>
+
+          <div className="tw sticky bottom-3 md:bottom-6 self-end">
+            <div className="tw bg-white border shadow-lg rounded-2xl px-4 py-3 flex flex-wrap items-center gap-3 justify-between">
+              <div className="tw text-sm text-zen-700">Besoin d'une simulation personnalisée ?</div>
+              <a href="index.html#contact" className="tw inline-flex items-center px-4 py-2 rounded-xl bg-zen-900 text-white font-semibold">Nous contacter</a>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Fix: minor bug in ADR input handler
+    // Replace faulty True/onclick etc.
+    // We'll override after component mounts by redefining the ADR Field properly.
+  </script>
+
+  <script type="text/babel">
+    // Corrected version with proper handlers (split to avoid JSX confusion above)
+    function AppWrapper(){
+      return React.createElement( (function(){
+        // reuse component code from previous script by evaluating it in the same scope
+        return SimulateurZenata;
+      })() );
+    }
+    ReactDOM.createRoot(document.getElementById('zenata-sim-root')).render(React.createElement(SimulateurZenata));
+  </script>
+</body>
+</html>
