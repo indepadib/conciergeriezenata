@@ -1,98 +1,114 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Blog – Conciergerie Zenata | Conseils & Rentabilité</title>
-  <meta name="description" content="Articles premium pour investisseurs à Zenata : rentabilité locative, pricing dynamique, check-lists opérationnelles." />
-  <link rel="icon" type="image/png" href="/logo/logo_officiel_couleur_picto.png" />
+  <meta name="description" content="Articles premium pour investisseurs à Zenata : rentabilité locative, pricing dynamique, check-lists, taux d’occupation et bonnes pratiques."/>
+  <link rel="icon" type="image/png" href="/logo/logo_officiel_couleur_picto.png"/>
   <link rel="canonical" href="https://www.votre-domaine-zenata.ma/blog/"/>
-
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="article" />
-  <meta property="og:title" content="Blog – Conciergerie Zenata | Conseils & Rentabilité" />
-  <meta property="og:description" content="Articles premium pour investisseurs à Zenata : rentabilité locative, pricing dynamique, check-lists opérationnelles." />
-  <meta property="og:image" content="/logo/og_default.jpg" />
-  <meta property="og:url" content="https://www.votre-domaine-zenata.ma/blog/" />
-
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Blog – Conciergerie Zenata | Conseils & Rentabilité" />
-  <meta name="twitter:description" content="Articles premium pour investisseurs à Zenata : rentabilité locative, pricing dynamique, check-lists opérationnelles." />
-  <meta name="twitter:image" content="/logo/og_default.jpg" />
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = {
-      theme: { extend: { fontFamily: { sans: ['Manrope','ui-sans-serif','system-ui'] }, colors: { zen: { 50:'#f7fafc',100:'#eef5f9',200:'#d9e8f2',300:'#b8d4e6',400:'#7fb4d3',500:'#2f8fbf',600:'#1f6e99',700:'#18567a',800:'#123f5a',900:'#0c2b3f' } } } }
-    }
+    tailwind.config={theme:{extend:{fontFamily:{sans:['Manrope','ui-sans-serif','system-ui']},colors:{zen:{50:'#f7fafc',100:'#eef5f9',200:'#d9e8f2',300:'#b8d4e6',400:'#7fb4d3',500:'#2f8fbf',600:'#1f6e99',700:'#18567a',800:'#123f5a',900:'#0c2b3f'}}}}};
   </script>
-  <style>
-    html{scroll-behavior:smooth}
-    .prose img{max-width:100%;height:auto;border-radius:1rem}
-  </style>
-  
-
-  <script type="application/ld+json">
-  {"@context": "https://schema.org", "@type": "Blog", "name": "Conciergerie Zenata – Blog", "url": "https://www.votre-domaine-zenata.ma/blog/", "publisher": {"@type": "Organization", "name": "Conciergerie Zenata", "logo": {"@type": "ImageObject", "url": "https://www.votre-domaine-zenata.ma/logo/logo_officiel_couleur_picto.png"}}, "inLanguage": "fr-MA"}
-  </script>
+  <link rel="stylesheet" href="/assets/blog.css">
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
 </head>
 <body class="bg-zen-50 text-zen-900">
-  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b">
+  <header class="sticky top-0 z-30 bg-white/80 backdrop-blur border-b">
     <nav class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
       <a href="/index.html" class="inline-flex items-center" title="Accueil">
         <img src="/logo/logo_officiel_couleur_picto.png" class="h-10 w-auto" alt="Logo">
       </a>
       <div class="hidden sm:flex items-center gap-6 text-sm">
-        <a href="/index.html" class="hover:underline">Accueil</a>
         <a href="/simulateur.html" class="hover:underline">Simulateur</a>
         <a href="/blog/" class="font-semibold text-zen-700">Blog</a>
       </div>
     </nav>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 py-10">
-    <h1 class="text-3xl md:text-4xl font-extrabold">Blog Conciergerie Zenata</h1>
-    <p class="text-zen-700 mt-2">Guides concrets pour maximiser vos revenus à Zenata Eco‑City.</p>
+  <section class="gradient-hero">
+    <div class="max-w-6xl mx-auto px-4 py-12 md:py-16">
+      <div class="grid md:grid-cols-2 gap-8 items-center">
+        <div data-aos="fade-right">
+          <span class="inline-flex items-center px-3 py-1 rounded-full bg-zen-100 text-zen-800 text-xs font-semibold">Blog • Conseils investisseurs</span>
+          <h1 class="text-3xl md:text-5xl font-extrabold leading-tight mt-3">Maximisez la rentabilité de votre bien à Zenata</h1>
+          <p class="text-slate-700 mt-3 md:text-lg">Guides concrets, grilles de pricing, check-lists opérationnelles et retours terrain pour performer sur Airbnb/Booking à Zenata Eco-City.</p>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <a href="/simulateur.html" class="inline-flex items-center px-4 py-2 rounded-xl bg-slate-900 text-white">Simuler mes revenus</a>
+            <a href="#articles" class="inline-flex items-center px-4 py-2 rounded-xl border">Derniers articles</a>
+          </div>
+        </div>
+        <div class="relative" data-aos="fade-left">
+          <img src="/images/blog/rentabilite-zenata-hero.jpg" alt="" class="w-full h-72 object-cover rounded-2xl shadow-2xl mask-soft" onerror="this.style.display='none'">
+          <div class="absolute -bottom-4 -left-4 w-40 h-40 bg-white rounded-2xl shadow-xl grid place-items-center glass">
+            <div class="text-center p-4">
+              <div class="text-2xl font-extrabold">+65%</div>
+              <div class="text-xs text-slate-600">Occupation cible<br>année 1 (réaliste)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <!-- List -->
-    <div class="grid md:grid-cols-2 gap-6 mt-8">
-      <!-- Card 1 -->
-      <article class="bg-white rounded-2xl border shadow-sm overflow-hidden">
-        <a href="/blog/zenata-rentabilite-2025.html"><img src="/images/blog/rentabilite-zenata-hero.jpg" alt="" class="w-full h-48 object-cover" onerror="this.style.display='none'"></a>
+  <main id="articles" class="max-w-6xl mx-auto px-4 py-12">
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <article class="bg-white rounded-2xl border overflow-hidden card-press" data-aos="fade-up">
+        <a href="/blog/zenata-rentabilite-2025.html">
+          <img src="/images/blog/rentabilite-zenata-hero.jpg" alt="" class="w-full h-44 object-cover" onerror="this.style.display='none'">
+        </a>
         <div class="p-5">
-          <a class="inline-block text-xs px-2 py-1 rounded-full bg-zen-100 text-zen-800" href="/blog/?tag=rentabilite">Rentabilité</a>
-          <h2 class="mt-2 text-xl font-bold"><a href="/blog/zenata-rentabilite-2025.html" class="hover:underline">Rentabilité locative à Zenata : le guide 2025</a></h2>
-          <p class="text-sm text-zen-700 mt-1">Nos benchmarks locaux (ADR, saisonnalité) et la méthode pour viser un taux d’occupation élevé.</p>
-          <div class="mt-3 text-xs text-zen-600">18 octobre 2025 • 8 min de lecture</div>
+          <div class="flex items-center justify-between">
+            <a class="inline-block text-xs px-2 py-1 rounded-full bg-zen-100 text-zen-800" href="/blog/?tag=rentabilite">Rentabilité</a>
+            <span class="text-xs text-slate-500">18 oct. 2025</span>
+          </div>
+          <h2 class="mt-2 text-xl font-bold">
+            <a href="/blog/zenata-rentabilite-2025.html" class="hover:underline">Rentabilité locative à Zenata : le guide 2025</a>
+          </h2>
+          <p class="text-sm text-slate-700 mt-1">Stratégies concrètes, saisonnalité et pricing dynamique pour viser un rendement solide.</p>
+          <div class="mt-4">
+            <a href="/blog/zenata-rentabilite-2025.html" class="inline-flex items-center px-3 py-1.5 rounded-lg border text-sm">Lire</a>
+          </div>
         </div>
       </article>
 
-      <!-- Card 2 -->
-      <article class="bg-white rounded-2xl border shadow-sm overflow-hidden">
-        <a href="/blog/checklist-airbnb-zenata.html"><img src="/images/blog/checklist-zenata-hero.jpg" alt="" class="w-full h-48 object-cover" onerror="this.style.display='none'"></a>
+      <article class="bg-white rounded-2xl border overflow-hidden card-press" data-aos="fade-up" data-aos-delay="100">
+        <a href="/blog/checklist-airbnb-zenata.html">
+          <img src="/images/blog/checklist-zenata-hero.jpg" alt="" class="w-full h-44 object-cover" onerror="this.style.display='none'">
+        </a>
         <div class="p-5">
-          <a class="inline-block text-xs px-2 py-1 rounded-full bg-zen-100 text-zen-800" href="/blog/?tag=checklist">Opérations</a>
-          <h2 class="mt-2 text-xl font-bold"><a href="/blog/checklist-airbnb-zenata.html" class="hover:underline">Check‑list d’un appart prêt pour Airbnb à Zenata</a></h2>
-          <p class="text-sm text-zen-700 mt-1">Équipement, consommables, photos, pricing : tout ce qu’on met en place avant la mise en ligne.</p>
-          <div class="mt-3 text-xs text-zen-600">18 octobre 2025 • 6 min de lecture</div>
+          <div class="flex items-center justify-between">
+            <a class="inline-block text-xs px-2 py-1 rounded-full bg-zen-100 text-zen-800" href="/blog/?tag=checklist">Opérations</a>
+            <span class="text-xs text-slate-500">18 oct. 2025</span>
+          </div>
+          <h2 class="mt-2 text-xl font-bold">
+            <a href="/blog/checklist-airbnb-zenata.html" class="hover:underline">Check-list d’un appart prêt pour Airbnb à Zenata</a>
+          </h2>
+          <p class="text-sm text-slate-700 mt-1">Équipement premium, photos qui vendent, process fluides et notes élevées.</p>
+          <div class="mt-4">
+            <a href="/blog/checklist-airbnb-zenata.html" class="inline-flex items-center px-3 py-1.5 rounded-lg border text-sm">Lire</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="bg-white rounded-2xl border overflow-hidden card-press" data-aos="fade-up" data-aos-delay="200">
+        <div class="p-5 h-full grid place-items-center text-center text-slate-500">
+          Bientôt : Pricing dynamique par saison, Kit photo, Données 2025...
         </div>
       </article>
     </div>
-
-    <nav class="mt-10 flex items-center justify-between text-sm">
-      <span class="text-zen-600">Page 1</span>
-      <a class="opacity-50 pointer-events-none">Suivant →</a>
-    </nav>
   </main>
 
   <footer class="border-t bg-white">
-    <div class="max-w-6xl mx-auto px-4 py-6 text-sm text-zen-700">
-      © Conciergerie Zenata — Blog informatif, non contractuel.
-    </div>
+    <div class="max-w-6xl mx-auto px-4 py-6 text-sm text-slate-700">© Conciergerie Zenata — Blog informatif, non contractuel.</div>
   </footer>
+
+  <div class="reading-progress"></div>
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script src="/assets/blog.js"></script>
 </body>
 </html>
