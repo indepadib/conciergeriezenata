@@ -1,0 +1,11 @@
+
+:root{ --ring: 36 100% 50%; }
+html{ scroll-behavior:smooth; }
+.prose img{ border-radius:1rem; }
+.card-press{ transition: transform .25s ease, box-shadow .25s ease; }
+.card-press:hover{ transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,.08); }
+.glass{ background: rgba(255,255,255,.7); backdrop-filter: blur(10px); }
+.gradient-hero{ background: radial-gradient(1200px 600px at 10% -10%, #dbeafe 0%, transparent 60%), radial-gradient(800px 500px at 90% -20%, #fde68a 0%, transparent 60%); }
+.reading-progress{ position:fixed; top:0; left:0; height:3px; background:linear-gradient(90deg,#0ea5e9,#22c55e); width:0%; z-index:50; }
+.toc a.active{ color:#0f172a; font-weight:700; }
+.mask-soft{ mask-image: linear-gradient(to bottom, black 80%, transparent 100%); }
