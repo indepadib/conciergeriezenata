@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title><!-- ≤ 60 car. | Ex: Pricing dynamique Airbnb Zenata : grille 2025 --></title>
+  <meta name="description" content="<!-- ≤ 160 car. | Résumé orienté intention de recherche -->"/>
+  <link rel="canonical" href="https://www.votre-domaine-zenata.ma/blog/slug-de-l-article.html"/>
+  <link rel="icon" type="image/png" href="/logo/logo_officiel_couleur_picto.png"/>
+
+  <!-- Open Graph / Twitter (mets l’image hero correspondante) -->
+  <meta property="og:type" content="article"/>
+  <meta property="og:title" content=""/>
+  <meta property="og:description" content=""/>
+  <meta property="og:image" content="https://www.votre-domaine-zenata.ma/images/blog/TON-IMAGE.jpg"/>
+  <meta property="og:url" content="https://www.votre-domaine-zenata.ma/blog/slug-de-l-article.html"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+
+  <!-- Fonts + Tailwind + styles/JS blog -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Manrope','ui-sans-serif','system-ui']},colors:{zen:{50:'#f7fafc',100:'#eef5f9',200:'#d9e8f2',300:'#b8d4e6',400:'#7fb4d3',500:'#2f8fbf',600:'#1f6e99',700:'#18567a',800:'#123f5a',900:'#0c2b3f'}}}}};</script>
+  <link rel="stylesheet" href="/assets/blog.css">
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+
+  <!-- JSON-LD Article + FAQ (facultatif si pas de FAQ) -->
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org","@type":"Article",
+    "headline":"TITRE H1",
+    "description":"META DESCRIPTION",
+    "image":"https://www.votre-domaine-zenata.ma/images/blog/TON-IMAGE.jpg",
+    "datePublished":"2025-10-18","dateModified":"2025-10-18",
+    "author":{"@type":"Person","name":"Équipe Conciergerie Zenata"},
+    "publisher":{"@type":"Organization","name":"Conciergerie Zenata","logo":{"@type":"ImageObject","url":"https://www.votre-domaine-zenata.ma/logo/logo_officiel_couleur_picto.png"}},
+    "mainEntityOfPage":{"@type":"WebPage","@id":"https://www.votre-domaine-zenata.ma/blog/slug-de-l-article.html"}
+  }
+  </script>
+</head>
+<body class="bg-zen-50 text-zen-900">
+  <!-- NAV -->
+  <header class="sticky top-0 z-30 bg-white/70 backdrop-blur border-b">
+    <nav class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="/index.html" class="inline-flex items-center"><img src="/logo/logo_officiel_couleur_picto.png" class="h-10" alt="Logo"></a>
+      <div class="hidden sm:flex items-center gap-6 text-sm">
+        <a href="/simulateur.html" class="hover:underline">Simulateur</a>
+        <a href="/blog/" class="font-semibold text-zen-700">Blog</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- HERO + Sommaire -->
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 -z-10 gradient-hero"></div>
+    <div class="max-w-4xl mx-auto px-4 py-10 md:py-14">
+      <div class="flex items-center gap-3 text-xs text-slate-600 mb-2">
+        <a href="/blog/" class="px-2 py-1 rounded-full bg-zen-100 text-zen-800">Catégorie</a>
+        <span>•</span><span>18 octobre 2025</span><span>•</span><span>Lecture 8–12 min</span>
+      </div>
+      <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">TITRE H1</h1>
+      <p class="mt-3 md:text-lg text-slate-700">Intro courte 40–60 mots avec mots-clés secondaires naturels.</p>
+      <div class="mt-6 grid md:grid-cols-[2fr,1fr] gap-6 items-start">
+        <figure data-aos="zoom-in">
+          <img src="/images/blog/TON-IMAGE.jpg" alt="" class="w-full h-72 md:h-96 object-cover rounded-2xl shadow-2xl" onerror="this.style.display='none'">
+        </figure>
+        <aside class="glass rounded-2xl p-5 border" data-aos="fade-left">
+          <h3 class="font-bold">Sommaire</h3>
+          <nav class="toc text-sm mt-2 space-y-1"></nav>
+          <div class="mt-4"><a href="/simulateur.html" class="inline-flex items-center px-3 py-2 rounded-xl bg-slate-900 text-white text-sm">Simuler mes revenus</a></div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTENU -->
+  <article class="max-w-3xl mx-auto px-4 py-10 prose prose-neutral">
+    <h2>Sous-titre H2</h2>
+    <p>Paragraphe court. Intègre naturellement “conciergerie Zenata”, “location courte durée Zenata”, etc. Évite le bourrage de mots-clés.</p>
+
+    <h3>Sous-titre H3 (facultatif)</h3>
+    <p>Contenu détaillé, exemples, conseils actionnables.</p>
+
+    <blockquote data-aos="fade-up">Une citation utile et courte pour rythmer la lecture.</blockquote>
+
+    <div class="grid grid-cols-2 gap-3 not-prose" data-aos="zoom-in-up">
+      <img src="/images/blog/gallery-1.jpg" class="rounded-xl shadow-md" onerror="this.style.display='none'">
+      <img src="/images/blog/gallery-2.jpg" class="rounded-xl shadow-md" onerror="this.style.display='none'">
+    </div>
+
+    <h2>Conclusion</h2>
+    <p>Résumé + appel clair à l’action vers le simulateur et la prise de contact.</p>
+
+    <hr class="my-10"/>
+    <div class="not-prose flex items-center justify-between">
+      <a href="/blog/" class="text-sm underline">← Tous les articles</a>
+      <a href="/simulateur.html" class="inline-flex items-center px-4 py-2 rounded-xl bg-slate-900 text-white text-sm">Simuler mes revenus</a>
+    </div>
+  </article>
+
+  <footer class="border-t bg-white">
+    <div class="max-w-6xl mx-auto px-4 py-6 text-sm text-slate-700">© Conciergerie Zenata — Blog informatif, non contractuel.</div>
+  </footer>
+
+  <div class="reading-progress"></div>
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script src="/assets/blog.js"></script>
+</body>
+</html>
