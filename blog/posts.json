@@ -30,5 +30,21 @@
     "category": "Rentabilité",
     "excerpt": "Analyse des taux d’occupation Airbnb/Booking à Zenata et stratégies concrètes pour optimiser vos revenus locatifs.",
     "image": "/images/blog/taux-occupation-zenata-hero.jpg"
-  }
+  },
+  {
+  "title": "Guide photo Airbnb à Zenata : angles, lumière, mise en scène & retouches",
+  "slug": "guide-photo-airbnb-zenata",
+  "date": "2025-10-20",
+  "category": "Photos",
+  "excerpt": "Le guide photo complet pour Airbnb/Booking à Zenata : angles, lumière, ordre des images, mise en scène et retouches pour booster CTR & réservations.",
+  "image": "/images/blog/photo-airbnb-zenata-hero.jpg"
+},
+{
+  "title": "Mid-stay & Corporate à Zenata : remplir la basse saison intelligemment",
+  "slug": "midstay-corporate-zenata",
+  "date": "2025-10-20",
+  "category": "Basse saison",
+  "excerpt": "Captez les séjours 7–28 nuits et les missions d’entreprises pour lisser votre occupation d’hiver à Zenata : offres, pricing, canaux et process.",
+  "image": "/images/blog/midstay-zenata-hero.jpg"
+}
 ]
