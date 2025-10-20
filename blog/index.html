@@ -4,24 +4,53 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Blog – Conciergerie Zenata | Conseils & Rentabilité</title>
-  <meta name="description" content="Articles premium pour investisseurs à Zenata : rentabilité locative, pricing dynamique, check-lists, taux d’occupation et bonnes pratiques."/>
+  <meta name="description" content="Articles premium pour investisseurs à Zenata : rentabilité, pricing dynamique, check-lists, taux d’occupation et bonnes pratiques."/>
   <link rel="icon" type="image/png" href="/logo/logo_officiel_couleur_picto.png"/>
   <link rel="canonical" href="https://www.votre-domaine-zenata.ma/blog/"/>
+  <link rel="alternate" type="application/rss+xml" title="Conciergerie Zenata – Blog" href="/blog/rss.xml"/>
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="Blog – Conciergerie Zenata"/>
+  <meta property="og:description" content="Conseils rentabilité, pricing, opérations et meilleures pratiques à Zenata Eco-City."/>
+  <meta property="og:url" content="https://www.votre-domaine-zenata.ma/blog/"/>
+  <meta property="og:image" content="https://www.votre-domaine-zenata.ma/images/blog/rentabilite-zenata-hero.jpg"/>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config={theme:{extend:{fontFamily:{sans:['Manrope','ui-sans-serif','system-ui']},colors:{zen:{50:'#f7fafc',100:'#eef5f9',200:'#d9e8f2',300:'#b8d4e6',400:'#7fb4d3',500:'#2f8fbf',600:'#1f6e99',700:'#18567a',800:'#123f5a',900:'#0c2b3f'}}}}};
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Manrope','ui-sans-serif','system-ui'] },
+          colors: { zen:{50:'#f7fafc',100:'#eef5f9',200:'#d9e8f2',300:'#b8d4e6',400:'#7fb4d3',500:'#2f8fbf',600:'#1f6e99',700:'#18567a',800:'#123f5a',900:'#0c2b3f'} }
+        }
+      }
+    }
   </script>
   <link rel="stylesheet" href="/assets/blog.css">
   <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+
+  <!-- Blog Schema -->
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"Blog",
+    "name":"Conciergerie Zenata – Blog",
+    "url":"https://www.votre-domaine-zenata.ma/blog/",
+    "inLanguage":"fr-MA",
+    "publisher":{"@type":"Organization","name":"Conciergerie Zenata","logo":{"@type":"ImageObject","url":"https://www.votre-domaine-zenata.ma/logo/logo_officiel_couleur_picto.png"}}
+  }
+  </script>
 </head>
 <body class="bg-zen-50 text-zen-900">
+  <!-- HEADER -->
   <header class="sticky top-0 z-30 bg-white/80 backdrop-blur border-b">
-    <nav class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+    <nav aria-label="Navigation principale" class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
       <a href="/index.html" class="inline-flex items-center" title="Accueil">
-        <img src="/logo/logo_officiel_couleur_picto.png" class="h-10 w-auto" alt="Logo">
+        <img src="/logo/logo_officiel_couleur_picto.png" class="h-10 w-auto" alt="Conciergerie Zenata">
       </a>
       <div class="hidden sm:flex items-center gap-6 text-sm">
         <a href="/simulateur.html" class="hover:underline">Simulateur</a>
@@ -30,6 +59,7 @@
     </nav>
   </header>
 
+  <!-- HERO -->
   <section class="gradient-hero">
     <div class="max-w-6xl mx-auto px-4 py-12 md:py-16">
       <div class="grid md:grid-cols-2 gap-8 items-center">
@@ -39,11 +69,11 @@
           <p class="text-slate-700 mt-3 md:text-lg">Guides concrets, grilles de pricing, check-lists opérationnelles et retours terrain pour performer sur Airbnb/Booking à Zenata Eco-City.</p>
           <div class="mt-6 flex flex-wrap gap-3">
             <a href="/simulateur.html" class="inline-flex items-center px-4 py-2 rounded-xl bg-slate-900 text-white">Simuler mes revenus</a>
-            <a href="#articles" class="inline-flex items-center px-4 py-2 rounded-xl border">Derniers articles</a>
+            <a href="#liste-articles" class="inline-flex items-center px-4 py-2 rounded-xl border">Derniers articles</a>
           </div>
         </div>
         <div class="relative" data-aos="fade-left">
-          <img src="/images/blog/rentabilite-zenata-hero.jpg" alt="" class="w-full h-72 object-cover rounded-2xl shadow-2xl mask-soft" onerror="this.style.display='none'">
+          <img src="/images/blog/rentabilite-zenata-hero.jpg" alt="Vue mer et résidences – Zenata" class="w-full h-72 object-cover rounded-2xl shadow-2xl mask-soft" onerror="this.style.display='none'" loading="lazy">
           <div class="absolute -bottom-4 -left-4 w-40 h-40 bg-white rounded-2xl shadow-xl grid place-items-center glass">
             <div class="text-center p-4">
               <div class="text-2xl font-extrabold">+65%</div>
@@ -55,51 +85,27 @@
     </div>
   </section>
 
-  <main id="articles" class="max-w-6xl mx-auto px-4 py-12">
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <article class="bg-white rounded-2xl border overflow-hidden card-press" data-aos="fade-up">
-        <a href="/blog/zenata-rentabilite-2025.html">
-          <img src="/images/blog/rentabilite-zenata-hero.webp" alt="" class="w-full h-44 object-cover" onerror="this.style.display='none'">
-        </a>
-        <div class="p-5">
-          <div class="flex items-center justify-between">
-            <a class="inline-block text-xs px-2 py-1 rounded-full bg-zen-100 text-zen-800" href="/blog/?tag=rentabilite">Rentabilité</a>
-            <span class="text-xs text-slate-500">18 oct. 2025</span>
-          </div>
-          <h2 class="mt-2 text-xl font-bold">
-            <a href="/blog/zenata-rentabilite-2025.html" class="hover:underline">Rentabilité locative à Zenata : le guide 2025</a>
-          </h2>
-          <p class="text-sm text-slate-700 mt-1">Stratégies concrètes, saisonnalité et pricing dynamique pour viser un rendement solide.</p>
-          <div class="mt-4">
-            <a href="/blog/zenata-rentabilite-2025.html" class="inline-flex items-center px-3 py-1.5 rounded-lg border text-sm">Lire</a>
-          </div>
-        </div>
-      </article>
+  <!-- LISTE DYNAMIQUE -->
+  <main id="liste-articles" class="max-w-6xl mx-auto px-4 py-12">
+    <!-- Filtres -->
+    <div class="flex flex-wrap items-center gap-2 mb-6">
+      <button data-tag="" class="tag-btn px-3 py-1.5 rounded-full border text-sm">Tous</button>
+      <button data-tag="Rentabilité" class="tag-btn px-3 py-1.5 rounded-full border text-sm">Rentabilité</button>
+      <button data-tag="Pricing" class="tag-btn px-3 py-1.5 rounded-full border text-sm">Pricing</button>
+      <button data-tag="Opérations" class="tag-btn px-3 py-1.5 rounded-full border text-sm">Opérations</button>
+    </div>
 
-      <article class="bg-white rounded-2xl border overflow-hidden card-press" data-aos="fade-up" data-aos-delay="100">
-        <a href="/blog/checklist-airbnb-zenata.html">
-          <img src="/images/blog/checklist-zenata-hero.jpg" alt="" class="w-full h-44 object-cover" onerror="this.style.display='none'">
-        </a>
-        <div class="p-5">
-          <div class="flex items-center justify-between">
-            <a class="inline-block text-xs px-2 py-1 rounded-full bg-zen-100 text-zen-800" href="/blog/?tag=checklist">Opérations</a>
-            <span class="text-xs text-slate-500">18 oct. 2025</span>
-          </div>
-          <h2 class="mt-2 text-xl font-bold">
-            <a href="/blog/checklist-airbnb-zenata.html" class="hover:underline">Check-list d’un appart prêt pour Airbnb à Zenata</a>
-          </h2>
-          <p class="text-sm text-slate-700 mt-1">Équipement premium, photos qui vendent, process fluides et notes élevées.</p>
-          <div class="mt-4">
-            <a href="/blog/checklist-airbnb-zenata.html" class="inline-flex items-center px-3 py-1.5 rounded-lg border text-sm">Lire</a>
-          </div>
-        </div>
-      </article>
+    <!-- Grille -->
+    <div id="blog-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" aria-live="polite">
+      <!-- skeletons -->
+      <article class="bg-white rounded-2xl border overflow-hidden animate-pulse h-64"></article>
+      <article class="bg-white rounded-2xl border overflow-hidden animate-pulse h-64"></article>
+      <article class="bg-white rounded-2xl border overflow-hidden animate-pulse h-64"></article>
+    </div>
 
-      <article class="bg-white rounded-2xl border overflow-hidden card-press" data-aos="fade-up" data-aos-delay="200">
-        <div class="p-5 h-full grid place-items-center text-center text-slate-500">
-          Bientôt : Pricing dynamique par saison, Kit photo, Données 2025...
-        </div>
-      </article>
+    <!-- Pagination -->
+    <div class="mt-8 flex justify-center">
+      <button id="load-more" class="hidden px-4 py-2 rounded-xl border">Afficher plus</button>
     </div>
   </main>
 
@@ -108,7 +114,93 @@
   </footer>
 
   <div class="reading-progress"></div>
-  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
-  <script src="/assets/blog.js"></script>
+
+  <!-- JS -->
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js" defer></script>
+  <script src="/assets/blog.js" defer></script>
+  <script>
+  // --- PARAMS ---
+  const POSTS_URL = '/blog/posts.json'; // si ton site n'est pas à la racine, passe en './posts.json'
+  const PAGE_SIZE = 6;
+
+  // --- STATE ---
+  let ALL_POSTS = [];
+  let FILTER = new URLSearchParams(location.search).get('tag') || '';
+  let PAGE = 1;
+
+  // --- HELPERS ---
+  function fmtDate(iso){ try { return new Date(iso).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'}); } catch(_) { return ''; } }
+  function card(p){ return `
+    <article class="bg-white rounded-2xl border overflow-hidden card-press" data-aos="fade-up">
+      <a href="/blog/${p.slug}.html" aria-label="${p.title}">
+        <img src="${p.image}" alt="${p.title}" class="w-full h-44 object-cover" loading="lazy" onerror="this.style.display='none'">
+      </a>
+      <div class="p-5">
+        <div class="flex items-center justify-between">
+          <span class="inline-block text-xs px-2 py-1 rounded-full bg-zen-100 text-zen-800">${p.category||''}</span>
+          <time class="text-xs text-slate-500" datetime="${p.date||''}">${fmtDate(p.date)}</time>
+        </div>
+        <h2 class="mt-2 text-xl font-bold">
+          <a href="/blog/${p.slug}.html" class="hover:underline">${p.title}</a>
+        </h2>
+        <p class="text-sm text-slate-700 mt-1">${p.excerpt||''}</p>
+        <div class="mt-4">
+          <a href="/blog/${p.slug}.html" class="inline-flex items-center px-3 py-1.5 rounded-lg border text-sm">Lire</a>
+        </div>
+      </div>
+    </article>`;}
+
+  function render(){
+    const grid = document.getElementById('blog-grid');
+    const btn  = document.getElementById('load-more');
+    const posts = ALL_POSTS
+      .filter(p => !FILTER || (p.category||'').toLowerCase() === FILTER.toLowerCase())
+      .sort((a,b)=> new Date(b.date) - new Date(a.date));
+
+    const start = 0;
+    const end = PAGE * PAGE_SIZE;
+    const pagePosts = posts.slice(start, end);
+    grid.innerHTML = pagePosts.map(card).join('');
+    btn.classList.toggle('hidden', posts.length <= end);
+
+    // met en évidence le filtre actif
+    document.querySelectorAll('.tag-btn').forEach(b=>{
+      b.classList.toggle('bg-zen-900', (b.dataset.tag||'')===FILTER);
+      b.classList.toggle('text-white', (b.dataset.tag||'')===FILTER);
+    });
+
+    if (window.AOS && typeof AOS.refreshHard === 'function') AOS.refreshHard();
+  }
+
+  async function load(){
+    try{
+      const res = await fetch(POSTS_URL, { cache:'no-store' });
+      ALL_POSTS = await res.json();
+    }catch(e){
+      console.error(e);
+      ALL_POSTS = [];
+      document.getElementById('blog-grid').innerHTML = "<p class='text-center text-slate-600 col-span-full'>Impossible de charger les articles.</p>";
+      return;
+    }
+    render();
+  }
+
+  // Filtrage par tag (click + support URL ?tag=)
+  document.addEventListener('click', (e)=>{
+    const t = e.target.closest('.tag-btn');
+    if(!t) return;
+    FILTER = t.dataset.tag || '';
+    PAGE = 1;
+    const url = new URL(window.location);
+    FILTER ? url.searchParams.set('tag', FILTER) : url.searchParams.delete('tag');
+    history.replaceState({}, '', url);
+    render();
+  });
+
+  // Pagination
+  document.getElementById('load-more').addEventListener('click', ()=>{ PAGE++; render(); });
+
+  document.addEventListener('DOMContentLoaded', load);
+  </script>
 </body>
 </html>
