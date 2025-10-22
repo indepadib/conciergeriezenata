@@ -1,28 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://conciergeriezenata.com/</loc>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://conciergeriezenata.com/simulateur.html</loc>
-  </url>
-  <url>
-    <loc>https://conciergeriezenata.com/blog/</loc>
-  </url>
-  <url>
-    <loc>https://conciergeriezenata.com/blog/zenata-rentabilite-2025.html</loc>
-  </url>
-  <url>
-    <loc>https://conciergeriezenata.com/blog/checklist-airbnb-zenata.html</loc>
-  </url>
-  <url>
-    <loc>https://conciergeriezenata.com/blog/taux-occupation-zenata-2025.html</loc>
-  </url>
-  <url>
-    <loc>https://conciergeriezenata.com/blog/guide-photo-airbnb-zenata.html</loc>
-  </url>
-  <url>
-    <loc>https://conciergeriezenata.com/blog/midstay-corporate-zenata.html</loc>
-  </url>
+  <url><loc>https://conciergeriezenata.com/</loc><priority>1.0</priority></url>
+  <url><loc>https://conciergeriezenata.com/simulateur.html</loc></url>
+  <url><loc>https://conciergeriezenata.com/blog/</loc></url>
+
+  <url><loc>https://conciergeriezenata.com/blog/optimiser-annonce-airbnb-zenata.html</loc></url>
+  <url><loc>https://conciergeriezenata.com/blog/comparatif-t1-t2-t3-zenata.html</loc></url>
+  <url><loc>https://conciergeriezenata.com/blog/guide-photo-airbnb-zenata.html</loc></url>
+  <url><loc>https://conciergeriezenata.com/blog/midstay-corporate-zenata.html</loc></url>
+  <url><loc>https://conciergeriezenata.com/blog/taux-occupation-zenata-2025.html</loc></url>
+  <url><loc>https://conciergeriezenata.com/blog/zenata-rentabilite-2025.html</loc></url>
+  <url><loc>https://conciergeriezenata.com/blog/checklist-airbnb-zenata.html</loc></url>
 </urlset>
