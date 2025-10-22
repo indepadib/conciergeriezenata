@@ -1,50 +1,58 @@
 [
   {
+    "title": "Optimiser son annonce Airbnb à Zenata : titre, description & règles pour performer",
+    "slug": "optimiser-annonce-airbnb-zenata",
+    "date": "2025-10-21",
+    "category": "Airbnb",
+    "excerpt": "Rédigez un titre accrocheur, une description claire et des règles nettes pour booster votre visibilité et votre taux de réservation.",
+    "image": "/images/blog/annonce-airbnb-zenata-hero.jpg"
+  },
+  {
+    "title": "Comparatif T1, T2, T3 à Zenata : quel bien rapporte le plus ?",
+    "slug": "comparatif-t1-t2-t3-zenata",
+    "date": "2025-10-21",
+    "category": "Investissement",
+    "excerpt": "Budget, taux d’occupation, ADR et rendement net : quel type de bien choisir à Zenata selon votre stratégie ?",
+    "image": "/images/blog/comparatif-zenata-hero.jpg"
+  },
+  {
+    "title": "Guide photo Airbnb à Zenata : angles, lumière, mise en scène & retouches",
+    "slug": "guide-photo-airbnb-zenata",
+    "date": "2025-10-20",
+    "category": "Photos",
+    "excerpt": "Angles, lumière, ordre des images et retouches : le guide pour un visuel qui convertit à Zenata.",
+    "image": "/images/blog/photo-airbnb-zenata-hero.jpg"
+  },
+  {
+    "title": "Mid-stay & Corporate à Zenata : remplir la basse saison intelligemment",
+    "slug": "midstay-corporate-zenata",
+    "date": "2025-10-20",
+    "category": "Basse saison",
+    "excerpt": "Captez les séjours 7–28 nuits et les missions d’entreprises pour stabiliser vos revenus en hiver.",
+    "image": "/images/blog/midstay-zenata-hero.jpg"
+  },
+  {
+    "title": "Taux d’occupation à Zenata : objectifs réalistes et stratégies 2025",
+    "slug": "taux-occupation-zenata-2025",
+    "date": "2025-10-20",
+    "category": "Performance",
+    "excerpt": "Chiffres de référence par typologie et leviers concrets pour dépasser 75 % d’occupation.",
+    "image": "/images/blog/taux-occupation-zenata-hero.jpg"
+  },
+  {
     "title": "Rentabilité locative à Zenata : le guide complet 2025",
     "slug": "zenata-rentabilite-2025",
     "date": "2025-10-18",
     "category": "Rentabilité",
-    "excerpt": "Guide 2025 pour maximiser vos revenus à Zenata Eco-City : saisonnalité, pricing et rendement durable.",
-    "image": "/images/blog/rentabilite-zenata-hero.webp"
+    "excerpt": "Saisonnalité, pricing dynamique et exécution premium : la méthode pour un rendement durable.",
+    "image": "/images/blog/rentabilite-zenata-hero.jpg"
   },
   {
-    "title": "Check-list d’un appartement prêt pour Airbnb à Zenata",
+    "title": "Check-list d’un appart prêt pour Airbnb à Zenata",
     "slug": "checklist-airbnb-zenata",
     "date": "2025-10-18",
     "category": "Opérations",
-    "excerpt": "Équipement, consommables, photos et process pour réussir votre mise en location courte durée.",
+    "excerpt": "Équipement, consommables, photos, annonce et process : la check-list premium pour réussir.",
     "image": "/images/blog/checklist-zenata-hero.jpg"
-  },
-  {
-    "title": "Pricing dynamique à Zenata : grille par saison & événements (2025)",
-    "slug": "pricing-dynamique-zenata-2025",
-    "date": "2025-10-18",
-    "category": "Pricing",
-    "excerpt": "Grille de tarification 2025 : haute, épaule et basse saison, week-ends et événements pour maximiser la rentabilité.",
-    "image": "/images/blog/pricing-zenata-hero.jpg"
-  },
-   {
-    "title": "Taux d’occupation à Zenata : objectifs réalistes et stratégies 2025",
-    "slug": "taux-occupation-zenata-2025",
-    "date": "2025-10-20",
-    "category": "Rentabilité",
-    "excerpt": "Analyse des taux d’occupation Airbnb/Booking à Zenata et stratégies concrètes pour optimiser vos revenus locatifs.",
-    "image": "/images/blog/taux-occupation-zenata-hero.jpg"
-  },
-  {
-  "title": "Guide photo Airbnb à Zenata : angles, lumière, mise en scène & retouches",
-  "slug": "guide-photo-airbnb-zenata",
-  "date": "2025-10-20",
-  "category": "Photos",
-  "excerpt": "Le guide photo complet pour Airbnb/Booking à Zenata : angles, lumière, ordre des images, mise en scène et retouches pour booster CTR & réservations.",
-  "image": "/images/blog/photo-airbnb-zenata-hero.jpg"
-},
-{
-  "title": "Mid-stay & Corporate à Zenata : remplir la basse saison intelligemment",
-  "slug": "midstay-corporate-zenata",
-  "date": "2025-10-20",
-  "category": "Basse saison",
-  "excerpt": "Captez les séjours 7–28 nuits et les missions d’entreprises pour lisser votre occupation d’hiver à Zenata : offres, pricing, canaux et process.",
-  "image": "/images/blog/midstay-zenata-hero.jpg"
-}
+  }
 ]
