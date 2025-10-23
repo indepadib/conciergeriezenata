@@ -20,27 +20,37 @@
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // === CONFIG À RENSEIGNER ===
-  const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";      // <-- OK
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qZ2NocnF0dmt3emhqdnd3ZnRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2OTMxODEsImV4cCI6MjA3NTI2OTE4MX0.Ok7fj3QUs28Q8dOiNy6caSBmjcUmjFrZgmIvAnzJZ00";
-  const GUIDES_BUCKET = "guides";        // JSON des guides
-  const ASSETS_BUCKET = "guide-assets";  // images (couvertures), à créer
+  // --- Helpers appelant TES Netlify Functions (serveur) ---
 
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // Helpers Storage
-  function publicUrl(bucket, path){
-    const { data } = sb.storage.from(bucket).getPublicUrl(path);
-    return data?.publicUrl || null;
-  }
-  async function uploadJson(path, obj){
-    const blob = new Blob([JSON.stringify(obj, null, 2)], { type:'application/json' });
-    const { error } = await sb.storage.from(GUIDES_BUCKET).upload(path, blob, { upsert:true, contentType:'application/json' });
-    if(error) throw error;
-    return publicUrl(GUIDES_BUCKET, path);
+  async function serverUploadGuide(slug, guide){
+    const res = await fetch("/.netlify/functions/upload-guide", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, guide })
+    });
+    if(!res.ok){
+      const txt = await res.text();
+      throw new Error(txt || `HTTP ${res.status}`);
+    }
+    return await res.json(); // { ok:true, url: "https://.../guides/<slug>.json" }
   }
 
-  // Guide depuis le formulaire
+  async function serverUploadImage(file, slug){
+    const ext = (file.name.split(".").pop() || "webp").toLowerCase();
+    const url = `/.netlify/functions/upload-image?slug=${encodeURIComponent(slug)}&ext=${encodeURIComponent(ext)}`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": file.type || "application/octet-stream" },
+      body: file
+    });
+    if(!res.ok){
+      const txt = await res.text();
+      throw new Error(txt || `HTTP ${res.status}`);
+    }
+    return await res.json(); // { ok:true, url: "https://.../guide-assets/covers/<slug>.<ext>" }
+  }
+
+  // --- Ton modèle de guide (inchangé) ---
   function guideFromForm(){
     const get = id => document.getElementById(id).value.trim();
     const token = get('f-token');
@@ -63,7 +73,6 @@
     };
   }
 
-  // Aperçu
   function renderPreview(g, token){
     const a = g.arrival?.fr || {};
     const allow = g.__sensitive?.token ? (token === g.__sensitive.token) : true;
@@ -82,49 +91,50 @@
       </div>`;
   }
 
-  // Bind UI
+  // --- Bind UI ---
   document.addEventListener('DOMContentLoaded', ()=>{
     const prev = document.getElementById('preview');
     const tokenInput = document.getElementById('f-token');
+    const saveMsg = document.getElementById('save-msg');
 
     function refresh(){ prev.innerHTML = renderPreview(guideFromForm(), tokenInput.value.trim()); }
     Array.from(document.querySelectorAll('input')).forEach(i => i.addEventListener('input', refresh));
     refresh();
 
-    // Upload image de couverture → remplit #f-cover automatiquement
+    // Upload image (envoie à la Netlify Function -> remplit #f-cover)
     const fileInput = document.getElementById('f-cover-file');
-    fileInput.addEventListener('change', async (e)=>{
-      const msg = document.getElementById('save-msg');
-      const file = e.target.files?.[0];
-      if(!file){ return; }
-      try{
-        const slug = (document.getElementById('f-slug').value.trim() || `temp-${Date.now()}`).replace(/[^a-z0-9-]/gi,'-').toLowerCase();
-        const ext = (file.name.split('.').pop() || 'webp').toLowerCase();
-        const path = `covers/${slug}.${ext}`;
-        const { error } = await sb.storage.from(ASSETS_BUCKET).upload(path, file, { upsert:true, contentType: file.type || 'image/*' });
-        if(error) throw error;
-        const url = publicUrl(ASSETS_BUCKET, path);
-        document.getElementById('f-cover').value = url || '';
-        msg.textContent = `✅ Image uploadée`;
-        refresh();
-      }catch(err){
-        document.getElementById('f-cover').value = '';
-        document.getElementById('save-msg').textContent = `❌ Upload image: ${err.message||err}`;
-      }
-    });
+    if (fileInput) {
+      fileInput.addEventListener('change', async (e)=>{
+        const file = e.target.files?.[0];
+        if(!file) return;
+        try{
+          const slug = (document.getElementById('f-slug').value.trim() || `temp-${Date.now()}`).replace(/[^a-z0-9-]/gi,'-').toLowerCase();
+          const r = await serverUploadImage(file, slug);
+          document.getElementById('f-cover').value = r.url || '';
+          saveMsg.textContent = '✅ Image uploadée';
+          refresh();
+        }catch(err){
+          document.getElementById('f-cover').value = '';
+          saveMsg.textContent = '❌ Upload image: ' + (err.message || err);
+        }
+      });
+    }
 
-    // Publier JSON
+    // Publier JSON (via Netlify Function)
     document.getElementById('btn-publish').addEventListener('click', async ()=>{
-      const g = guideFromForm(), slug = g.slug;
-      const msg = document.getElementById('save-msg');
-      if(!slug){ msg.textContent = 'Slug requis'; return; }
+      const g = guideFromForm();
+      const slug = g.slug;
+      if(!slug){ saveMsg.textContent = 'Slug requis'; return; }
       try{
-        const url = await uploadJson(`${slug}.json`, g);
-        msg.textContent = `✅ Publié : ${url}`;
-      }catch(e){ msg.textContent = `❌ ${e.message||e}`; }
+        const r = await serverUploadGuide(slug, g);
+        saveMsg.textContent = `✅ Publié : ${r.url}`;
+      }catch(e){
+        saveMsg.textContent = `❌ ${e.message || e}`;
+      }
     });
   });
 </script>
+
 
 </head>
 <body>
