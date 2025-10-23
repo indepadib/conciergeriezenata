@@ -2,8 +2,17 @@ export async function handler(event) {
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
+  const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, GUIDES_BUCKET } = process.env;
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !GUIDES_BUCKET) {
+    const missing = [
+      !SUPABASE_URL && "SUPABASE_URL",
+      !SUPABASE_SERVICE_ROLE_KEY && "SUPABASE_SERVICE_ROLE_KEY",
+      !GUIDES_BUCKET && "GUIDES_BUCKET",
+    ].filter(Boolean).join(", ");
+    return { statusCode: 500, body: `Missing env: ${missing}` };
+  }
+
   try {
-    const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, GUIDES_BUCKET } = process.env;
     const body = JSON.parse(event.body || "{}");
     const { slug, guide } = body || {};
     if (!slug || !guide) return { statusCode: 400, body: "Missing slug or guide" };
@@ -24,7 +33,6 @@ export async function handler(event) {
       return { statusCode: res.status, body: `Supabase error: ${txt}` };
     }
 
-    // URL publique
     const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${GUIDES_BUCKET}/${encodeURI(path)}`;
     return { statusCode: 200, body: JSON.stringify({ ok: true, url: publicUrl }) };
   } catch (e) {
