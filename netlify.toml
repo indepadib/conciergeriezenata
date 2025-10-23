@@ -1,0 +1,7 @@
+[build]
+  publish = "."
+
+[functions]
+  node_bundler = "esbuild"   # Netlify bundle tout seul
+
+# (facultatif si tu as déjà un _redirects pour le site)
