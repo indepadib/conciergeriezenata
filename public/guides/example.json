@@ -1,0 +1,17 @@
+{
+"id": "prop_001",
+"slug": "zenata-azure-12b",
+"brand": { "name": "Conciergerie Zenata", "logoUrl": "/logo-cz.svg", "supportPhone": "+212 6 12 34 56 78", "supportWhatsApp": "https://wa.me/212612345678", "supportEmail": "hello@conciergeriezenata.com", "site": "https://conciergeriezenata.com" },
+"cover": { "imageUrl": "https://images.unsplash.com/photo-1505691723518-36a5ac3b2d20?q=80&w=1600&auto=format&fit=crop", "caption": { "fr": "Suite terrasse – vue dégagée côté mer" } },
+"name": "Azure 12B – Suite Terrasse",
+"address": "Résidence Azure, Zenata Éco‑Cité, Mohammédia",
+"city": "Casablanca",
+"arrival": { "fr": { "checkin_from": "15:00", "self_checkin": true, "doorCode": "7942#", "parking": "P2, place 18", "wifi": { "ssid": "Azure12B", "password": "Zenata2025" }, "notes": ["Ascenseur B, 3ème étage"] } },
+"rules": { "fr": { "items": ["Non‑fumeur", "Pas d’animaux"] } },
+"departure": { "fr": { "checkout_until": "11:00", "steps": [{ "label": "Poubelles sorties" }] } },
+"amenities": [ { "icon": "wifi", "label": "Wi‑Fi rapide" } ],
+"essentials": { "fr": { "electricity": "Disjoncteur principal près de l’entrée", "water": "Vanne sous l’évier", "emergency": [{ "label": "Conciergerie", "value": "+212 6 12 34 56 78", "href": "tel:+212612345678" }] } },
+"neighborhood": { "fr": { "intro": "Plage, mall, cafés à proximité", "places": [{ "name": "Zenata Mall", "category": "shopping", "distance_walk_min": 8, "mapsUrl": "https://maps.google.com" }] } },
+"recommendations": { "fr": { "intro": "Idées pour profiter", "tips": ["Coucher de soleil à la plage"] } },
+"__sensitive": { "token": "A1B2C3" }
+}
