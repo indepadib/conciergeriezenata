@@ -1,47 +1,170 @@
+/* ===========================
+   Conciergerie Zenata – Signature Light
+   Remplace ENTIEREMENT ton /assets/premium.css
+   =========================== */
+
 :root{
-  --ink:#0A0A0B; --muted:#8A8F98; --line:#25282E; --bg:#0E0F12; --card:#121318;
-  --brand:#111317; --accent:#C7A059; --radius-xl:28px; --radius-lg:18px; --radius-md:12px;
-  --shadow:0 30px 50px rgba(0,0,0,.35);
+  /* Palette */
+  --ink:#0B1220;           /* texte principal */
+  --muted:#667085;         /* texte secondaire */
+  --line:#E7ECF3;          /* traits fins */
+  --bg:#F7F9FC;            /* fond doux */
+  --surface:#FFFFFF;       /* fond des cartes */
+  --brand:#0F172A;         /* bouton primaire */
+  --accent:#C2A36B;        /* or discret (accents) */
+
+  /* Rayons & ombres */
+  --r-xl:24px; --r-lg:16px; --r-md:12px;
+  --shadow-sm:0 4px 12px rgba(16,24,40,.06);
+  --shadow-md:0 10px 24px rgba(16,24,40,.08);
+
+  /* Typo */
+  --font: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  --h1: clamp(24px, 3vw, 32px);
+  --h2: 16px;
 }
-body{background:radial-gradient(1200px 600px at 20% -10%, #1A1C22 0%, #0E0F12 40%, #0B0C10 100%)}
-.card,.tile{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00));
-  border:1px solid rgba(255,255,255,.06); box-shadow:var(--shadow);}
-.btn.primary{background:linear-gradient(135deg,#1C1F25,#101318); color:#EDE8DC; border-color:#2A2F39}
-.badge{color:#B7B9BE}
-.k{color:#A3A6AD}
-*{box-sizing:border-box} html,body{height:100%}
-body{margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:var(--ink); background:linear-gradient(180deg,#FFFFFF 0%, #F7F9FC 100%)}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #FFFFFF 0%, #F1F5FA 50%, #EEF3F8 100%);
+  color:var(--ink);
+  font-family:var(--font);
+}
+
+/* Layout utilitaires */
 .container{max-width:1200px;margin:0 auto;padding:22px}
 .hstack{display:flex;align-items:center;gap:12px}
 .vstack{display:flex;flex-direction:column;gap:12px}
-.spacer{flex:1}
-.btn{appearance:none;border:1px solid var(--line);background:#fff;border-radius:14px;padding:10px 14px;font-weight:600;cursor:pointer;box-shadow:none}
-.btn.primary{background:linear-gradient(135deg,#0F172A,#1F2937);color:#fff;border-color:#0F172A}
-.btn.ghost{background:transparent}
-.badge{display:inline-flex;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden}
-.card h2{margin:0;padding:16px 18px;border-bottom:1px solid var(--line);font-size:16px}
-.content{padding:18px}
-.tile{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
-.k{font-size:12px;color:var(--muted);margin-bottom:6px}
 .grid{display:grid;gap:16px}
-.grid-2{grid-template-columns:1.2fr .8fr}
+.grid-2{grid-template-columns:1.15fr .85fr}
 .grid-3{grid-template-columns:1fr 1fr 1fr}
 .grid-4{grid-template-columns:repeat(4,1fr)}
 @media(max-width:1000px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
-.row{display:flex;gap:10px;flex-wrap:wrap}
-input, textarea, select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.spacer{flex:1}
+
+/* Barre de nav (collante) */
+.nav{
+  position:sticky; top:0; z-index:40;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:saturate(180%) blur(10px);
+  border-bottom:1px solid var(--line);
+}
+
+/* Cartes & tuiles (UNIFIÉES) */
+.card, .tile{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--r-lg);
+  box-shadow:var(--shadow-md);
+  overflow:hidden;
+}
+.card h2{
+  margin:0; padding:14px 16px;
+  border-bottom:1px solid var(--line);
+  font-size:var(--h2); font-weight:700;
+  background:#fff;
+}
+.content{padding:16px}
+.k{font-size:12px; color:var(--muted); margin-bottom:6px}
+
+/* Boutons */
+.btn{
+  appearance:none;
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--ink);
+  border-radius:12px;
+  padding:10px 14px;
+  font-weight:600;
+  cursor:pointer;
+  transition:transform .05s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+}
+.btn:hover{box-shadow:var(--shadow-sm)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{
+  background:var(--brand);
+  color:#fff;
+  border-color:var(--brand);
+}
+.btn.primary:hover{box-shadow:var(--shadow-sm)}
+.btn.ghost{background:transparent}
+
+/* Badges / pills */
+.badge{display:inline-flex;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
+.pill{
+  display:inline-flex;gap:6px;
+  padding:6px 10px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  font-size:12px;
+  margin:4px 6px 0 0;
+  background:#fff;
+}
+
+/* Inputs */
+input, textarea, select{
+  width:100%;
+  padding:12px 12px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#fff;
+  font:inherit;
+}
+input:focus, textarea:focus, select:focus{
+  outline:none; border-color:#D2D9E4; box-shadow:0 0 0 3px rgba(194,163,107,.10);
+}
 label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
 .helper{font-size:12px;color:var(--muted)}
 .section{border:1px dashed var(--line);border-radius:16px;padding:14px}
-.pill{display:inline-flex;gap:6px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;font-size:12px;margin:4px 6px 0 0;background:#fff}
-.icon{width:18px;height:18px;opacity:.9}
-.hero{position:relative;border-radius:var(--radius-xl);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow)}
-.hero img{width:100%;height:460px;object-fit:cover;display:block}
-.hero .overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 45%, rgba(0,0,0,.6) 100%)}
-.hero .title{position:absolute;left:22px;right:22px;bottom:18px;color:#fff}
-.hero .title h1{margin:0;font-size:32px;letter-spacing:.2px}
-.toolbar{position:sticky;bottom:18px;z-index:50;display:flex;justify-content:flex-end}
-.toolbar .tool{display:flex;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 10px;box-shadow:var(--shadow)}
+
+/* Hero */
+.hero{
+  position:relative;
+  border-radius:var(--r-xl);
+  overflow:hidden;
+  border:1px solid var(--line);
+  box-shadow:var(--shadow-md);
+}
+.hero img{width:100%;height:440px;object-fit:cover;display:block}
+.hero .overlay{
+  position:absolute; inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,0) 45%, rgba(0,0,0,.55) 100%);
+}
+.hero .title{
+  position:absolute; left:22px; right:22px; bottom:18px;
+  color:#fff;
+}
+.hero .title h1{margin:0; font-size:var(--h1); letter-spacing:.2px}
+
+/* Toolbar flottante (si utilisée) */
+.toolbar{position:sticky; bottom:18px; z-index:30; display:flex; justify-content:flex-end}
+.toolbar .tool{
+  display:flex; gap:8px; background:#fff; border:1px solid var(--line);
+  border-radius:999px; padding:8px 10px; box-shadow:var(--shadow-md)
+}
+
+/* Carte Google */
+.map{
+  width:100%; height:360px;
+  border:1px solid var(--line);
+  border-radius:var(--r-md);
+}
+
+/* Table (liste des guides) */
+.table-wrap{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff;box-shadow:var(--shadow-md)}
+table{width:100%;border-collapse:separate;border-spacing:0}
+th,td{padding:12px;border-bottom:1px solid var(--line);font-size:14px}
+th{background:#F1F5F9;text-align:left}
+tr:last-child td{border-bottom:none}
+.url{max-width:520px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-block;vertical-align:bottom}
+
+/* Footer + Print */
 .footer{padding:34px 0;color:var(--muted);font-size:12px;text-align:center}
-@media print{.nav,.toolbar{display:none}.hero img{height:320px}.card,.tile{box-shadow:none}}
+@media print{
+  .nav,.toolbar{display:none}
+  .hero img{height:300px}
+  .card,.tile,.table-wrap{box-shadow:none}
+}
