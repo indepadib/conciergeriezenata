@@ -1,0 +1,32 @@
+<!doctype html><html lang="fr"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Guides – Conciergerie Zenata</title>
+<style>
+:root{--ink:#0f172a;--muted:#475569;--line:#e2e8f0;--bg:#ffffff;--card:#f8fafc}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);background:var(--bg)}
+.container{max-width:1120px;margin:0 auto;padding:16px}
+.table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);font-size:14px}
+th{background:#f1f5f9;text-align:left}
+tr:last-child td{border-bottom:none}
+.controls{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+input[type="search"]{padding:10px;border:1px solid var(--line);border-radius:10px}
+.btn{appearance:none;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;cursor:pointer;font-size:12px}
+</style></head><body>
+<main class="container">
+<h1>Guides publiés</h1>
+<div class="controls">
+<input type="search" id="q" placeholder="Rechercher par slug…"/>
+<button class="btn" id="refresh">Actualiser</button>
+<a class="btn" href="/admin-guides.html">+ Nouveau guide</a>
+</div>
+<div id="msg" class="muted"></div>
+<table class="table" id="tbl"><thead><tr><th>Slug</th><th>URL publique</th><th>Action</th></tr></thead><tbody></tbody></table>
+</main>
+<script>
+async function listGuides(){ const res=await fetch('/.netlify/functions/list-guides'); if(!res.ok){ throw new Error(await res.text()) } return await res.json() }
+function draw(rows){ const q=(document.getElementById('q').value||'').toLowerCase(); const tb=document.querySelector('#tbl tbody'); tb.innerHTML=''; rows.filter(r=>!q||r.name.toLowerCase().includes(q)).forEach(r=>{ const tr=document.createElement('tr'); const pub=r.publicUrl; tr.innerHTML=`<td>${r.name}</td><td><a href="${pub}" target="_blank" rel="noreferrer">${pub}</a></td><td><a class="btn" href="/guide/${r.name}" target="_blank">Ouvrir</a> <button class="btn" data-copy="${pub}">Copier URL</button></td>`; tb.appendChild(tr) }); document.querySelectorAll('[data-copy]').forEach(b=> b.addEventListener('click', e=>{ navigator.clipboard.writeText(e.target.getAttribute('data-copy')); e.target.textContent='Copié!' ; setTimeout(()=> e.target.textContent='Copier URL', 1200)})) }
+async function boot(){ try{ const r=await listGuides(); draw(r.objects||[]) }catch(e){ document.getElementById('msg').textContent='Erreur: '+(e.message||e) } }
+document.getElementById('refresh').addEventListener('click', boot); document.getElementById('q').addEventListener('input', boot); document.addEventListener('DOMContentLoaded', boot)
+</script>
+</body></html>
