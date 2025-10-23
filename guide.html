@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Guide – Conciergerie Zenata</title>
+  <style>
+    body{font-family:system-ui,Inter,Segoe UI,Roboto,Arial,sans-serif;margin:0;color:#0f172a;background:#fff}
+    .wrap{max-width:1040px;margin:0 auto;padding:16px}
+    .card{border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;background:#f8fafc}
+    .card h2{margin:0;padding:12px 14px;border-bottom:1px solid #e2e8f0;font-size:16px}
+    .content{padding:14px}
+    .grid{display:grid;gap:12px}
+    .grid2{grid-template-columns:1fr 1fr}
+    .hero{border-radius:20px;overflow:hidden;border:1px solid #e2e8f0}
+    .hero img{width:100%;height:300px;object-fit:cover;display:block}
+    .tile{border:1px solid #e2e8f0;border-radius:12px;padding:10px;background:#fff}
+    .muted{font-size:12px;color:#475569}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // === CONFIG (mêmes valeurs que admin-guides.html) ===
+    const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";      // ⚠️ remplace
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qZ2NocnF0dmt3emhqdnd3ZnRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2OTMxODEsImV4cCI6MjA3NTI2OTE4MX0.Ok7fj3QUs28Q8dOiNy6caSBmjcUmjFrZgmIvAnzJZ00"; // ⚠️ remplace
+    const BUCKET = "guides";
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function param(name){
+      const u = new URL(location.href);
+      return u.searchParams.get(name)||"";
+    }
+    function pathSlug(){ // on reçoit ?slug=... via redirect Netlify
+      return param('slug').replace(/^\\/+|\\/+$/g, '');
+    }
+    function publicUrl(path){
+      const { data } = sb.storage.from(BUCKET).getPublicUrl(path);
+      return data?.publicUrl || null;
+    }
+    function render(g, token){
+      const a = g.arrival?.fr || {};
+      const allow = g.__sensitive?.token ? (token === g.__sensitive.token) : true;
+      const door = allow ? (a.doorCode||'') : '•••• (masqué)';
+      return `
+        <div class="grid">
+          <div class="hero"><img src="${g.cover?.imageUrl||''}" alt=""></div>
+          <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:10px">
+            <div class="tile"><div class="muted">Adresse</div><b>${g.address||''}</b></div>
+            <div class="tile"><div class="muted">Wi-Fi</div><b>${(a.wifi?.ssid||'')}${a.wifi?.password ? ' • '+a.wifi.password:''}</b></div>
+            <div class="tile"><div class="muted">Code porte</div><b>${door}</b></div>
+          </div>
+          <div class="grid grid2">
+            <div class="card"><h2>Arrivée & Check-in</h2><div class="content">
+              <div><span class="muted">À partir de</span> <b>${a.checkin_from||''}</b></div>
+              ${a.parking? `<div><span class='muted'>Parking</span> <b>${a.parking}</b></div>`:''}
+              <ul>${(a.notes||[]).map(n=>`<li>${n}</li>`).join('')}</ul>
+            </div></div>
+            <div class="card"><h2>Règles</h2><div class="content"><ul>${(g.rules?.fr?.items||[]).map(r=>`<li>${r}</li>`).join('')}</ul></div></div>
+            <div class="card"><h2>Départ</h2><div class="content">
+              ${g.departure?.fr?.checkout_until? `<div><span class="muted">Avant</span> <b>${g.departure.fr.checkout_until}</b></div>`:''}
+              <ul>${(g.departure?.fr?.steps||[]).map(s=>`<li>${s.label}</li>`).join('')}</ul>
+            </div></div>
+          </div>
+        </div>`;
+    }
+    async function boot(){
+      const slug = pathSlug();
+      const token = param('token')||"";
+      const wrap = document.querySelector('.wrap');
+      if(!slug){ wrap.innerHTML = '<div class="card"><div class="content">Slug manquant</div></div>'; return; }
+      const url = publicUrl(`${slug}.json`);
+      try{
+        const r = await fetch(url, { cache:'no-store' });
+        if(!r.ok) throw new Error('Guide introuvable');
+        const g = await r.json();
+        wrap.innerHTML = `<h1>${g.name||'Guide'}</h1>` + render(g, token);
+      }catch(e){
+        wrap.innerHTML = `<div class="card"><div class="content">Erreur: ${e.message||e}</div></div>`;
+      }
+    }
+    document.addEventListener('DOMContentLoaded', boot);
+  </script>
+</head>
+<body>
+  <div class="wrap"><div class="muted">Chargement…</div></div>
+</body>
+</html>
