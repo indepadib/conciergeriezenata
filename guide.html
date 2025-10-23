@@ -8,7 +8,7 @@ Guide public premium – version statique sans build
 - Lit le JSON public dans Supabase Storage: https://<SUPABASE_URL>/storage/v1/object/public/guides/<slug>.json
 - Gestion du token: /guide/<slug>?token=XXXX pour afficher les champs sensibles
 - Aucun framework, aucune clé d'API requise pour la lecture (public)
--->
+
 <!doctype html>
 <html lang="fr">
 <head>
@@ -169,5 +169,44 @@ Guide public premium – version statique sans build
     document.addEventListener('DOMContentLoaded', boot);
   </script>
 </body>
-</html>
+</html> -->
+
+<!doctype html><html lang="fr"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Guide Voyageur – Conciergerie Zenata</title>
+<meta name="theme-color" content="#0f172a"/>
+<style>
+:root{--ink:#0f172a;--muted:#475569;--line:#e2e8f0;--bg:#ffffff;--card:#f8fafc;--brand:#111827}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--ink);background:var(--bg)}
+.container{max-width:1120px;margin:0 auto;padding:20px}
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700}
+.brand img{height:28px}
+.badge{font-size:12px;color:var(--muted)}
+.hero{border-radius:20px;overflow:hidden;border:1px solid var(--line);background:#000}
+.hero img{width:100%;height:420px;object-fit:cover;display:block;opacity:.95}
+.grid{display:grid;gap:16px}
+.grid-3{grid-template-columns:1fr 1fr 1fr}
+.grid-2{grid-template-columns:1.15fr .85fr}
+@media(max-width:960px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.tile{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+.tile .k{font-size:12px;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.card h2{margin:0;padding:12px 14px;border-bottom:1px solid var(--line);font-size:16px}
+.card .content{padding:16px}
+ul{margin:8px 0;padding-left:18px}.pill{display:inline-flex;gap:6px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;font-size:12px;margin:4px 6px 0 0;background:#fff}
+.muted{color:var(--muted)}.warn{background:#fffbeb;border:1px solid #fef3c7;color:#92400e;padding:10px 12px;border-radius:12px;font-size:13px}
+.footer{padding:28px 0;text-align:center;color:var(--muted);font-size:12px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{appearance:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 14px;cursor:pointer}.btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+</style></head><body>
+<header class="container header"><div class="brand"><img src="/logo/logo_officiel_couleur_picto.png"> Conciergerie Zenata</div><div class="badge" id="guideSlug"></div></header>
+<main class="container" id="root"><p class="muted">Chargement du guide…</p></main>
+<footer class="container footer">© <span id="year2"></span> Conciergerie Zenata</footer>
+<script>
+const SUPABASE_URL="https://ojgchrqtvkwzhjvwwftd.supabase.co"; const GUIDES_BUCKET="guides";
+const qs=new URL(location.href); const slug=(qs.searchParams.get('slug')||location.pathname.split('/').filter(Boolean).pop()||'').trim(); const token=qs.searchParams.get('token')||'';
+function html(s,...v){return s.map((x,i)=>x+(v[i]??'')).join('')} document.getElementById('year2').textContent=new Date().getFullYear(); document.getElementById('guideSlug').textContent=slug?`#${slug}`:''; const root=document.getElementById('root');
+function section(g){ const a=g.arrival?.fr||{}; const allow=g.__sensitive?.token?(token===g.__sensitive.token):true; const door=allow?(a.doorCode||''):'•••• (masqué)'; const rules=g.rules?.fr?.items||[]; const dep=g.departure?.fr||{}; const ess=g.essentials?.fr||{}; const ams=g.amenities||[]; return html`<div class="grid" style="gap:18px"><div class="hero"><img alt="${g.name||''}" src="${g.cover?.imageUrl||''}"></div><div class="grid grid-3"><div class="tile"><div class="k">Adresse</div><div><strong>${g.address||''}</strong></div></div><div class="tile"><div class="k">Wi‑Fi</div><div><strong>${(a.wifi?.ssid||'')}${a.wifi?.password?' • '+a.wifi.password:''}</strong></div></div><div class="tile"><div class="k">Code porte</div><div><strong>${door}</strong></div></div></div><div class="grid grid-2"><div class="card"><h2>Arrivée & Check‑in</h2><div class="content"><div><span class="muted">À partir de</span> <strong>${a.checkin_from||''}</strong></div>${a.parking?`<div><span class="muted">Parking</span> <strong>${a.parking}</strong></div>`:''}${(a.notes||[]).length?`<ul>${(a.notes||[]).map(n=>`<li>${n}</li>`).join('')}</ul>`:''}</div></div><div class="card"><h2>Règles</h2><div class="content"><ul>${rules.map(r=>`<li>${r}</li>`).join('')}</ul></div></div><div class="card"><h2>Départ & Check‑out</h2><div class="content">${dep.checkout_until?`<div><span class="muted">Avant</span> <strong>${dep.checkout_until}</strong></div>`:''}${(dep.steps||[]).length?`<ul>${dep.steps.map(s=>`<li>${s.label}</li>`).join('')}</ul>`:''}</div></div><div class="card"><h2>Infos utiles</h2><div class="content">${ess.electricity?`<div><span class="muted">Électricité</span> ${ess.electricity}</div>`:''}${ess.water?`<div><span class="muted">Eau</span> ${ess.water}</div>`:''}${(ess.emergency||[]).map(c=>`<div><span class="muted">${c.label}</span> ${c.href?`<a href="${c.href}">${c.value}</a>`:c.value}</div>`).join('')}</div></div>${ams.length?`<div class="card" style="grid-column:1/-1"><h2>Équipements</h2><div class="content">${ams.map(a=>`<span class="pill">${a.label||''}</span>`).join('')}</div></div>`:''}</div>${g.brand?.supportPhone||g.brand?.supportWhatsApp||g.brand?.supportEmail?html`<div class="card"><h2>Assistance</h2><div class="content actions">${g.brand?.supportPhone?`<a class="btn" href="tel:${g.brand.supportPhone}">Appeler</a>`:''}${g.brand?.supportWhatsApp?`<a class="btn" target="_blank" rel="noreferrer" href="${g.brand.supportWhatsApp}">WhatsApp 24/7</a>`:''}${g.brand?.supportEmail?`<a class="btn" href="mailto:${g.brand.supportEmail}">Email</a>`:''}<button class="btn" onclick="window.print()">Télécharger en PDF</button></div></div>`:''}${g.__sensitive?.token && token!==g.__sensitive.token?`<div class="warn">Certaines informations sensibles sont masquées. Ajoutez votre jeton à l’URL : <code>?token=VOTRE_TOKEN</code></div>`:''}</div>` }
+async function boot(){ if(!slug){ root.innerHTML='<div class="warn">Slug manquant. Utilisez /guide/<em>votre-slug</em></div>'; return } const jsonUrl=`${SUPABASE_URL}/storage/v1/object/public/${GUIDES_BUCKET}/${encodeURIComponent(slug)}.json`; try{ const r=await fetch(jsonUrl,{cache:'no-store'}); if(!r.ok){ if(r.status===404){ root.innerHTML=`<div class="warn">Guide introuvable pour <b>${slug}</b>.<br>Vérifiez que <code>${jsonUrl}</code> existe.</div>`; return } throw new Error(`HTTP ${r.status}`) } const g=await r.json(); const title=g?.name||`Guide ${slug}`; document.title=`${title} – Conciergerie Zenata`; root.innerHTML=html`<div class="header" style="padding:0 0 10px 0;"><div><div class="badge">Guide</div><h1 style="margin:.2rem 0 0 .0;font-size:28px">${title}</h1></div></div>${section(g)}` }catch(e){ root.innerHTML=`<div class="warn">Erreur de chargement: ${e.message||e}</div>` } } document.addEventListener('DOMContentLoaded',boot)
+</script></body></html>
 
