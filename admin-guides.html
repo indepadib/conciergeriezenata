@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin Guides – Conciergerie Zenata</title>
+  <style>
+    body{font-family:system-ui,Inter,Segoe UI,Roboto,Arial,sans-serif;margin:0;color:#0f172a;background:#fff}
+    .wrap{max-width:1040px;margin:0 auto;padding:16px}
+    .card{border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;background:#f8fafc}
+    .card h2{margin:0;padding:12px 14px;border-bottom:1px solid #e2e8f0;font-size:16px}
+    .content{padding:14px}
+    label{font-size:12px;color:#475569;display:block;margin-bottom:6px}
+    input{width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:10px;background:#fff}
+    .grid{display:grid;gap:12px}
+    .grid2{grid-template-columns:1fr 1fr}
+    .btn{display:inline-flex;gap:8px;padding:10px 14px;border:1px solid #0f172a;border-radius:12px;background:#0f172a;color:#fff;cursor:pointer}
+    .muted{font-size:12px;color:#475569}
+    .pill{display:inline-flex;gap:6px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:999px;font-size:12px;margin:4px 6px 0 0}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // === CONFIG À RENSEIGNER ===
+    const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";      // ⚠️ remplace par le tien
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qZ2NocnF0dmt3emhqdnd3ZnRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2OTMxODEsImV4cCI6MjA3NTI2OTE4MX0.Ok7fj3QUs28Q8dOiNy6caSBmjcUmjFrZgmIvAnzJZ00"; // ⚠️ remplace par la clé anon
+    const BUCKET = "guides";  // bucket public dans Supabase Storage
+
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function publicUrl(path){
+      const { data } = sb.storage.from(BUCKET).getPublicUrl(path);
+      return data?.publicUrl || null;
+    }
+    async function uploadJson(path, obj){
+      const blob = new Blob([JSON.stringify(obj, null, 2)], { type:'application/json' });
+      const { error } = await sb.storage.from(BUCKET).upload(path, blob, { upsert:true, contentType:'application/json' });
+      if(error) throw error;
+      return publicUrl(path);
+    }
+
+    function guideFromForm(){
+      const get = id => document.getElementById(id).value.trim();
+      const token = get('f-token');
+      return {
+        id: 'prop_'+Date.now(),
+        slug: get('f-slug'),
+        brand: { name:'Conciergerie Zenata', logoUrl:'/logo/logo_officiel_couleur_picto.png', supportEmail:'hello@conciergeriezenata.com', site: location.origin },
+        cover: { imageUrl:get('f-cover'), caption:{ fr:'' } },
+        name: get('f-name'),
+        address: get('f-address'),
+        city: 'Casablanca',
+        arrival: { fr:{ checkin_from:get('f-checkin') || '15:00', self_checkin:true, doorCode:get('f-door'), parking:get('f-parking'), wifi:{ ssid:get('f-ssid'), password:get('f-wifi') }, notes:[] } },
+        rules: { fr:{ items:[] } },
+        departure: { fr:{ checkout_until:'11:00', steps:[] } },
+        amenities: [],
+        essentials: { fr:{ electricity:'', water:'', gas:'', emergency:[] } },
+        neighborhood: { fr:{ intro:'', places:[] } },
+        recommendations: { fr:{ intro:'', tips:[] } },
+        __sensitive: token ? { token } : undefined
+      };
+    }
+
+    function renderPreview(g, token){
+      const a = g.arrival?.fr || {};
+      const allow = g.__sensitive?.token ? (token === g.__sensitive.token) : true;
+      const door = allow ? (a.doorCode||'') : '•••• (masqué)';
+      return `
+        <div class="grid" style="gap:10px">
+          <div class="card"><h2>${g.name||'Sans nom'}</h2><div class="content">${g.address||''}</div></div>
+          <div class="card"><div class="content">
+            <img src="${g.cover?.imageUrl||''}" alt="" style="width:100%;height:260px;object-fit:cover;border-radius:12px;border:1px solid #e2e8f0">
+          </div></div>
+          <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:10px">
+            <div class="card"><div class="content"><div class="muted">Wi-Fi</div><b>${(a.wifi?.ssid||'')}${a.wifi?.password ? ' • '+a.wifi.password:''}</b></div></div>
+            <div class="card"><div class="content"><div class="muted">Code porte</div><b>${door}</b></div></div>
+            <div class="card"><div class="content"><div class="muted">Check-in</div><b>${a.checkin_from||''}</b></div></div>
+          </div>
+        </div>`;
+    }
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const inputs = Array.from(document.querySelectorAll('input'));
+      const prev = document.getElementById('preview');
+      const tokenInput = document.getElementById('f-token');
+      function refresh(){ prev.innerHTML = renderPreview(guideFromForm(), tokenInput.value.trim()); }
+      inputs.forEach(i=> i.addEventListener('input', refresh)); refresh();
+
+      document.getElementById('btn-publish').addEventListener('click', async ()=>{
+        const g = guideFromForm(), slug = g.slug;
+        const msg = document.getElementById('save-msg');
+        if(!slug){ msg.textContent = 'Slug requis'; return; }
+        try{
+          const url = await uploadJson(`${slug}.json`, g);
+          msg.textContent = `✅ Publié : ${url}`;
+        }catch(e){ msg.textContent = `❌ ${e.message||e}`; }
+      });
+    });
+  </script>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Admin – Nouveau Guide</h1>
+    <div class="grid" style="grid-template-columns:1.1fr .9fr;gap:16px">
+      <div class="card">
+        <h2>Formulaire</h2>
+        <div class="content grid grid2">
+          <div><label>Nom</label><input id="f-name" placeholder="Azure 12B – Suite Terrasse"></div>
+          <div><label>Slug</label><input id="f-slug" placeholder="zenata-azure-12b"></div>
+          <div style="grid-column:1/3"><label>Adresse</label><input id="f-address" placeholder="Résidence Azure, Zenata Éco-Cité, Mohammédia"></div>
+          <div style="grid-column:1/3"><label>Image de couverture (URL)</label><input id="f-cover" placeholder="https://.../photo.webp"></div>
+          <div><label>Check-in dès</label><input id="f-checkin" placeholder="15:00"></div>
+          <div><label>Code porte (sensible)</label><input id="f-door" placeholder="7942#"></div>
+          <div><label>Parking</label><input id="f-parking" placeholder="P2, place 18"></div>
+          <div><label>Wi-Fi SSID</label><input id="f-ssid" placeholder="Azure12B"></div>
+          <div><label>Wi-Fi Password</label><input id="f-wifi" placeholder="Zenata2025"></div>
+          <div style="grid-column:1/3"><label>Jeton d’accès (pour révéler le code)</label><input id="f-token" placeholder="A1B2C3 (optionnel)"></div>
+          <div style="grid-column:1/3;display:flex;gap:8px;margin-top:4px">
+            <button class="btn" id="btn-publish">Publier</button>
+            <div class="muted" id="save-msg"></div>
+          </div>
+          <div style="grid-column:1/3" class="muted">
+            Le JSON sera enregistré dans Supabase Storage (<b>bucket public “guides”</b>) sous <code>guides/slug.json</code>.
+          </div>
+        </div>
+      </div>
+      <div class="card"><h2>Aperçu</h2><div class="content" id="preview"></div></div>
+    </div>
+  </div>
+</body>
+</html>
+
