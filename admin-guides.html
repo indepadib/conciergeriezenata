@@ -170,71 +170,59 @@
   </div>
 </body>
 </html> -->
-<!doctype html><html lang="fr"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Admin Guides – Conciergerie Zenata</title>
-<style>
-:root{--ink:#0f172a;--muted:#475569;--line:#e2e8f0;--bg:#ffffff;--card:#f8fafc;--brand:#111827}
-*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);background:var(--bg)}
-.nav{position:sticky;top:0;background:rgba(255,255,255,.92);backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid var(--line)}
-.container{max-width:1120px;margin:0 auto;padding:16px}
-.hstack{display:flex;align-items:center;gap:12px}
-.spacer{flex:1}
-.btn{appearance:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 14px;cursor:pointer}
-.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
-.grid{display:grid;gap:18px}.grid-2{grid-template-columns:1.1fr .9fr}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.card h2{margin:0;padding:12px 14px;border-bottom:1px solid var(--line);font-size:16px}
-.card .content{padding:16px}
-label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
-input{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
-.muted{font-size:12px;color:var(--muted)}
-.kv{display:grid;grid-template-columns:160px 1fr;gap:10px}
-.notice{background:#ecfeff;border:1px solid #a5f3fc;color:#0e7490;border-radius:12px;padding:10px 12px;font-size:13px}
-.success{color:#065f46}.error{color:#991b1b}
-@media(max-width:960px){.grid-2{grid-template-columns:1fr}}
-</style>
-</head><body>
-<div class="nav"><div class="container hstack"><img src="/logo/logo_officiel_couleur_picto.png" style="height:28px"> <b>Conciergerie Zenata – Admin</b><div class="spacer"></div><a class="btn" href="/guides.html">Liste des guides</a></div></div>
-<main class="container">
+<!doctype html>
+function renderPreview(g){
+const a = g.arrival?.fr || {}; const rules=g.rules?.fr?.items||[]; const door=a.doorCode||'••••';
+const ams = g.amenities||[];
+return `
+<div class="vstack">
+<div class="hero"><img src="${g.cover?.imageUrl||''}"><div class="overlay"></div><div class="title"><span class="badge">Aperçu</span><h1>${g.name||'Sans nom'}</h1></div></div>
+<div class="grid grid-3">
+${g.address? `<div class="tile"><div class="k">Adresse</div><b>${g.address}</b></div>`:''}
+${(a.wifi?.ssid||a.wifi?.password)? `<div class="tile"><div class="k">Wi‑Fi</div><b>${a.wifi?.ssid||''}${a.wifi?.password? ' • '+a.wifi.password:''}</b></div>`:''}
+${door? `<div class="tile"><div class="k">Code porte</div><b>${door}</b></div>`:''}
+</div>
 <div class="grid grid-2">
-<div class="card">
-<h2>Créer / éditer un guide</h2>
-<div class="content">
-<div class="kv">
-<label>Nom</label><input id="f-name" placeholder="Azure 12B – Suite Terrasse">
-<label>Slug</label><input id="f-slug" placeholder="zenata-azure-12b">
-<label>Adresse</label><input id="f-address" placeholder="Résidence Azure, Zenata Éco‑Cité, Mohammédia">
-<label>Check‑in dès</label><input id="f-checkin" placeholder="15:00">
-<label>Code porte (sens.)</label><input id="f-door" placeholder="7942#">
-<label>Parking</label><input id="f-parking" placeholder="P2, place 18">
-<label>Wi‑Fi SSID</label><input id="f-ssid" placeholder="Azure12B">
-<label>Wi‑Fi Password</label><input id="f-wifi" placeholder="Zenata2025">
-<label>Jeton d’accès</label><input id="f-token" placeholder="A1B2C3 (optionnel)">
-<label>Couverture (URL)</label><input id="f-cover" placeholder="https://.../photo.webp">
-<label>ou charger une image</label><input type="file" id="f-cover-file" accept="image/*">
+<div class="vstack">
+<div class="card"><h2>Arrivée & Check‑in</h2><div class="content">${a.checkin_from? `<div><span class="k">À partir de</span> <b>${a.checkin_from}</b></div>`:''}${a.parking? `<div><span class="k">Parking</span> <b>${a.parking}</b></div>`:''}${(a.notes||[]).length? `<ul>${a.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}</div></div>
+${rules.length? `<div class="card"><h2>Règles</h2><div class="content"><ul>${rules.map(r=>`<li>${r}</li>`).join('')}</ul></div></div>`:''}
 </div>
-<div class="hstack" style="margin-top:12px;gap:8px">
-<button class="btn primary" id="btn-publish">Publier</button>
-<span id="save-msg" class="muted"></span>
-</div>
-<div class="notice" style="margin-top:12px">Astuce: partagez au voyageur l’URL <code>/guide/&lt;slug&gt;</code>. Le code porte est masqué tant que le jeton n’est pas fourni dans l’URL.</div>
+<div class="vstack">
+${(ams||[]).length? `<div class="card"><h2>Équipements</h2><div class="content">${ams.map(a=>`<span class="pill">${a.label}</span>`).join('')}</div></div>`:''}
 </div>
 </div>
-<div class="card"><h2>Aperçu</h2><div class="content" id="preview">Remplissez le formulaire…</div></div>
-</div>
-</main>
+</div>`
+}
 
 
-<script>
-function guideFromForm(){
-const get = id => document.getElementById(id).value.trim();
-const token = get('f-token');
-return { id:'prop_'+Date.now(), slug:get('f-slug'), brand:{ name:'Conciergerie Zenata', logoUrl:'/logo/logo_officiel_couleur_picto.png', supportEmail:'hello@conciergeriezenata.com', site: location.origin }, cover:{ imageUrl:get('f-cover'), caption:{ fr:'' } }, name:get('f-name'), address:get('f-address'), city:'Casablanca', arrival:{ fr:{ checkin_from:get('f-checkin')||'15:00', self_checkin:true, doorCode:get('f-door'), parking:get('f-parking'), wifi:{ ssid:get('f-ssid'), password:get('f-wifi') }, notes:[] } }, rules:{ fr:{ items:[] } }, departure:{ fr:{ checkout_until:'11:00', steps:[] } }, amenities:[], essentials:{ fr:{ electricity:'', water:'', gas:'', emergency:[] } }, neighborhood:{ fr:{ intro:'', places:[] } }, recommendations:{ fr:{ intro:'', tips:[] } }, __sensitive: token? { token }: undefined } }
-function renderPreview(g, token){ const a=g.arrival?.fr||{}; const allow=g.__sensitive?.token? (token===g.__sensitive.token):true; const door=allow?(a.doorCode||''):'•••• (masqué)'; return `<div class="grid" style="gap:12px"><div class="card"><div class="content"><b>${g.name||'Sans nom'}</b><div class="muted">${g.address||''}</div></div></div><div class="card"><div class="content"><img src="${g.cover?.imageUrl||''}" style="width:100%;height:260px;object-fit:cover;border-radius:12px;border:1px solid #e2e8f0"></div></div><div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:10px"><div class="card"><div class="content"><div class="muted">Wi‑Fi</div><b>${(a.wifi?.ssid||'')}${a.wifi?.password? ' • '+a.wifi.password:''}</b></div></div><div class="card"><div class="content"><div class="muted">Code porte</div><b>${door}</b></div></div><div class="card"><div class="content"><div class="muted">Check‑in</div><b>${a.checkin_from||''}</b></div></div></div></div>` }
-async function serverUploadGuide(slug, guide){ const res=await fetch('/.netlify/functions/upload-guide',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug,guide})}); if(!res.ok){throw new Error(await res.text())} return await res.json() }
-async function serverUploadImage(file, slug){ const ext=(file.name.split('.').pop()||'webp').toLowerCase(); const url=`/.netlify/functions/upload-image?slug=${encodeURIComponent(slug)}&ext=${encodeURIComponent(ext)}`; const res=await fetch(url,{method:'POST',headers:{'Content-Type':file.type||'application/octet-stream'},body:file}); if(!res.ok){throw new Error(await res.text())} return await res.json() }
-document.addEventListener('DOMContentLoaded',()=>{ const prev=document.getElementById('preview'); const tokenInput=document.getElementById('f-token'); const saveMsg=document.getElementById('save-msg'); function refresh(){ prev.innerHTML=renderPreview(guideFromForm(), tokenInput.value.trim()) } Array.from(document.querySelectorAll('input')).forEach(i=>i.addEventListener('input',refresh)); refresh(); const fileInput=document.getElementById('f-cover-file'); fileInput.addEventListener('change', async (e)=>{ const file=e.target.files?.[0]; if(!file) return; const slug=(document.getElementById('f-slug').value.trim()||`temp-${Date.now()}`).replace(/[^a-z0-9-]/gi,'-').toLowerCase(); try{ const r=await serverUploadImage(file, slug); document.getElementById('f-cover').value=r.url||''; saveMsg.textContent='✅ Image uploadée'; refresh() }catch(err){ saveMsg.textContent='❌ Upload image: '+(err.message||err) } }); document.getElementById('btn-publish').addEventListener('click', async ()=>{ const g=guideFromForm(); const slug=g.slug; if(!slug){ saveMsg.textContent='Slug requis'; return } try{ const r=await serverUploadGuide(slug, g); saveMsg.innerHTML=`<span class="success">✅ Publié</span> : <a href="${r.url}" target="_blank" rel="noreferrer">${r.url}</a>` }catch(e){ saveMsg.innerHTML=`<span class="error">❌ ${e.message||e}</span>` } }) })
+async function serverUploadGuide(slug, guide){
+const r = await fetch('/.netlify/functions/upload-guide',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ slug, guide })});
+if(!r.ok) throw new Error(await r.text()); return await r.json();
+}
+async function serverUploadImage(file, slug){
+const ext=(file.name.split('.').pop()||'webp').toLowerCase();
+const r = await fetch(`/.netlify/functions/upload-image?slug=${encodeURIComponent(slug)}&ext=${encodeURIComponent(ext)}`,{ method:'POST', headers:{ 'Content-Type': file.type||'application/octet-stream' }, body:file });
+if(!r.ok) throw new Error(await r.text()); return await r.json();
+}
+
+
+document.addEventListener('DOMContentLoaded', ()=>{
+const prev = document.getElementById('preview'); const msg = document.getElementById('save-msg');
+const refresh = ()=> prev.innerHTML = renderPreview(guideFromForm());
+Array.from(document.querySelectorAll('input,textarea,select')).forEach(el=> el.addEventListener('input', refresh)); refresh();
+
+
+document.getElementById('f-cover-file').addEventListener('change', async (e)=>{
+const file = e.target.files?.[0]; if(!file) return; const slug=(document.getElementById('f-slug').value.trim()||`temp-${Date.now()}`).replace(/[^a-z0-9-]/gi,'-').toLowerCase();
+try{ const res=await serverUploadImage(file, slug); document.getElementById('f-cover').value=res.url||''; msg.textContent='✅ Image uploadée'; refresh() }catch(err){ msg.textContent='❌ '+(err.message||err) }
+});
+
+
+document.getElementById('btn-publish').addEventListener('click', async ()=>{
+const g = guideFromForm(); const slug = g.slug; if(!slug){ msg.textContent='Slug requis'; return }
+try{ const res = await serverUploadGuide(slug, g); msg.innerHTML = `✅ Publié: <a href="/guide/${slug}" target="_blank">ouvrir</a>` }catch(err){ msg.textContent='❌ '+(err.message||err) }
+});
+});
 </script>
-</body></html>
-
+</body>
+</html>
