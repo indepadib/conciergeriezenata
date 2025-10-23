@@ -19,89 +19,113 @@
     .pill{display:inline-flex;gap:6px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:999px;font-size:12px;margin:4px 6px 0 0}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    // === CONFIG À RENSEIGNER ===
-    const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";      // ⚠️ remplace par le tien
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qZ2NocnF0dmt3emhqdnd3ZnRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2OTMxODEsImV4cCI6MjA3NTI2OTE4MX0.Ok7fj3QUs28Q8dOiNy6caSBmjcUmjFrZgmIvAnzJZ00"; // ⚠️ remplace par la clé anon
-    const BUCKET = "guides";  // bucket public dans Supabase Storage
+<script>
+  // === CONFIG À RENSEIGNER ===
+  const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";      // <-- OK
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qZ2NocnF0dmt3emhqdnd3ZnRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2OTMxODEsImV4cCI6MjA3NTI2OTE4MX0.Ok7fj3QUs28Q8dOiNy6caSBmjcUmjFrZgmIvAnzJZ00";
+  const GUIDES_BUCKET = "guides";        // JSON des guides
+  const ASSETS_BUCKET = "guide-assets";  // images (couvertures), à créer
 
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const file = input.files[0];
-    await sb.storage.from('guide-assets').upload(`covers/${slug}.webp`, file, { upsert: true });
-    const { data } = sb.storage.from('guide-assets').getPublicUrl(`covers/${slug}.webp`);
-    guide.cover.imageUrl = data.publicUrl;
+  // Helpers Storage
+  function publicUrl(bucket, path){
+    const { data } = sb.storage.from(bucket).getPublicUrl(path);
+    return data?.publicUrl || null;
+  }
+  async function uploadJson(path, obj){
+    const blob = new Blob([JSON.stringify(obj, null, 2)], { type:'application/json' });
+    const { error } = await sb.storage.from(GUIDES_BUCKET).upload(path, blob, { upsert:true, contentType:'application/json' });
+    if(error) throw error;
+    return publicUrl(GUIDES_BUCKET, path);
+  }
 
+  // Guide depuis le formulaire
+  function guideFromForm(){
+    const get = id => document.getElementById(id).value.trim();
+    const token = get('f-token');
+    return {
+      id: 'prop_'+Date.now(),
+      slug: get('f-slug'),
+      brand: { name:'Conciergerie Zenata', logoUrl:'/logo/logo_officiel_couleur_picto.png', supportEmail:'hello@conciergeriezenata.com', site: location.origin },
+      cover: { imageUrl:get('f-cover'), caption:{ fr:'' } },
+      name: get('f-name'),
+      address: get('f-address'),
+      city: 'Casablanca',
+      arrival: { fr:{ checkin_from:get('f-checkin') || '15:00', self_checkin:true, doorCode:get('f-door'), parking:get('f-parking'), wifi:{ ssid:get('f-ssid'), password:get('f-wifi') }, notes:[] } },
+      rules: { fr:{ items:[] } },
+      departure: { fr:{ checkout_until:'11:00', steps:[] } },
+      amenities: [],
+      essentials: { fr:{ electricity:'', water:'', gas:'', emergency:[] } },
+      neighborhood: { fr:{ intro:'', places:[] } },
+      recommendations: { fr:{ intro:'', tips:[] } },
+      __sensitive: token ? { token } : undefined
+    };
+  }
 
-    function publicUrl(path){
-      const { data } = sb.storage.from(BUCKET).getPublicUrl(path);
-      return data?.publicUrl || null;
-    }
-    async function uploadJson(path, obj){
-      const blob = new Blob([JSON.stringify(obj, null, 2)], { type:'application/json' });
-      const { error } = await sb.storage.from(BUCKET).upload(path, blob, { upsert:true, contentType:'application/json' });
-      if(error) throw error;
-      return publicUrl(path);
-    }
+  // Aperçu
+  function renderPreview(g, token){
+    const a = g.arrival?.fr || {};
+    const allow = g.__sensitive?.token ? (token === g.__sensitive.token) : true;
+    const door = allow ? (a.doorCode||'') : '•••• (masqué)';
+    return `
+      <div class="grid" style="gap:10px">
+        <div class="card"><h2>${g.name||'Sans nom'}</h2><div class="content">${g.address||''}</div></div>
+        <div class="card"><div class="content">
+          <img src="${g.cover?.imageUrl||''}" alt="" style="width:100%;height:260px;object-fit:cover;border-radius:12px;border:1px solid #e2e8f0">
+        </div></div>
+        <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div class="card"><div class="content"><div class="muted">Wi-Fi</div><b>${(a.wifi?.ssid||'')}${a.wifi?.password ? ' • '+a.wifi.password:''}</b></div></div>
+          <div class="card"><div class="content"><div class="muted">Code porte</div><b>${door}</b></div></div>
+          <div class="card"><div class="content"><div class="muted">Check-in</div><b>${a.checkin_from||''}</b></div></div>
+        </div>
+      </div>`;
+  }
 
-    function guideFromForm(){
-      const get = id => document.getElementById(id).value.trim();
-      const token = get('f-token');
-      return {
-        id: 'prop_'+Date.now(),
-        slug: get('f-slug'),
-        brand: { name:'Conciergerie Zenata', logoUrl:'/logo/logo_officiel_couleur_picto.png', supportEmail:'hello@conciergeriezenata.com', site: location.origin },
-        cover: { imageUrl:get('f-cover'), caption:{ fr:'' } },
-        name: get('f-name'),
-        address: get('f-address'),
-        city: 'Casablanca',
-        arrival: { fr:{ checkin_from:get('f-checkin') || '15:00', self_checkin:true, doorCode:get('f-door'), parking:get('f-parking'), wifi:{ ssid:get('f-ssid'), password:get('f-wifi') }, notes:[] } },
-        rules: { fr:{ items:[] } },
-        departure: { fr:{ checkout_until:'11:00', steps:[] } },
-        amenities: [],
-        essentials: { fr:{ electricity:'', water:'', gas:'', emergency:[] } },
-        neighborhood: { fr:{ intro:'', places:[] } },
-        recommendations: { fr:{ intro:'', tips:[] } },
-        __sensitive: token ? { token } : undefined
-      };
-    }
+  // Bind UI
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const prev = document.getElementById('preview');
+    const tokenInput = document.getElementById('f-token');
 
-    function renderPreview(g, token){
-      const a = g.arrival?.fr || {};
-      const allow = g.__sensitive?.token ? (token === g.__sensitive.token) : true;
-      const door = allow ? (a.doorCode||'') : '•••• (masqué)';
-      return `
-        <div class="grid" style="gap:10px">
-          <div class="card"><h2>${g.name||'Sans nom'}</h2><div class="content">${g.address||''}</div></div>
-          <div class="card"><div class="content">
-            <img src="${g.cover?.imageUrl||''}" alt="" style="width:100%;height:260px;object-fit:cover;border-radius:12px;border:1px solid #e2e8f0">
-          </div></div>
-          <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:10px">
-            <div class="card"><div class="content"><div class="muted">Wi-Fi</div><b>${(a.wifi?.ssid||'')}${a.wifi?.password ? ' • '+a.wifi.password:''}</b></div></div>
-            <div class="card"><div class="content"><div class="muted">Code porte</div><b>${door}</b></div></div>
-            <div class="card"><div class="content"><div class="muted">Check-in</div><b>${a.checkin_from||''}</b></div></div>
-          </div>
-        </div>`;
-    }
+    function refresh(){ prev.innerHTML = renderPreview(guideFromForm(), tokenInput.value.trim()); }
+    Array.from(document.querySelectorAll('input')).forEach(i => i.addEventListener('input', refresh));
+    refresh();
 
-    document.addEventListener('DOMContentLoaded', ()=>{
-      const inputs = Array.from(document.querySelectorAll('input'));
-      const prev = document.getElementById('preview');
-      const tokenInput = document.getElementById('f-token');
-      function refresh(){ prev.innerHTML = renderPreview(guideFromForm(), tokenInput.value.trim()); }
-      inputs.forEach(i=> i.addEventListener('input', refresh)); refresh();
-
-      document.getElementById('btn-publish').addEventListener('click', async ()=>{
-        const g = guideFromForm(), slug = g.slug;
-        const msg = document.getElementById('save-msg');
-        if(!slug){ msg.textContent = 'Slug requis'; return; }
-        try{
-          const url = await uploadJson(`${slug}.json`, g);
-          msg.textContent = `✅ Publié : ${url}`;
-        }catch(e){ msg.textContent = `❌ ${e.message||e}`; }
-      });
+    // Upload image de couverture → remplit #f-cover automatiquement
+    const fileInput = document.getElementById('f-cover-file');
+    fileInput.addEventListener('change', async (e)=>{
+      const msg = document.getElementById('save-msg');
+      const file = e.target.files?.[0];
+      if(!file){ return; }
+      try{
+        const slug = (document.getElementById('f-slug').value.trim() || `temp-${Date.now()}`).replace(/[^a-z0-9-]/gi,'-').toLowerCase();
+        const ext = (file.name.split('.').pop() || 'webp').toLowerCase();
+        const path = `covers/${slug}.${ext}`;
+        const { error } = await sb.storage.from(ASSETS_BUCKET).upload(path, file, { upsert:true, contentType: file.type || 'image/*' });
+        if(error) throw error;
+        const url = publicUrl(ASSETS_BUCKET, path);
+        document.getElementById('f-cover').value = url || '';
+        msg.textContent = `✅ Image uploadée`;
+        refresh();
+      }catch(err){
+        document.getElementById('f-cover').value = '';
+        document.getElementById('save-msg').textContent = `❌ Upload image: ${err.message||err}`;
+      }
     });
-  </script>
+
+    // Publier JSON
+    document.getElementById('btn-publish').addEventListener('click', async ()=>{
+      const g = guideFromForm(), slug = g.slug;
+      const msg = document.getElementById('save-msg');
+      if(!slug){ msg.textContent = 'Slug requis'; return; }
+      try{
+        const url = await uploadJson(`${slug}.json`, g);
+        msg.textContent = `✅ Publié : ${url}`;
+      }catch(e){ msg.textContent = `❌ ${e.message||e}`; }
+    });
+  });
+</script>
+
 </head>
 <body>
   <div class="wrap">
@@ -114,7 +138,7 @@
           <div><label>Slug</label><input id="f-slug" placeholder="zenata-azure-12b"></div>
           <div style="grid-column:1/3"><label>Adresse</label><input id="f-address" placeholder="Résidence Azure, Zenata Éco-Cité, Mohammédia"></div>
           <div style="grid-column:1/3"><label>Image de couverture (URL)</label><input id="f-cover" placeholder="https://.../photo.webp"></div>
-          <div style="grid-column:1/3"><label>Image de couverture </label><input type="file"> placeholder="Charger une image"></div>
+          <div style="grid-column:1/3"> <label>Image de couverture</label> <input type="file" id="f-cover-file" accept="image/*"></div>
           <div><label>Check-in dès</label><input id="f-checkin" placeholder="15:00"></div>
           <div><label>Code porte (sensible)</label><input id="f-door" placeholder="7942#"></div>
           <div><label>Parking</label><input id="f-parking" placeholder="P2, place 18"></div>
