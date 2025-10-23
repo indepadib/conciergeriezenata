@@ -1,0 +1,2 @@
+/admin/guides/new      /admin-guides.html            200
+/guide/*               /guide.html?slug=:splat       200
