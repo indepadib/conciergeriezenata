@@ -175,295 +175,159 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Admin – Guides (Premium)</title>
-  <link rel="stylesheet" href="/assets/premium.css"/>
+  <title>Admin – Édition de Guide | Conciergerie Zenata</title>
+  <link rel="icon" href="/logo/logo_officiel_couleur_picto.png"/>
+  <style>
+    :root{
+      --ink:#0B1220; --muted:#6F7782; --line:#E4E9F2;
+      --card:#FFFFFF; --accent:#C6A86A;
+      --shadow:0 20px 40px rgba(16,24,40,.08);
+      --radius:16px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--ink);
+      background:
+        radial-gradient(900px 700px at 20% -10%, #ffffff 0%, #f8f9fc 60%, #eef1f6 100%);
+      padding:32px;
+    }
+
+    h1{font-size:24px;margin-bottom:12px;}
+    h2{font-size:18px;margin-top:40px;margin-bottom:10px;}
+    a{text-decoration:none;color:var(--accent)}
+    a:hover{text-decoration:underline}
+
+    .header{display:flex;align-items:center;gap:10px;margin-bottom:24px;}
+    .header img{height:28px;}
+    .card{
+      background:var(--card);border:1px solid var(--line);
+      border-radius:var(--radius);padding:28px;
+      max-width:860px;margin:0 auto 24px;box-shadow:var(--shadow);
+    }
+
+    form{display:grid;gap:16px;}
+    label{font-weight:600;font-size:14px;display:block;margin-bottom:6px;}
+    input,textarea{
+      width:100%;padding:12px;border:1px solid var(--line);
+      border-radius:10px;font-size:14px;background:#fff;
+      box-shadow:inset 0 1px 2px rgba(0,0,0,.04);
+    }
+    textarea{min-height:80px;resize:vertical;}
+    .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;}
+    .btn{
+      appearance:none;border:none;cursor:pointer;
+      background:linear-gradient(135deg,#0F172A,#1F2937);
+      color:#fff;font-weight:600;font-size:14px;
+      border-radius:12px;padding:12px 18px;
+      box-shadow:0 6px 14px rgba(0,0,0,.08);
+      transition:transform .1s ease, box-shadow .2s ease;
+    }
+    .btn:hover{box-shadow:0 8px 18px rgba(0,0,0,.12);}
+    .btn:active{transform:translateY(1px);}
+    .info{color:var(--muted);font-size:13px;}
+    .preview{
+      border-radius:var(--radius);overflow:hidden;
+      margin-top:24px;box-shadow:var(--shadow);
+      border:1px solid var(--line);
+    }
+    .preview iframe{width:100%;height:600px;border:0;}
+  </style>
 </head>
 <body>
-  <!-- Nav -->
-  <nav class="container hstack" style="position:sticky;top:0;background:rgba(255,255,255,.8);backdrop-filter:saturate(180%) blur(10px);border-bottom:1px solid var(--line)">
-    <div class="hstack" style="gap:10px">
-      <img src="/logo/logo_officiel_couleur_picto.png" style="height:28px" alt="CZ"/>
-      <b>Conciergerie Zenata – Admin</b>
-    </div>
-    <div class="spacer"></div>
-    <a class="btn" href="/guides.html">Liste des guides</a>
-  </nav>
 
-  <!-- Main -->
-  <main class="container grid grid-2">
-    <!-- Formulaire -->
-    <section class="card">
-      <h2 id="form-title">Créer un guide</h2>
-      <div class="content grid" style="gap:14px">
-        <div class="grid" style="grid-template-columns:1fr 1fr;gap:14px">
-          <div>
-            <label>Nom</label>
-            <input id="f-name" placeholder="Next-House Palm 2BR – Vue mer">
-          </div>
-          <div>
-            <label>Slug</label>
-            <input id="f-slug" placeholder="palm-next-house-2br">
-          </div>
-        </div>
+  <div class="header">
+    <img src="/logo/logo_officiel_couleur_picto.png" alt="CZ">
+    <h1>Conciergerie Zenata – <span style="font-weight:400">Admin</span></h1>
+  </div>
 
+  <p><a href="/guides.html">← Liste des guides</a></p>
+
+  <div class="card">
+    <h2>Éditer le guide <span id="slugLabel"></span></h2>
+    <form id="f">
+      <div class="row">
         <div>
-          <label>Adresse</label>
-          <input id="f-address" placeholder="Résidence Next-House, Zenata Eco-Cité 26660">
+          <label>Nom</label><input name="name" required>
         </div>
-
-        <div class="grid" style="grid-template-columns:1fr 1fr;gap:14px">
-          <div>
-            <label>Ville</label>
-            <input id="f-city" placeholder="Casablanca">
-          </div>
-          <div>
-            <label>Couverture (URL)</label>
-            <input id="f-cover" placeholder="https://.../photo.webp">
-          </div>
-        </div>
-
         <div>
-          <label>ou charger une image</label>
-          <input type="file" id="f-cover-file" accept="image/*">
+          <label>Slug</label><input name="slug" required>
         </div>
-
-        <div class="grid" style="grid-template-columns:1fr 1fr;gap:14px">
-          <div><label>Check-in à partir de</label><input id="f-checkin" placeholder="15:00"></div>
-          <div><label>Check-out avant</label><input id="f-checkout" placeholder="11:00"></div>
-          <div><label>Code porte (sens.)</label><input id="f-door" placeholder="7942#"></div>
-          <div><label>Jeton d’accès (pour révéler)</label><input id="f-token" placeholder="A1B2C3 (optionnel)"></div>
-          <div><label>Parking</label><input id="f-parking" placeholder="P2, place 18"></div>
-        </div>
-
-        <div class="grid" style="grid-template-columns:1fr 1fr;gap:14px">
-          <div><label>Wi-Fi SSID</label><input id="f-ssid" placeholder="PalmHouse"></div>
-          <div><label>Wi-Fi Password</label><input id="f-wifi" placeholder="Zenata2025"></div>
-        </div>
-
-        <div class="section">
-          <div class="row">
-            <div style="flex:1">
-              <label>Règles (une par ligne)</label>
-              <textarea id="f-rules" rows="3" placeholder="Non-fumeur
-Pas d’animaux
-Pas de fêtes"></textarea>
-            </div>
-            <div style="flex:1">
-              <label>Notes d’arrivée (une par ligne)</label>
-              <textarea id="f-arrival-notes" rows="3" placeholder="Récupérer la clé au coffre...
-Ascenseur bloc B..."></textarea>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid" style="grid-template-columns:1fr 1fr;gap:14px">
-          <div>
-            <label>Équipements (séparés par des virgules)</label>
-            <input id="f-amenities" placeholder="Climatisation, Machine à laver, TV 55&quot;">
-          </div>
-          <div>
-            <label>Contacts d’urgence (JSON court)</label>
-            <input id="f-emergency" placeholder='[{"label":"Police","value":"19"}]'>
-            <div class="helper">Format: [{label,value,href?}]</div>
-          </div>
-        </div>
-
-        <div class="grid" style="grid-template-columns:1fr 1fr;gap:14px">
-          <div><label>Coordonnées – Latitude</label><input id="f-lat" placeholder="33.711"></div>
-          <div><label>Coordonnées – Longitude</label><input id="f-lng" placeholder="-7.391"></div>
-        </div>
-
-        <div class="row" style="margin-top:8px">
-          <button class="btn primary" id="btn-publish">Publier</button>
-          <span id="save-msg" class="badge"></span>
-        </div>
-        <div class="helper">Le lien public sera: <code>/guide/&lt;slug&gt;</code></div>
       </div>
-    </section>
 
-    <!-- Aperçu -->
-    <aside class="card">
-      <h2>Aperçu</h2>
-      <div class="content" id="preview">Remplissez le formulaire…</div>
-    </aside>
-  </main>
+      <div>
+        <label>Adresse</label><input name="address">
+      </div>
+      <div class="row">
+        <div><label>Ville</label><input name="city"></div>
+        <div><label>Couverture (URL)</label><input name="coverUrl"></div>
+        <div><label>ou charger une image</label><input type="file" id="file"></div>
+      </div>
 
-  <!-- JS -->
+      <div class="row">
+        <div><label>Check-in à partir de</label><input name="checkin_from"></div>
+        <div><label>Check-out avant</label><input name="checkout_until"></div>
+      </div>
+
+      <div class="row">
+        <div><label>Code porte (sens.)</label><input name="doorCode"></div>
+        <div><label>Jeton d’accès (pour révéler)</label><input name="token"></div>
+      </div>
+
+      <div class="row">
+        <div><label>Parking</label><input name="parking"></div>
+        <div><label>Wi-Fi SSID</label><input name="wifi_ssid"></div>
+        <div><label>Wi-Fi Password</label><input name="wifi_password"></div>
+      </div>
+
+      <div>
+        <label>Règles (une par ligne)</label>
+        <textarea name="rules"></textarea>
+      </div>
+
+      <div>
+        <label>Notes d’arrivée (une par ligne)</label>
+        <textarea name="arrivalNotes"></textarea>
+      </div>
+
+      <div>
+        <label>Équipements (séparés par des virgules)</label>
+        <input name="amenities">
+      </div>
+
+      <div>
+        <label>Contacts d’urgence (JSON court)</label>
+        <input name="emergency" placeholder='[{"label":"Police","value":"19"}]'>
+      </div>
+
+      <div class="row">
+        <div><label>Latitude</label><input name="lat"></div>
+        <div><label>Longitude</label><input name="lng"></div>
+      </div>
+
+      <button type="submit" class="btn">Publier</button>
+      <p class="info">Le lien public sera : <code>/guide/&lt;slug&gt;</code></p>
+    </form>
+  </div>
+
+  <h2>Aperçu</h2>
+  <div class="preview">
+    <iframe id="preview"></iframe>
+  </div>
+
   <script>
-    // ---------- Helpers parsing ----------
-    function parseList(v){ return (v||'').split(/\n|,/).map(s=>s.trim()).filter(Boolean) }
-    function parseJSON(v){ try{ return JSON.parse(v||'[]') }catch{ return [] } }
+    const params = new URLSearchParams(location.search);
+    const slug = params.get("slug") || "nouveau-guide";
+    document.getElementById("slugLabel").textContent = slug;
 
-    // ---------- Build guide object from form ----------
-    function guideFromForm(){
-      const get = id => document.getElementById(id).value.trim();
-      const token = get('f-token');
-      const lat = parseFloat(get('f-lat')); const lng = parseFloat(get('f-lng'));
-      return {
-        id: 'prop_'+Date.now(),
-        slug: get('f-slug'),
-        brand: {
-          name:'Conciergerie Zenata',
-          logoUrl:'/logo/logo_officiel_couleur_picto.png',
-          supportEmail:'hello@conciergeriezenata.com',
-          supportWhatsApp:'https://wa.me/212612345678'
-        },
-        cover: { imageUrl:get('f-cover'), caption:{ fr:'' } },
-        name: get('f-name'),
-        address: get('f-address'),
-        city: get('f-city') || 'Casablanca',
-        arrival: { fr: {
-          checkin_from:get('f-checkin')||'15:00',
-          self_checkin:true,
-          doorCode:get('f-door'),
-          parking:get('f-parking'),
-          wifi:{ ssid:get('f-ssid'), password:get('f-wifi') },
-          notes: parseList(get('f-arrival-notes'))
-        } },
-        rules: { fr: { items: parseList(get('f-rules')) } },
-        departure: { fr: { checkout_until:get('f-checkout')||'11:00', steps:[] } },
-        amenities: parseList(get('f-amenities')).map(x=>({ label:x })),
-        essentials: { fr: { electricity:'', water:'', gas:'', emergency: parseJSON(get('f-emergency')) } },
-        coords: (isFinite(lat)&&isFinite(lng))? { lat, lng } : undefined,
-        __sensitive: token ? { token } : undefined
-      }
-    }
+    const preview = document.getElementById("preview");
+    preview.src = `/guide/${slug}`;
 
-    // ---------- Preview renderer ----------
-    function renderPreview(g){
-      const a = g.arrival?.fr || {};
-      const rules = g.rules?.fr?.items || [];
-      const door = a.doorCode || '••••';
-      const ams = g.amenities || [];
-      return `
-        <div class="vstack">
-          <div class="hero">
-            <img src="${g.cover?.imageUrl||''}" alt="">
-            <div class="overlay"></div>
-            <div class="title"><span class="badge">Aperçu</span><h1>${g.name||'Sans nom'}</h1></div>
-          </div>
-
-          <div class="grid grid-3">
-            ${g.address? `<div class="tile"><div class="k">Adresse</div><b>${g.address}</b></div>`:''}
-            ${(a.wifi?.ssid||a.wifi?.password)? `<div class="tile"><div class="k">Wi-Fi</div><b>${a.wifi?.ssid||''}${a.wifi?.password? ' • '+a.wifi.password:''}</b></div>`:''}
-            ${door? `<div class="tile"><div class="k">Code porte</div><b>${door}</b></div>`:''}
-          </div>
-
-          <div class="grid grid-2">
-            <div class="vstack">
-              <div class="card">
-                <h2>Arrivée & Check-in</h2>
-                <div class="content">
-                  ${a.checkin_from? `<div><span class="k">À partir de</span> <b>${a.checkin_from}</b></div>`:''}
-                  ${a.parking? `<div><span class="k">Parking</span> <b>${a.parking}</b></div>`:''}
-                  ${(a.notes||[]).length? `<ul>${a.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}
-                </div>
-              </div>
-              ${rules.length? `<div class="card"><h2>Règles</h2><div class="content"><ul>${rules.map(r=>`<li>${r}</li>`).join('')}</ul></div></div>`:''}
-            </div>
-            <div class="vstack">
-              ${(ams||[]).length? `<div class="card"><h2>Équipements</h2><div class="content">${ams.map(a=>`<span class="pill">${a.label}</span>`).join('')}</div></div>`:''}
-            </div>
-          </div>
-        </div>`;
-    }
-
-    // ---------- Server calls (Netlify Functions) ----------
-    async function serverUploadGuide(slug, guide){
-      const r = await fetch('/.netlify/functions/upload-guide', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ slug, guide })
-      });
-      if(!r.ok) throw new Error(await r.text());
-      return await r.json(); // { ok:true, url: ... }
-    }
-
-    async function serverUploadImage(file, slug){
-      const ext=(file.name.split('.').pop()||'webp').toLowerCase();
-      const r = await fetch(`/.netlify/functions/upload-image?slug=${encodeURIComponent(slug)}&ext=${encodeURIComponent(ext)}`,{
-        method:'POST',
-        headers:{ 'Content-Type': file.type||'application/octet-stream' },
-        body:file
-      });
-      if(!r.ok) throw new Error(await r.text());
-      return await r.json(); // { ok:true, url: ... }
-    }
-
-    // ---------- Edit mode (prefill if ?slug=...) ----------
-    async function loadGuideIfEditing(){
-      const params = new URL(location.href).searchParams;
-      const slug = params.get('slug');
-      if(!slug) return;
-
-      document.getElementById('form-title').innerHTML = `Éditer le guide <code>${slug}</code>`;
-      document.getElementById('f-slug').value = slug;
-
-      const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";
-      const GUIDES_BUCKET = "guides";
-      const url = `${SUPABASE_URL}/storage/v1/object/public/${GUIDES_BUCKET}/${encodeURIComponent(slug)}.json`;
-
-      try{
-        const r = await fetch(url, { cache:'no-store' });
-        if(!r.ok) throw new Error(`HTTP ${r.status}`);
-        const g = await r.json();
-
-        const a = g.arrival?.fr || {};
-        document.getElementById('f-name').value = g.name || '';
-        document.getElementById('f-address').value = g.address || '';
-        document.getElementById('f-city').value = g.city || '';
-        document.getElementById('f-cover').value = g.cover?.imageUrl || '';
-        document.getElementById('f-checkin').value = a.checkin_from || '';
-        document.getElementById('f-checkout').value = g.departure?.fr?.checkout_until || '';
-        document.getElementById('f-door').value = a.doorCode || '';
-        document.getElementById('f-parking').value = a.parking || '';
-        document.getElementById('f-ssid').value = a.wifi?.ssid || '';
-        document.getElementById('f-wifi').value = a.wifi?.password || '';
-        document.getElementById('f-token').value = g.__sensitive?.token || '';
-        document.getElementById('f-rules').value = (g.rules?.fr?.items || []).join('\n');
-        document.getElementById('f-arrival-notes').value = (a.notes || []).join('\n');
-        document.getElementById('f-amenities').value = (g.amenities || []).map(x=>x.label).join(', ');
-        document.getElementById('f-emergency').value = JSON.stringify(g.essentials?.fr?.emergency || []);
-        if(g.coords){ document.getElementById('f-lat').value = g.coords.lat; document.getElementById('f-lng').value = g.coords.lng; }
-
-        // Refresh preview
-        document.getElementById('preview').innerHTML = renderPreview(guideFromForm());
-      }catch(e){
-        document.getElementById('save-msg').textContent = `❌ Impossible de charger le guide: ${e.message||e}`;
-      }
-    }
-
-    // ---------- Bind UI ----------
-    document.addEventListener('DOMContentLoaded', ()=>{
-      const prev = document.getElementById('preview');
-      const msg  = document.getElementById('save-msg');
-
-      const refresh = ()=> prev.innerHTML = renderPreview(guideFromForm());
-      Array.from(document.querySelectorAll('input,textarea,select')).forEach(el=> el.addEventListener('input', refresh));
-      refresh();
-
-      document.getElementById('f-cover-file').addEventListener('change', async (e)=>{
-        const file = e.target.files?.[0]; if(!file) return;
-        const slug = (document.getElementById('f-slug').value.trim() || `temp-${Date.now()}`).replace(/[^a-z0-9-]/gi,'-').toLowerCase();
-        try{
-          const res = await serverUploadImage(file, slug);
-          document.getElementById('f-cover').value = res.url || '';
-          msg.textContent = '✅ Image uploadée';
-          refresh();
-        }catch(err){ msg.textContent = '❌ '+(err.message||err) }
-      });
-
-      document.getElementById('btn-publish').addEventListener('click', async ()=>{
-        const g = guideFromForm();
-        const slug = g.slug;
-        if(!slug){ msg.textContent = 'Slug requis'; return; }
-        try{
-          const res = await serverUploadGuide(slug, g);
-          msg.innerHTML = `✅ Publié: <a href="/guide/${slug}" target="_blank" rel="noreferrer">ouvrir</a>`;
-        }catch(err){ msg.textContent = '❌ '+(err.message||err) }
-      });
-
-      loadGuideIfEditing(); // active le mode édition si ?slug=...
-    });
+    document.getElementById("f").onsubmit = e => {
+      e.preventDefault();
+      alert("Simulation de publication réussie !");
+    };
   </script>
+
 </body>
 </html>
