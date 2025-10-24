@@ -209,5 +209,15 @@ const sensitive=g=> g.__sensitive?.token && token!==g.__sensitive.token ? `<div 
 async function boot(){ if(!slug){ root.innerHTML='<div class="card"><div class="content">Slug manquant. Utilisez /guide/<em>votre-slug</em></div></div>'; return } const url=`${SUPABASE_URL}/storage/v1/object/public/${GUIDES_BUCKET}/${encodeURIComponent(slug)}.json`; try{ const r=await fetch(url,{cache:'no-store'}); if(!r.ok){ root.innerHTML=`<div class="card"><div class="content">Guide introuvable. Vérifiez <code>${url}</code></div></div>`; return } const g=await r.json(); document.title=(g?.name||'Guide')+' – Conciergerie Zenata'; root.innerHTML=[hero(g), tiles(g), columns(g), sensitive(g)].join(''); $('#pdf').onclick=()=> window.print(); $('#copy').onclick=async()=>{ try{ await navigator.clipboard.writeText(location.href); const b=$('#copy'); const t=b.textContent; b.textContent='Lien copié'; setTimeout(()=> b.textContent=t, 1200)}catch{}} }catch(e){ root.innerHTML='<div class="card"><div class="content">Erreur: '+(e.message||e)+'</div></div>' } }
 document.addEventListener('DOMContentLoaded', boot)
 </script>
+    <div id="modal" class="modal" aria-hidden="true">
+  <div class="modal-card">
+    <div class="modal-head">
+      <strong id="m-title">Détail</strong>
+      <button class="modal-close" id="m-close">Fermer</button>
+    </div>
+    <div class="modal-body" id="m-body"></div>
+  </div>
+</div>
+
 </body>
 </html>
