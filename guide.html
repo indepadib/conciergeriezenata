@@ -179,85 +179,75 @@ Guide public premium – version statique sans build
   <link rel="icon" href="/logo/logo_officiel_couleur_picto.png"/>
 
   <style>
-    :root {
-      --ink:#0A0A0B; --muted:#6b7280; --line:#e5e7eb;
-      --card:#ffffff; --shadow:0 20px 40px rgba(0,0,0,.06);
-      --accent:#C7A059;
+    :root{
+      --ink:#0B1220; --muted:#667085; --line:#E7ECF3;
+      --bg1:#F7F9FC; --bg2:#EEF2F7; --card:#FFFFFF;
+      --brand:#0F172A; --accent:#C7A059;
+      --r-xl:24px; --r-lg:16px; --r-md:12px;
+      --shadow:0 20px 40px rgba(16,24,40,.08);
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{
-      font-family:"Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;
       color:var(--ink);
-      background:linear-gradient(180deg,#f7f9fc 0%,#eef2f7 100%);
+      background:linear-gradient(180deg,var(--bg1) 0%, var(--bg2) 100%);
       min-height:100vh;
-      padding:0;margin:0;
     }
     .container{max-width:1120px;margin:0 auto;padding:22px}
 
-    .hero{
-      position:relative;border-radius:22px;overflow:hidden;
-      border:1px solid #e5e7eb;box-shadow:var(--shadow);
-      margin-bottom:20px;
-    }
-    .hero img{width:100%;height:440px;object-fit:cover;display:block;}
-    .hero .overlay{
-      position:absolute;inset:0;
-      background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,0.65) 100%);
-    }
-    .hero .title{
-      position:absolute;left:26px;bottom:24px;right:26px;color:#fff;
-    }
-    .hero .title h1{
-      margin:4px 0 0;font-size:28px;font-weight:700;
-      text-shadow:0 3px 10px rgba(0,0,0,0.35);
-    }
-    .hero .badge{font-size:13px;font-weight:500;opacity:.9;}
+    /* HERO */
+    .hero{position:relative;border-radius:var(--r-xl);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow)}
+    .hero img{width:100%;height:440px;object-fit:cover;display:block}
+    .hero .overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%, rgba(0,0,0,.6) 100%)}
+    .hero .title{position:absolute;left:22px;right:22px;bottom:18px;color:#fff}
+    .hero .badge{font-size:12px;opacity:.9}
+    .hero h1{margin:.3rem 0 0;font-size:28px;letter-spacing:.2px;text-shadow:0 3px 12px rgba(0,0,0,.35)}
 
-    .deck{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:20px}
+    /* CARDS (icon + label only) */
+    .deck{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:18px}
     .c-card{
-      position:relative;cursor:pointer;
-      border-radius:16px;padding:16px 16px 18px 56px;
-      background:linear-gradient(180deg,rgba(255,255,255,.75),rgba(255,255,255,.65));
-      border:1px solid rgba(16,24,40,.08);
-      box-shadow:var(--shadow);
-      transition:all .2s ease;
+      position:relative;cursor:pointer;border-radius:18px;padding:16px 16px 18px 60px;
+      background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,.72));
+      border:1px solid rgba(16,24,40,.10); box-shadow:var(--shadow);
+      transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
     }
-    .c-card:hover{transform:translateY(-3px);box-shadow:0 28px 52px rgba(16,24,40,.12);}
-    .c-title{font-size:13px;color:var(--muted);margin-bottom:4px}
-    .c-value{font-weight:700;line-height:1.25}
+    .c-card:hover{transform:translateY(-3px); box-shadow:0 28px 52px rgba(16,24,40,.12); border-color:rgba(16,24,40,.18)}
     .c-icon{
-      position:absolute;left:14px;top:14px;width:30px;height:30px;
-      border-radius:10px;display:grid;place-items:center;
-      background:#fff;border:1px solid rgba(16,24,40,.08);
-      box-shadow:0 6px 12px rgba(16,24,40,.08) inset;
+      position:absolute;left:14px;top:14px;width:32px;height:32px;border-radius:12px;display:grid;place-items:center;
+      background:#fff;border:1px solid rgba(16,24,40,.10);box-shadow:0 6px 14px rgba(16,24,40,.10) inset;
     }
-    .c-icon svg{width:16px;height:16px;opacity:.9}
+    .c-icon svg{width:18px;height:18px;opacity:.9}
+    .c-title{font-weight:700;line-height:1.28}
+    .c-hint{font-size:12px;color:var(--muted);margin-top:2px}
 
-    .footer{margin-top:40px;padding:20px 0;color:var(--muted);font-size:13px;text-align:center}
+    /* INFO STRIPS */
+    .strips{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;margin-top:18px}
+    @media(max-width:960px){.strips{grid-template-columns:1fr}}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden}
+    .card h2{margin:0;padding:14px 16px;border-bottom:1px solid var(--line);font-size:16px}
+    .content{padding:16px}
+    ul{margin:8px 0 0;padding-left:18px}
+    .pill{display:inline-flex;gap:6px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;font-size:12px;margin:4px 6px 0 0;background:#fff}
 
-    /* === Modal === */
-    .modal{position:fixed;inset:0;display:none;place-items:center;padding:24px;z-index:60;}
-    .modal.open{display:grid;}
-    .modal::before{content:"";position:absolute;inset:0;backdrop-filter:blur(8px);background:rgba(10,14,22,.35);}
-    .modal-card{
-      position:relative;width:min(720px,92vw);max-height:80vh;overflow:auto;
-      background:#fff;border:1px solid #e7ecf3;border-radius:18px;
-      box-shadow:0 20px 40px rgba(16,24,40,.16);animation:fade .25s ease;
-    }
+    .foot{margin:32px 0 10px;color:var(--muted);font-size:12px;text-align:center}
+
+    /* MODAL */
+    .modal{position:fixed;inset:0;display:none;place-items:center;padding:24px;z-index:60}
+    .modal.open{display:grid}
+    .modal::before{content:"";position:absolute;inset:0;backdrop-filter:blur(8px);background:rgba(10,14,22,.35)}
+    .modal-card{position:relative;width:min(760px,92vw);max-height:80vh;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 20px 40px rgba(16,24,40,.16);animation:fade .22s ease}
     @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-    .modal-head{display:flex;align-items:center;justify-content:space-between;
-      padding:14px 16px;border-bottom:1px solid #e7ecf3;background:#f9fafb;position:sticky;top:0;z-index:1;}
-    .modal-head strong{font-size:16px;font-weight:600}
-    .modal-body{padding:18px;font-size:15px;line-height:1.6;color:#111}
-    .modal-close{border:1px solid #d1d5db;border-radius:8px;background:#fff;padding:8px 12px;cursor:pointer;}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);background:#f9fafb;position:sticky;top:0;z-index:1}
+    .modal-head strong{font-weight:600;font-size:16px}
+    .modal-body{padding:18px;font-size:15px;line-height:1.6}
+    .modal-close{appearance:none;background:#fff;border:1px solid #d1d5db;border-radius:10px;padding:8px 12px;cursor:pointer}
     .modal-close:hover{background:#f1f5f9}
   </style>
 </head>
-
-<body class="bg-luxe">
+<body>
   <main class="container" id="root">Chargement du guide…</main>
 
-  <!-- === Modal premium === -->
+  <!-- Modal -->
   <div id="modal" class="modal" aria-hidden="true">
     <div class="modal-card">
       <div class="modal-head">
@@ -269,16 +259,15 @@ Guide public premium – version statique sans build
   </div>
 
   <script>
+    // --- Config public (lecture uniquement)
+    const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";
+    const GUIDES_BUCKET = "guides";
+
     const params = new URLSearchParams(location.search);
     const token = params.get("token") || "";
 
-    async function loadGuide() {
-      const slug = location.pathname.split("/").pop().replace(/\.html$/,"");
-      const url = `https://ojgchrqtvkwzhjvwwftd.supabase.co/storage/v1/object/public/guides/${slug}.json`;
-      const r = await fetch(url);
-      if (!r.ok) throw new Error("Guide introuvable");
-      return await r.json();
-    }
+    // UTF-8 safe base64 (pour les IDs de cartes)
+    function b64(str){ return btoa(unescape(encodeURIComponent(str))).replace(/=/g,""); }
 
     function icon(name){
       const i={
@@ -290,106 +279,198 @@ Guide public premium – version statique sans build
         phone:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.08 4.18 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.63 2.63a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.45-1.08a2 2 0 0 1 2.11-.45c.85.3 1.73.51 2.63.63A2 2 0 0 1 22 16.92z"/></svg>`
       }; return i[name]||i.map;
     }
-      
 
-    function card({iconName,title,value,detailHtml}){
-          function b64(str){
-                  return btoa(unescape(encodeURIComponent(str))).replace(/=/g,"");
-                }
-                const uid=b64(title+value);
+    function card({iconName, title, hint, detailHtml}){
+      const uid = b64(title + (hint||""));
       return `
-      <div class="c-card" data-modal="${uid}">
-        <div class="c-icon">${icon(iconName)}</div>
-        <div class="c-title">${title}</div>
-        <div class="c-value">${value}</div>
-        <template id="tpl-${uid}">${detailHtml}</template>
-      </div>`;
-    }
-
-    function tiles(g){
-      const a=g.arrival?.fr||{};
-      const allow=g.__sensitive?.token?(token===g.__sensitive.token):true;
-      const door=allow?(a.doorCode||""):"•••• (masqué)";
-      const items=[];
-      if(g.address) items.push(card({
-        iconName:"map",title:"Adresse",value:g.address,
-        detailHtml:`<p>${g.address}</p>`
-      }));
-      if(a.wifi?.ssid||a.wifi?.password) items.push(card({
-        iconName:"wifi",title:"Wi-Fi",
-        value:`${a.wifi?.ssid||""}${a.wifi?.password?" • "+a.wifi.password:""}`,
-        detailHtml:`<div><b>Réseau:</b> ${a.wifi?.ssid||""}<br><b>Mot de passe:</b> ${a.wifi?.password||""}</div>`
-      }));
-      if(door) items.push(card({
-        iconName:"key",title:"Code porte",value:door,
-        detailHtml:`<b style="font-size:22px">${door}</b>${!allow?"<p>Ajoutez ?token=VOTRE_TOKEN à l’URL pour le voir.</p>":""}`
-      }));
-      if(a.checkin_from) items.push(card({
-        iconName:"clock",title:"Arrivée",value:`Dès ${a.checkin_from}`,
-        detailHtml:`${a.parking?`<p><b>Parking:</b> ${a.parking}</p>`:""}`
-      }));
-      const rules=g.rules?.fr?.items||[];
-      if(rules.length) items.push(card({
-        iconName:"rules",title:"Règles",value:`${rules.length} règle${rules.length>1?"s":""}`,
-        detailHtml:`<ul>${rules.map(r=>`<li>${r}</li>`).join("")}</ul>`
-      }));
-      if(g.brand?.supportEmail||g.brand?.supportPhone) items.push(card({
-        iconName:"phone",title:"Assistance",value:"Contacter l’hôte",
-        detailHtml:`${g.brand?.supportEmail?`<p><a href="mailto:${g.brand.supportEmail}">${g.brand.supportEmail}</a></p>`:""}${g.brand?.supportPhone?`<p><a href="tel:${g.brand.supportPhone}">${g.brand.supportPhone}</a></p>`:""}`
-      }));
-      return `<section class="deck">${items.join("")}</section>`;
+        <div class="c-card" data-modal="${uid}">
+          <div class="c-icon">${icon(iconName)}</div>
+          <div class="c-title">${title}</div>
+          <div class="c-hint">${hint || "Voir les détails"}</div>
+          <template id="tpl-${uid}">${detailHtml}</template>
+        </div>
+      `;
     }
 
     function hero(g){
       return `
-      <div class="hero">
-        <img src="${g.cover?.imageUrl||"/assets/placeholder.jpg"}" alt="">
-        <div class="overlay"></div>
-        <div class="title">
-          <div class="badge">Guide Voyageur</div>
-          <h1>${g.name||"Sans titre"}</h1>
-        </div>
-      </div>`;
+        <section class="hero">
+          <img src="${g.cover?.imageUrl || ""}" alt="${g.name||""}">
+          <div class="overlay"></div>
+          <div class="title">
+            <div class="badge">Guide voyageur</div>
+            <h1>${g.name || "Sans titre"}</h1>
+          </div>
+        </section>
+      `;
     }
 
-    // === Modal control ===
-    function openModal(title,html){
-      const m=document.getElementById("modal");
-      document.getElementById("m-title").textContent=title;
-      document.getElementById("m-body").innerHTML=html;
-      m.classList.add("open");m.setAttribute("aria-hidden","false");
+    function tiles(g){
+      const a = g.arrival?.fr || {};
+      const allow = g.__sensitive?.token ? (token === g.__sensitive.token) : true;
+      const door = allow ? (a.doorCode||"") : "•••• (masqué)";
+
+      const items = [];
+
+      if (g.address) items.push(card({
+        iconName:"map",
+        title:"Adresse",
+        hint:"Cliquez pour l’adresse complète",
+        detailHtml:`
+          <p style="margin:0 0 10px"><strong>${g.address}</strong></p>
+          ${g.coords ? `<iframe class="map" style="width:100%;height:360px;border:1px solid var(--line);border-radius:12px" loading="lazy" src="https://www.google.com/maps?q=${g.coords.lat},${g.coords.lng}&hl=fr&z=15&output=embed"></iframe>` : ""}
+        `
+      }));
+
+      if (a.wifi?.ssid || a.wifi?.password) items.push(card({
+        iconName:"wifi",
+        title:"Wi-Fi",
+        hint:"SSID & mot de passe",
+        detailHtml:`
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="pill"><span style="opacity:.7">Réseau</span>&nbsp;<b>${a.wifi?.ssid||""}</b></div>
+            <div class="pill"><span style="opacity:.7">Mot de passe</span>&nbsp;<b>${a.wifi?.password||""}</b></div>
+          </div>
+        `
+      }));
+
+      if (door) items.push(card({
+        iconName:"key",
+        title:"Code porte",
+        hint: allow ? "Cliquez pour afficher" : "Masqué – nécessite un token",
+        detailHtml:`
+          <div style="font-size:22px"><b>${door}</b></div>
+          ${!allow ? `<p style="margin-top:10px;color:#9ca3af">Ajoutez <code>?token=VOTRE_TOKEN</code> à l’URL pour révéler le code.</p>` : ""}
+        `
+      }));
+
+      if (a.checkin_from) items.push(card({
+        iconName:"clock",
+        title:"Arrivée / Check-in",
+        hint: a.parking ? `Parking : ${a.parking}` : "Dès " + a.checkin_from,
+        detailHtml:`
+          ${a.checkin_from ? `<p><span style="opacity:.7">À partir de</span> : <b>${a.checkin_from}</b></p>` : ""}
+          ${a.parking ? `<p><span style="opacity:.7">Parking</span> : <b>${a.parking}</b></p>` : ""}
+          ${(a.notes||[]).length ? `<div class="card" style="border:none;box-shadow:none"><div class="content" style="padding:0"><ul>${a.notes.map(n=>`<li>${n}</li>`).join("")}</ul></div></div>` : ""}
+        `
+      }));
+
+      const rules = g.rules?.fr?.items || [];
+      if (rules.length) items.push(card({
+        iconName:"rules",
+        title:"Règles du logement",
+        hint:`${rules.length} règle${rules.length>1?"s":""}`,
+        detailHtml:`<ul>${rules.map(r=>`<li>${r}</li>`).join("")}</ul>`
+      }));
+
+      if (g.brand?.supportPhone || g.brand?.supportWhatsApp || g.brand?.supportEmail) items.push(card({
+        iconName:"phone",
+        title:"Assistance",
+        hint:"Contacter l’hôte",
+        detailHtml:`
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${g.brand?.supportPhone ? `<a class="pill" href="tel:${g.brand.supportPhone}">📞 ${g.brand.supportPhone}</a>` : ""}
+            ${g.brand?.supportWhatsApp ? `<a class="pill" target="_blank" rel="noreferrer" href="${g.brand.supportWhatsApp}">💬 WhatsApp</a>` : ""}
+            ${g.brand?.supportEmail ? `<a class="pill" href="mailto:${g.brand.supportEmail}">✉️ ${g.brand.supportEmail}</a>` : ""}
+          </div>
+        `
+      }));
+
+      return `<section class="deck">${items.join("")}</section>`;
+    }
+
+    function strips(g){
+      const dep = g.departure?.fr || {};
+      const ess = g.essentials?.fr || {};
+      const ams = g.amenities || [];
+
+      const left = `
+        ${(dep.checkout_until || (dep.steps||[]).length) ? `
+          <div class="card"><h2>Départ & Check-out</h2>
+            <div class="content">
+              ${dep.checkout_until ? `<div><span style="opacity:.7">Avant</span> <b>${dep.checkout_until}</b></div>` : ""}
+              ${(dep.steps||[]).length ? `<ul>${dep.steps.map(s=>`<li>${s.label || s}</li>`).join("")}</ul>` : ""}
+            </div>
+          </div>
+        ` : ""}
+
+        ${(ams||[]).length ? `
+          <div class="card"><h2>Équipements</h2>
+            <div class="content">${ams.map(a=>`<span class="pill">${a.label||a}</span>`).join("")}</div>
+          </div>
+        ` : ""}
+      `;
+
+      const right = `
+        ${(ess.electricity || ess.water || (ess.emergency||[]).length) ? `
+          <div class="card"><h2>Infos utiles</h2>
+            <div class="content">
+              ${ess.electricity ? `<div><span style="opacity:.7">Électricité</span> ${ess.electricity}</div>` : ""}
+              ${ess.water ? `<div><span style="opacity:.7">Eau</span> ${ess.water}</div>` : ""}
+              ${(ess.emergency||[]).map(c=>`<div><span style="opacity:.7">${c.label}</span> ${c.href?`<a href="${c.href}">${c.value}</a>`:c.value}</div>`).join("")}
+            </div>
+          </div>
+        ` : ""}
+      `;
+
+      if(!left.trim() && !right.trim()) return "";
+      return `<section class="strips"><div>${left}</div><div>${right}</div></section>`;
+    }
+
+    // --- Modal control
+    function openModal(title, html){
+      const m = document.getElementById("modal");
+      document.getElementById("m-title").textContent = title;
+      document.getElementById("m-body").innerHTML = html;
+      m.classList.add("open"); m.setAttribute("aria-hidden","false");
     }
     function closeModal(){
-      const m=document.getElementById("modal");
-      m.classList.remove("open");m.setAttribute("aria-hidden","true");
+      const m = document.getElementById("modal");
+      m.classList.remove("open"); m.setAttribute("aria-hidden","true");
     }
-    document.getElementById("m-close").addEventListener("click",closeModal);
-    document.getElementById("modal").addEventListener("click",(e)=>{if(e.target.id==="modal")closeModal();});
+    document.getElementById("m-close").addEventListener("click", closeModal);
+    document.getElementById("modal").addEventListener("click", (e)=>{ if(e.target.id==="modal") closeModal(); });
 
     function wireCards(){
       document.querySelectorAll("[data-modal]").forEach(el=>{
-        el.addEventListener("click",()=>{
-          const id=el.getAttribute("data-modal");
-          const title=el.querySelector(".c-title")?.textContent?.trim()||"Détail";
-          const tpl=document.getElementById("tpl-"+id);
-          openModal(title,tpl?tpl.innerHTML:"");
+        el.addEventListener("click", ()=>{
+          const id = el.getAttribute("data-modal");
+          const title = el.querySelector(".c-title")?.textContent?.trim() || "Détail";
+          const tpl = document.getElementById("tpl-"+id);
+          openModal(title, tpl ? tpl.innerHTML : "");
         });
       });
     }
 
     async function boot(){
-      const root=document.getElementById("root");
+      const root = document.getElementById("root");
+      const slug = (new URL(location.href).searchParams.get("slug")) || location.pathname.split("/").filter(Boolean).pop() || "";
+      if(!slug){ root.textContent = "Slug manquant"; return }
+
+      const jsonUrl = `${SUPABASE_URL}/storage/v1/object/public/${GUIDES_BUCKET}/${encodeURIComponent(slug)}.json`;
       try{
-        const g=await loadGuide();
-        root.innerHTML=[hero(g),tiles(g)].join("");
+        const r = await fetch(jsonUrl, { cache:"no-store" });
+        if(!r.ok){ root.innerHTML = `<p style="color:#b91c1c">Guide introuvable.<br><code>${jsonUrl}</code></p>`; return; }
+        const g = await r.json();
+
+        document.title = `${g?.name || "Guide"} – Conciergerie Zenata`;
+
+        root.innerHTML = [
+          hero(g),
+          tiles(g),
+          strips(g)
+        ].join("");
+
         wireCards();
       }catch(e){
-        root.innerHTML=`<p style="color:#b91c1c">${e.message||e}</p>`;
+        root.innerHTML = `<p style="color:#b91c1c">${e.message||e}</p>`;
       }
     }
-    document.addEventListener("DOMContentLoaded",boot);
+
+    document.addEventListener("DOMContentLoaded", boot);
   </script>
 
-  <footer class="footer">© ${new Date().getFullYear()} Conciergerie Zenata — Guide Voyageur</footer>
+  <div class="foot">© <span id="y"></span> Conciergerie Zenata — Guide Voyageur</div>
+  <script>document.getElementById('y').textContent=new Date().getFullYear();</script>
 </body>
 </html>
