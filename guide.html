@@ -177,12 +177,15 @@ Guide public premium – version statique sans build
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Guide Voyageur – Conciergerie Zenata</title>
   <link rel="icon" href="/logo/logo_officiel_couleur_picto.png"/>
+  <meta name="theme-color" content="#0F172A">
+  <meta property="og:title" content="Guide Voyageur – Conciergerie Zenata">
+  <meta property="og:description" content="Toutes les informations utiles pour votre séjour.">
+  <meta property="og:image" content="/logo/logo_officiel_couleur_picto.png">
 
   <style>
     :root{
       --ink:#0B1220; --muted:#667085; --line:#E7ECF3;
-      --bg1:#F7F9FC; --bg2:#EEF2F7; --card:#FFFFFF;
-      --accent:#C7A059;
+      --card:#FFFFFF; --accent:#C7A059;
       --r-xl:24px; --r-lg:16px;
       --shadow:0 20px 40px rgba(16,24,40,.08);
     }
@@ -191,19 +194,18 @@ Guide public premium – version statique sans build
       font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;
       color:var(--ink);
       background:
-        radial-gradient(1200px 700px at 10% -10%, #ffffff 0%, #f2f6fc 45%, transparent 60%),
-        radial-gradient(900px 540px at 110% -10%, #eef3fa 0%, transparent 60%),
-        linear-gradient(#f7f9fc, #eef2f7);
+        radial-gradient(1200px 800px at 50% -20%, #faf9f6 0%, #f0f2f6 30%, #dfe4ec 70%, #ccd3db 100%),
+        linear-gradient(180deg,#f7f9fc 0%,#eef2f7 100%);
       min-height:100vh;
     }
     .container{max-width:1120px;margin:0 auto;padding:22px}
 
     /* NAV */
-    .nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.88);
-      backdrop-filter:saturate(180%) blur(10px);border-bottom:1px solid var(--line)}
+    .nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.9);
+      backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line)}
     .nav-row{display:flex;align-items:center;gap:12px}
     .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}
-    .brand img{height:28px; width:auto}
+    .brand img{height:28px}
     .nav-actions{margin-left:auto;display:flex;gap:8px}
     .btn{appearance:none;border:1px solid var(--line);border-radius:12px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:13px;background:#fff}
     .btn.primary{background:linear-gradient(135deg,#0F172A,#1F2937);color:#fff;border:none}
@@ -230,35 +232,20 @@ Guide public premium – version statique sans build
     .deck{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:18px}
     .c-card{
       position:relative;cursor:pointer;border-radius:18px;padding:16px 16px 18px 60px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,255,255,.78)),
-        radial-gradient(120% 120% at 100% 0%, rgba(194,160,89,.10), transparent 60%);
-      border:1px solid rgba(16,24,40,.10);
-      box-shadow:0 14px 28px rgba(16,24,40,.06), 0 20px 48px rgba(16,24,40,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.75));
+      border:1px solid rgba(16,24,40,.1);
+      box-shadow:0 10px 22px rgba(16,24,40,.07), 0 20px 40px rgba(16,24,40,.08);
       transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
     }
     .c-card:hover{transform:translateY(-3px);border-color:rgba(16,24,40,.18);box-shadow:0 22px 46px rgba(16,24,40,.12)}
-    .c-icon{
-      position:absolute;left:14px;top:14px;width:34px;height:34px;border-radius:12px;
-      display:grid;place-items:center;
-      background:radial-gradient(100% 100% at 50% 0%, #ffffff 0%, #f1f3f7 100%);
-      border:1px solid rgba(16,24,40,.08);
-      box-shadow:inset 0 8px 18px rgba(16,24,40,.08);
-    }
+    .c-icon{position:absolute;left:14px;top:14px;width:34px;height:34px;border-radius:12px;display:grid;place-items:center;background:radial-gradient(100% 100% at 50% 0%, #ffffff 0%, #f1f3f7 100%);border:1px solid rgba(16,24,40,.08);box-shadow:inset 0 8px 18px rgba(16,24,40,.08)}
     .c-icon svg{width:18px;height:18px;opacity:.88}
     .c-title{font-weight:700;line-height:1.28}
     .c-hint{font-size:12px;color:var(--muted);margin-top:2px}
 
-    /* DETAILS */
-    .strips{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;margin-top:18px}
-    @media(max-width:960px){.strips{grid-template-columns:1fr}}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden}
-    .card h2{margin:0;padding:14px 16px;border-bottom:1px solid var(--line);font-size:16px}
-    .content{padding:16px}
-    .pill{display:inline-flex;gap:6px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;font-size:12px;margin:4px 6px 0 0;background:#fff}
-
-    /* FOOTER */
-    .foot{margin:32px 0 10px;color:var(--muted);font-size:12px;text-align:center}
+    /* SKELETON */
+    .skeleton{border-radius:16px;height:220px;background:linear-gradient(90deg,#eef2f7 25%,#f6f8fb 37%,#eef2f7 63%);background-size:400% 100%;animation:sh 1.4s ease infinite;margin-bottom:12px}
+    @keyframes sh{0%{background-position:100% 0}100%{background-position:0 0}}
 
     /* MODAL */
     .modal{position:fixed;inset:0;display:none;place-items:center;padding:24px;z-index:60}
@@ -267,23 +254,15 @@ Guide public premium – version statique sans build
     .modal-card{position:relative;width:min(760px,92vw);max-height:80vh;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 20px 40px rgba(16,24,40,.16);animation:fade .22s ease}
     @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
     .modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);background:#f9fafb;position:sticky;top:0;z-index:1}
-    .modal-head strong{font-weight:600;font-size:16px}
     .modal-body{padding:18px;font-size:15px;line-height:1.6}
     .modal-close{appearance:none;background:#fff;border:1px solid #d1d5db;border-radius:10px;padding:8px 12px;cursor:pointer}
     .modal-close:hover{background:#f1f5f9}
 
-    @media print{
-      .nav,.btn{display:none}
-      .hero img{height:300px}
-      .c-card{box-shadow:none}
-      .deck{gap:10px}
-      .hero .title h1{font-size:22px}
-    }
+    .foot{margin:32px 0 10px;color:var(--muted);font-size:12px;text-align:center}
+    @media print{.nav,.btn{display:none}.hero img{height:300px}.c-card{box-shadow:none}}
   </style>
 </head>
 <body>
-
-<!-- NAV PREMIUM -->
 <header class="nav">
   <div class="container nav-row">
     <div class="brand">
@@ -298,9 +277,11 @@ Guide public premium – version statique sans build
   </div>
 </header>
 
-<main class="container" id="root">Chargement du guide…</main>
+<main class="container" id="root">
+  <div class="skeleton"></div>
+  <div class="skeleton" style="height:120px"></div>
+</main>
 
-<!-- Modal -->
 <div id="modal" class="modal" aria-hidden="true">
   <div class="modal-card">
     <div class="modal-head">
@@ -314,145 +295,110 @@ Guide public premium – version statique sans build
 <div class="foot">© <span id="y"></span> Conciergerie Zenata — Guide Voyageur</div>
 
 <script>
-const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";
-const GUIDES_BUCKET = "guides";
 document.getElementById('y').textContent=new Date().getFullYear();
-const params = new URLSearchParams(location.search);
-const token = params.get("token") || "";
+const SUPABASE_URL="https://ojgchrqtvkwzhjvwwftd.supabase.co",BUCKET="guides";
+const token=new URLSearchParams(location.search).get("token")||"";
+function b64(s){return btoa(unescape(encodeURIComponent(s))).replace(/=/g,"")}
+function icon(n){const i={map:`<svg viewBox='0 0 24 24' stroke='currentColor' stroke-width='2'><path d='m9 18-6 3V6l6-3 6 3 6-3v15l-6 3-6-3Z'/><path d='M9 3v15'/><path d='M15 6v15'/></svg>`,wifi:`<svg viewBox='0 0 24 24' stroke='currentColor' stroke-width='2'><path d='M12 20h.01'/><path d='M2 8.82a15 15 0 0 1 20 0'/><path d='M5 12.5a10 10 0 0 1 14 0'/><path d='M8.5 16.2a5 5 0 0 1 7 0'/></svg>`,key:`<svg viewBox='0 0 24 24' stroke='currentColor' stroke-width='2'><path d='M21 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z'/><path d='m8 21 3-3'/><path d='m10.5 18.5 3-3'/></svg>`,clock:`<svg viewBox='0 0 24 24' stroke='currentColor' stroke-width='2'><circle cx='12' cy='12' r='10'/><path d='M12 6v6l4 2'/></svg>`,phone:`<svg viewBox='0 0 24 24' stroke='currentColor' stroke-width='2'><path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.08 4.18 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.63 2.63a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.45-1.08a2 2 0 0 1 2.11-.45c.85.3 1.73.51 2.63.63A2 2 0 0 1 22 16.92z'/></svg>`};return i[n]||i.map}
+function card({iconName,title,hint,detailHtml}){const uid=b64(title+(hint||""));return `<div class="c-card" data-modal="${uid}" role="button" tabindex="0"><div class="c-icon">${icon(iconName)}</div><div class="c-title">${title}</div><div class="c-hint">${hint||"Voir les détails"}</div><template id="tpl-${uid}">${detailHtml}</template></div>`}
+function openModal(t,h){const m=document.getElementById("modal");m.classList.add("open");m.setAttribute("aria-hidden","false");document.getElementById("m-title").textContent=t;document.getElementById("m-body").innerHTML=h}
+function closeModal(){const m=document.getElementById("modal");m.classList.remove("open");m.setAttribute("aria-hidden","true")}
+document.getElementById("m-close").onclick=closeModal;document.getElementById("modal").onclick=e=>{if(e.target.id==="modal")closeModal()}
+function wireCards(){document.querySelectorAll("[data-modal]").forEach(el=>{el.onclick=()=>{const id=el.dataset.modal,t=el.querySelector(".c-title").textContent.trim(),tpl=document.getElementById("tpl-"+id);openModal(t,tpl?tpl.innerHTML:"")};el.onkeypress=e=>{if(e.key==="Enter"||e.key===" ")el.click()}})}
+document.getElementById("dlPdf").onclick=()=>window.print()
+document.getElementById("copyLink").onclick=async()=>{await navigator.clipboard.writeText(location.href);const b=document.getElementById("copyLink");const t=b.textContent;b.textContent="Lien copié";setTimeout(()=>b.textContent=t,1200)}
+document.getElementById("qrBtn").onclick=()=>{const u=encodeURIComponent(location.href);const img=`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${u}`;openModal("Partager ce guide",`<div style='display:grid;place-items:center;gap:10px'><img src='${img}' width='220' height='220' style='border-radius:12px;border:1px solid var(--line)'/><div class='c-hint'>Scannez pour ouvrir</div></div>`)}
 
-/* utils */
-function b64(str){ return btoa(unescape(encodeURIComponent(str))).replace(/=/g,""); }
-function icon(name){
-  const i={
-    map:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18-6 3V6l6-3 6 3 6-3v15l-6 3-6-3Z"/><path d="M9 3v15"/><path d="M15 6v15"/></svg>`,
-    wifi:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h.01"/><path d="M2 8.82a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16.2a5 5 0 0 1 7 0"/></svg>`,
-    key:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/><path d="m8 21 3-3"/><path d="m10.5 18.5 3-3"/></svg>`,
-    clock:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`,
-    rules:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>`,
-    phone:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.08 4.18 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.63 2.63a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.45-1.08a2 2 0 0 1 2.11-.45c.85.3 1.73.51 2.63.63A2 2 0 0 1 22 16.92z"/></svg>`
-  }; return i[name]||i.map;
-}
+async function boot(){
+ const root=document.getElementById("root");
+ let slug=new URL(location.href).searchParams.get("slug");
+ if(!slug){const p=location.pathname.split("/").filter(Boolean);slug=p[p.length-1]}
+ if(!slug){root.textContent="Slug manquant";return}
+ const jsonUrl=`${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${encodeURIComponent(slug)}.json`;
+ try{
+  const r=await fetch(jsonUrl,{cache:"no-store"});
+  if(!r.ok){root.innerHTML=`<div class='card'><h2>Guide introuvable</h2><div class='content'><p>Fichier <code>${slug}.json</code> non trouvé.</p></div></div>`;return}
+  const g=await r.json();document.title=`${g?.name||"Guide"} – Conciergerie Zenata`;
+  const allow=g.__sensitive?.token?(token===g.__sensitive.token):true;
+  const a=g.arrival?.fr||{};
+  const door=allow?(a.doorCode||""):"•••• (masqué)";
+  const logo="/logo/logo_officiel_couleur_picto.png";
+  const hero=`<section class='hero'><img src='${g.cover?.imageUrl||""}' alt='${g.name||""}'><div class='overlay'></div><div class='hero-badge'><img src='${logo}'></div><div class='title'><div class='badge'>Guide voyageur</div><h1>${g.name||"Sans titre"}</h1></div></section>`;
+  const signature=`<div class='container' style='margin:-6px 0 2px 0;color:#8a8f98;font-size:13px;'>Service 5★ by Conciergerie Zenata — arrivée autonome, qualité hôtelière, assistance 24/7.</div>`;
+  const cards=[];
+  if(g.address)cards.push(card({iconName:"map",title:"Adresse",hint:"Cliquez pour l’adresse complète",detailHtml:`<p><strong>${g.address}</strong></p><a class='btn' target='_blank' href='https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(g.address)}'>Itinéraire</a>`}));
+  if(a.wifi?.ssid||a.wifi?.password)cards.push(card({iconName:"wifi",title:"Wi-Fi",hint:"SSID & mot de passe",detailHtml:`<p><b>Réseau:</b> ${a.wifi?.ssid||""}<br><b>Mot de passe:</b> ${a.wifi?.password||""}</p><div class='row' style='margin-top:10px;display:flex;gap:8px;flex-wrap:wrap'><button class='btn'
+ <button class='btn' onclick="navigator.clipboard.writeText('${a.wifi?.password||''}')">Copier le mot de passe</button>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(`WIFI:T:WPA;S:${a.wifi?.ssid||''};P:${a.wifi?.password||''};;`)}" alt="QR Wi-Fi" width="160" height="160" style="border:1px solid var(--line);border-radius:12px">
+          </div>`}));
 
-/* components */
-function card({iconName, title, hint, detailHtml}){
-  const uid = b64(title + (hint||""));
-  return `
-    <div class="c-card" data-modal="${uid}">
-      <div class="c-icon">${icon(iconName)}</div>
-      <div class="c-title">${title}</div>
-      <div class="c-hint">${hint || "Voir les détails"}</div>
-      <template id="tpl-${uid}">${detailHtml}</template>
-    </div>
-  `;
-}
-function hero(g){
-  const logo = "/logo/logo_officiel_couleur_picto.png";
-  return `
-    <section class="hero">
-      <img src="${g.cover?.imageUrl || ""}" alt="${g.name||""}">
-      <div class="overlay"></div>
-      <div class="hero-badge"><img src="${logo}" alt="CZ"></div>
-      <div class="title"><div class="badge">Guide voyageur</div><h1>${g.name || "Sans titre"}</h1></div>
-    </section>
-  `;
-}
-function tiles(g){
-  const a = g.arrival?.fr || {};
-  const allow = g.__sensitive?.token ? (token === g.__sensitive.token) : true;
-  const door = allow ? (a.doorCode||"") : "•••• (masqué)";
-  const items = [];
+  if(door)cards.push(card({
+    iconName:"key",
+    title:"Code porte",
+    hint: allow ? "Cliquez pour afficher" : "Masqué – token requis",
+    detailHtml:`<div style="font-size:22px"><b>${door}</b></div>
+                ${!allow?`<p style="color:#9ca3af;margin-top:8px">Ajoutez <code>?token=VOTRE_TOKEN</code> à l’URL pour révéler le code.</p>`:""}`
+  }));
 
-  if (g.address) items.push(card({iconName:"map",title:"Adresse",hint:"Cliquez pour l’adresse complète",
-    detailHtml:`<p><strong>${g.address}</strong></p>`}));
-
-  if (a.wifi?.ssid || a.wifi?.password) items.push(card({iconName:"wifi",title:"Wi-Fi",hint:"SSID & mot de passe",
-    detailHtml:`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="pill"><span style="opacity:.7">Réseau</span>&nbsp;<b>${a.wifi?.ssid||""}</b></div>
-      <div class="pill"><span style="opacity:.7">Mot de passe</span>&nbsp;<b>${a.wifi?.password||""}</b></div>
-    </div>`}));
-
-  if (door) items.push(card({iconName:"key",title:"Code porte",hint: allow?"Cliquez pour afficher":"Masqué – token requis",
-    detailHtml:`<div style="font-size:22px"><b>${door}</b></div>${!allow?`<p style="color:#9ca3af">Ajoutez <code>?token=VOTRE_TOKEN</code> à l’URL.</p>`:""}`}));
-
-  if (a.checkin_from) items.push(card({iconName:"clock",title:"Arrivée / Check-in",
-    hint:a.parking?`Parking : ${a.parking}`:`Dès ${a.checkin_from}`,
-    detailHtml:`<p><b>À partir de ${a.checkin_from}</b></p>${a.parking?`<p>Parking : ${a.parking}</p>`:""}`}));
+  if(a.checkin_from)cards.push(card({
+    iconName:"clock",
+    title:"Arrivée / Check-in",
+    hint: a.parking ? `Parking : ${a.parking}` : `Dès ${a.checkin_from}`,
+    detailHtml:`${a.checkin_from?`<p><span style="opacity:.7">À partir de</span> : <b>${a.checkin_from}</b></p>`:""}
+               ${a.parking?`<p><span style="opacity:.7">Parking</span> : <b>${a.parking}</b></p>`:""}
+               ${(a.notes||[]).length?`<ul style="margin-top:8px">${a.notes.map(n=>`<li>${n}</li>`).join("")}</ul>`:""}`
+  }));
 
   const rules = g.rules?.fr?.items || [];
-  if (rules.length) items.push(card({iconName:"rules",title:"Règles du logement",hint:`${rules.length} règle${rules.length>1?"s":""}`,
-    detailHtml:`<ul>${rules.map(r=>`<li>${r}</li>`).join("")}</ul>`}));
+  if(rules.length)cards.push(card({
+    iconName:"rules",
+    title:"Règles du logement",
+    hint:`${rules.length} règle${rules.length>1?"s":""}`,
+    detailHtml:`<ul>${rules.map(r=>`<li>${r}</li>`).join("")}</ul>`
+  }));
 
-  if (g.brand?.supportPhone || g.brand?.supportWhatsApp || g.brand?.supportEmail)
-    items.push(card({iconName:"phone",title:"Assistance",hint:"Contacter l’hôte",
-      detailHtml:`<div class="pill">📞 ${g.brand?.supportPhone||'—'}</div>
-                  ${g.brand?.supportEmail?`<div class="pill">✉️ ${g.brand.supportEmail}</div>`:""}`}));
+  if(g.brand?.supportPhone || g.brand?.supportWhatsApp || g.brand?.supportEmail){
+    const tel = g.brand?.supportPhone || "";
+    const wa  = g.brand?.supportWhatsApp || "";
+    const mail= g.brand?.supportEmail || "";
+    cards.push(card({
+      iconName:"phone",
+      title:"Assistance 24/7",
+      hint:"Contacter l’hôte",
+      detailHtml:`
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${tel ? `<a class="btn" href="tel:${tel}">📞 Appeler</a>` : ""}
+          ${wa  ? `<a class="btn" target="_blank" rel="noreferrer" href="${wa}">💬 WhatsApp</a>` : ""}
+          ${mail? `<a class="btn" href="mailto:${mail}">✉️ Email</a>` : ""}
+        </div>
+        <div class="c-hint" style="margin-top:6px">Disponibilité : 8h–22h (GMT+1)</div>
+      `
+    }));
+  }
 
-  return `<section class="deck">${items.join("")}</section>`;
-}
-function strips(g){
-  const dep=g.departure?.fr||{}; const ams=g.amenities||[];
-  const left = `
-    ${dep.checkout_until?`<div class="card"><h2>Départ & Check-out</h2><div class="content">Avant <b>${dep.checkout_until}</b></div></div>`:""}
-    ${ams.length?`<div class="card"><h2>Équipements</h2><div class="content">${ams.map(a=>`<span class="pill">${a.label||a}</span>`).join("")}</div></div>`:""}
+  const deck = `<section class="deck">${cards.join("")}</section>`;
+
+  // (section Equipements / Check-out si présente)
+  const dep=g.departure?.fr||{};
+  const ams=g.amenities||[];
+  const after = `
+    ${(dep.checkout_until)?`
+      <div class="card" style="margin-top:18px">
+        <h2>Départ & Check-out</h2>
+        <div class="content">Avant <b>${dep.checkout_until}</b></div>
+      </div>`:""}
+    ${(ams||[]).length?`
+      <div class="card" style="margin-top:12px">
+        <h2>Équipements</h2>
+        <div class="content">${ams.map(a=>`<span class="pill">${a.label||a}</span>`).join("")}</div>
+      </div>`:""}
   `;
-  const right = ""; // prêt pour infos utiles si besoin
-  if(!left.trim() && !right.trim()) return "";
-  return `<section class="strips"><div>${left}</div><div>${right}</div></section>`;
-}
 
-/* modal */
-function openModal(t,h){const m=document.getElementById("modal");document.getElementById("m-title").textContent=t;document.getElementById("m-body").innerHTML=h;m.classList.add("open");m.setAttribute("aria-hidden","false");}
-function closeModal(){const m=document.getElementById("modal");m.classList.remove("open");m.setAttribute("aria-hidden","true");}
-document.getElementById("m-close").addEventListener("click", closeModal);
-document.getElementById("modal").addEventListener("click", e=>{ if(e.target.id==="modal") closeModal(); });
-
-function wireCards(){ document.querySelectorAll("[data-modal]").forEach(el=>{
-  el.addEventListener("click", ()=>{ const id=el.getAttribute("data-modal"); const title=el.querySelector(".c-title")?.textContent?.trim()||"Détail"; const tpl=document.getElementById("tpl-"+id); openModal(title, tpl?tpl.innerHTML:""); });
-});}
-
-/* actions nav */
-document.getElementById('dlPdf')?.addEventListener('click', ()=> window.print());
-document.getElementById('copyLink')?.addEventListener('click', async ()=>{
-  try{ await navigator.clipboard.writeText(location.href);
-    const b=document.getElementById('copyLink'); const t=b.textContent; b.textContent='Lien copié'; setTimeout(()=> b.textContent=t, 1200);
-  }catch{}
-});
-document.getElementById('qrBtn')?.addEventListener('click', ()=>{
-  const url = encodeURIComponent(location.href);
-  const img = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${url}`;
-  openModal('Partager ce guide', `<div style="display:grid;place-items:center;gap:10px">
-    <img src="${img}" alt="QR" width="220" height="220" style="border-radius:12px;border:1px solid var(--line)"/>
-    <div class="c-hint">Scannez pour ouvrir</div>
-  </div>`);
-});
-
-/* boot */
-async function boot(){
-  const root = document.getElementById("root");
-  // slug depuis /guide/<slug> ou ?slug=
-  let slug = new URL(location.href).searchParams.get("slug");
-  if(!slug){
-    const parts = location.pathname.split("/").filter(Boolean);
-    slug = parts[parts.length-1] || "";
-  }
-  if(!slug){ root.textContent="Slug manquant"; return; }
-
-  const jsonUrl = `${SUPABASE_URL}/storage/v1/object/public/${GUIDES_BUCKET}/${encodeURIComponent(slug)}.json`;
-  try{
-    const r = await fetch(jsonUrl, { cache:"no-store" });
-    if(!r.ok){ root.innerHTML = `<p style="color:#b91c1c">Guide introuvable.<br><code>${jsonUrl}</code></p>`; return; }
-    const g = await r.json();
-    document.title = `${g?.name || "Guide"} – Conciergerie Zenata`;
-
-    const signature = `<div class="container" style="margin:-6px 0 2px 0; color:#8a8f98; font-size:13px;">
-      Service 5★ by Conciergerie Zenata — arrivée autonome, qualité hôtelière, assistance 24/7.
-    </div>`;
-
-    root.innerHTML = [hero(g), signature, tiles(g), strips(g)].join("");
-    wireCards();
-  }catch(e){
-    root.innerHTML = `<p style="color:#b91c1c">${e.message||e}</p>`;
-  }
+  root.innerHTML = hero + signature + deck + after;
+  wireCards();
+ }catch(e){
+  root.innerHTML = `<div class="card"><h2>Erreur</h2><div class="content"><p style="color:#b91c1c">${e.message||e}</p></div></div>`;
+ }
 }
 document.addEventListener("DOMContentLoaded", boot);
 </script>
