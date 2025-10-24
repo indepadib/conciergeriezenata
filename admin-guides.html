@@ -310,24 +310,42 @@
     </form>
   </div>
 
-  <h2>Aperçu</h2>
-  <div class="preview">
-    <iframe id="preview"></iframe>
-  </div>
+<h2>Aperçu</h2>
+<div class="preview">
+  <iframe id="preview"></iframe>
+</div>
 
-  <script>
-    const params = new URLSearchParams(location.search);
-    const slug = params.get("slug") || "nouveau-guide";
-    document.getElementById("slugLabel").textContent = slug;
+<script>
+  // On lit le slug et un token si tu l’as saisi dans le formulaire
+  function setPreview() {
+    const f = document.getElementById('f');
+    const slug = (new URLSearchParams(location.search).get('slug')) || (f?.slug?.value || '').trim();
+    const token = (f?.token?.value || '').trim(); // le champ "Jeton d’accès (pour révéler)"
+    if(!slug) return;
 
-    const preview = document.getElementById("preview");
-    preview.src = `/guide/${slug}`;
+    // Ajout d’un cache-buster pour forcer le rechargement de l’iframe
+    const ts = Date.now();
+    const url = `/guide/${encodeURIComponent(slug)}${token ? `?token=${encodeURIComponent(token)}` : ''}&ts=${ts}`;
+    document.getElementById('preview').src = url;
+  }
 
-    document.getElementById("f").onsubmit = e => {
-      e.preventDefault();
-      alert("Simulation de publication réussie !");
-    };
-  </script>
+  // Quand la page charge, on met l’aperçu avec le slug de l’URL
+  document.addEventListener('DOMContentLoaded', setPreview);
+
+  // Quand tu modifies le formulaire (slug/token), on met à jour l’aperçu
+  document.getElementById('f')?.addEventListener('input', (e)=>{
+    if (e.target.name === 'slug' || e.target.name === 'token') setPreview();
+  });
+
+  // Après publication, on rafraîchit aussi l’aperçu
+  // (si tu as un handler submit existant, ajoute juste setPreview() à la fin)
+  document.getElementById('f')?.addEventListener('submit', function(e){
+    // ton code de publication...
+    // après succès:
+    setPreview();
+  });
+</script>
+
 
 </body>
 </html>
