@@ -175,7 +175,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Admin – Édition de Guide | Conciergerie Zenata</title>
+  <title>Créer un Guide – Conciergerie Zenata</title>
   <link rel="icon" href="/logo/logo_officiel_couleur_picto.png"/>
   <style>
     :root{
@@ -188,8 +188,7 @@
     body{
       font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
       color:var(--ink);
-      background:
-        radial-gradient(900px 700px at 20% -10%, #ffffff 0%, #f8f9fc 60%, #eef1f6 100%);
+      background:radial-gradient(1000px 600px at 15% -10%, #ffffff 0%, #f7f9fc 60%, #eef2f7 100%);
       padding:32px;
     }
 
@@ -199,11 +198,15 @@
     a:hover{text-decoration:underline}
 
     .header{display:flex;align-items:center;gap:10px;margin-bottom:24px;}
-    .header img{height:28px;}
+    .header img{height:30px;}
     .card{
-      background:var(--card);border:1px solid var(--line);
-      border-radius:var(--radius);padding:28px;
-      max-width:860px;margin:0 auto 24px;box-shadow:var(--shadow);
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:28px;
+      max-width:880px;
+      margin:0 auto 24px;
+      box-shadow:var(--shadow);
     }
 
     form{display:grid;gap:16px;}
@@ -212,6 +215,9 @@
       width:100%;padding:12px;border:1px solid var(--line);
       border-radius:10px;font-size:14px;background:#fff;
       box-shadow:inset 0 1px 2px rgba(0,0,0,.04);
+    }
+    input::placeholder, textarea::placeholder{
+      color:#9aa3ad;opacity:.8;
     }
     textarea{min-height:80px;resize:vertical;}
     .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;}
@@ -231,68 +237,70 @@
       margin-top:24px;box-shadow:var(--shadow);
       border:1px solid var(--line);
     }
-    .preview iframe{width:100%;height:600px;border:0;}
+    .preview-box{
+      display:grid;place-items:center;
+      padding:40px;background:#f9fafc;
+      color:var(--muted);font-size:15px;
+      height:280px;text-align:center;
+    }
   </style>
 </head>
 <body>
 
   <div class="header">
     <img src="/logo/logo_officiel_couleur_picto.png" alt="CZ">
-    <h1>Conciergerie Zenata – <span style="font-weight:400">Admin</span></h1>
+    <h1>Conciergerie Zenata – <span style="font-weight:400">Nouveau guide</span></h1>
   </div>
 
-  <p><a href="/guides.html">← Liste des guides</a></p>
+  <p><a href="/guides.html">← Retour à la liste</a></p>
 
   <div class="card">
-    <h2>Éditer le guide <span id="slugLabel"></span></h2>
+    <h2>Créer un nouveau guide</h2>
     <form id="f">
       <div class="row">
-        <div>
-          <label>Nom</label><input name="name" required>
-        </div>
-        <div>
-          <label>Slug</label><input name="slug" required>
-        </div>
+        <div><label>Nom</label><input name="name" placeholder="Charmant Appartement Zenata vue mer" required></div>
+        <div><label>Slug</label><input name="slug" placeholder="palm-zenata-001" required></div>
       </div>
 
       <div>
-        <label>Adresse</label><input name="address">
+        <label>Adresse complète</label><input name="address" placeholder="Résidence Next-House Zenata, Zenata Éco-Cité 26660">
       </div>
+
       <div class="row">
-        <div><label>Ville</label><input name="city"></div>
-        <div><label>Couverture (URL)</label><input name="coverUrl"></div>
+        <div><label>Ville</label><input name="city" placeholder="Casablanca"></div>
+        <div><label>Couverture (URL)</label><input name="coverUrl" placeholder="https://...jpg"></div>
         <div><label>ou charger une image</label><input type="file" id="file"></div>
       </div>
 
       <div class="row">
-        <div><label>Check-in à partir de</label><input name="checkin_from"></div>
-        <div><label>Check-out avant</label><input name="checkout_until"></div>
+        <div><label>Check-in à partir de</label><input name="checkin_from" placeholder="15:00"></div>
+        <div><label>Check-out avant</label><input name="checkout_until" placeholder="11:00"></div>
       </div>
 
       <div class="row">
-        <div><label>Code porte (sens.)</label><input name="doorCode"></div>
-        <div><label>Jeton d’accès (pour révéler)</label><input name="token"></div>
+        <div><label>Code porte (sens.)</label><input name="doorCode" placeholder="201998"></div>
+        <div><label>Jeton d’accès (pour révéler)</label><input name="token" placeholder="01234"></div>
       </div>
 
       <div class="row">
-        <div><label>Parking</label><input name="parking"></div>
-        <div><label>Wi-Fi SSID</label><input name="wifi_ssid"></div>
-        <div><label>Wi-Fi Password</label><input name="wifi_password"></div>
+        <div><label>Parking</label><input name="parking" placeholder="P2, Place 18"></div>
+        <div><label>Wi-Fi SSID</label><input name="wifi_ssid" placeholder="Palm House"></div>
+        <div><label>Wi-Fi Password</label><input name="wifi_password" placeholder="Palmzenata1234"></div>
       </div>
 
       <div>
         <label>Règles (une par ligne)</label>
-        <textarea name="rules"></textarea>
+        <textarea name="rules" placeholder="Non-fumeur&#10;Pas d'animaux&#10;Pas de bruit après 22h"></textarea>
       </div>
 
       <div>
         <label>Notes d’arrivée (une par ligne)</label>
-        <textarea name="arrivalNotes"></textarea>
+        <textarea name="arrivalNotes" placeholder="Montrez votre réservation à l'agent de sécurité&#10;Laissez la carte à la sortie"></textarea>
       </div>
 
       <div>
         <label>Équipements (séparés par des virgules)</label>
-        <input name="amenities">
+        <input name="amenities" placeholder="Climatisation, TV Smart, Wi-Fi, Parking gratuit">
       </div>
 
       <div>
@@ -301,51 +309,44 @@
       </div>
 
       <div class="row">
-        <div><label>Latitude</label><input name="lat"></div>
-        <div><label>Longitude</label><input name="lng"></div>
+        <div><label>Latitude</label><input name="lat" placeholder="33.835"></div>
+        <div><label>Longitude</label><input name="lng" placeholder="-7.675"></div>
       </div>
 
-      <button type="submit" class="btn">Publier</button>
+      <button type="submit" class="btn">Publier le guide</button>
       <p class="info">Le lien public sera : <code>/guide/&lt;slug&gt;</code></p>
     </form>
   </div>
 
-<h2>Aperçu</h2>
-<div class="preview">
-  <iframe id="preview"></iframe>
-</div>
+  <h2>Aperçu</h2>
+  <div class="preview">
+    <div class="preview-box" id="preview-box">
+      Remplissez le formulaire pour prévisualiser votre futur guide ✨<br>
+      (L’aperçu apparaîtra ici une fois publié)
+    </div>
+  </div>
 
-<script>
-  // On lit le slug et un token si tu l’as saisi dans le formulaire
-  function setPreview() {
+  <script>
     const f = document.getElementById('f');
-    const slug = (new URLSearchParams(location.search).get('slug')) || (f?.slug?.value || '').trim();
-    const token = (f?.token?.value || '').trim(); // le champ "Jeton d’accès (pour révéler)"
-    if(!slug) return;
+    const box = document.getElementById('preview-box');
 
-    // Ajout d’un cache-buster pour forcer le rechargement de l’iframe
-    const ts = Date.now();
-    const url = `/guide/${encodeURIComponent(slug)}${token ? `?token=${encodeURIComponent(token)}` : ''}&ts=${ts}`;
-    document.getElementById('preview').src = url;
-  }
+    f.addEventListener('input', ()=>{
+      const name = f.name.value || 'Guide sans nom';
+      const address = f.address.value || '';
+      box.innerHTML = `
+        <strong>${name}</strong><br><small>${address}</small><br><br>
+        <em>Prévisualisation simulée (non encore publiée)</em>
+      `;
+    });
 
-  // Quand la page charge, on met l’aperçu avec le slug de l’URL
-  document.addEventListener('DOMContentLoaded', setPreview);
-
-  // Quand tu modifies le formulaire (slug/token), on met à jour l’aperçu
-  document.getElementById('f')?.addEventListener('input', (e)=>{
-    if (e.target.name === 'slug' || e.target.name === 'token') setPreview();
-  });
-
-  // Après publication, on rafraîchit aussi l’aperçu
-  // (si tu as un handler submit existant, ajoute juste setPreview() à la fin)
-  document.getElementById('f')?.addEventListener('submit', function(e){
-    // ton code de publication...
-    // après succès:
-    setPreview();
-  });
-</script>
-
+    f.addEventListener('submit', e=>{
+      e.preventDefault();
+      alert('✅ Guide publié avec succès (simulation)');
+      box.innerHTML = `<strong>${f.name.value}</strong><br>
+        Votre guide est publié !<br>
+        <a href="/guide/${f.slug.value}?token=${f.token.value}" target="_blank">Voir la page publique</a>`;
+    });
+  </script>
 
 </body>
 </html>
