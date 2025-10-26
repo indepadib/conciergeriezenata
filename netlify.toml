@@ -1,7 +1,19 @@
 [build]
+  command = ""          # site statique
   publish = "."
 
 [functions]
-  node_bundler = "esbuild"   # Netlify bundle tout seul
+  node_bundler = "esbuild"
+  external_node_modules = ["@supabase/supabase-js"]
 
-# (facultatif si tu as déjà un _redirects pour le site)
+# Rediriger toutes les routes /guide/<slug> vers guide.html (SPA)
+[[redirects]]
+  from = "/guide/*"
+  to = "/guide.html"
+  status = 200
+
+# (facultatif) si tu veux une page /admin/guide
+[[redirects]]
+  from = "/admin/guides/*"
+  to = "/admin-guides.html"
+  status = 200
