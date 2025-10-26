@@ -6,6 +6,7 @@
   node_bundler = "esbuild"
   external_node_modules = ["@supabase/supabase-js"]
 
+
 # Rediriger toutes les routes /guide/<slug> vers guide.html (SPA)
 [[redirects]]
   from = "/guide/*"
