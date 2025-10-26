@@ -1,45 +1,40 @@
-export async function handler(event) {
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Method Not Allowed" };
-  }
-  const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ASSETS_BUCKET } = process.env;
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !ASSETS_BUCKET) {
-    const missing = [
-      !SUPABASE_URL && "SUPABASE_URL",
-      !SUPABASE_SERVICE_ROLE_KEY && "SUPABASE_SERVICE_ROLE_KEY",
-      !ASSETS_BUCKET && "ASSETS_BUCKET",
-    ].filter(Boolean).join(", ");
-    return { statusCode: 500, body: `Missing env: ${missing}` };
-  }
+// netlify/functions/upload-image.js
+import { createClient } from '@supabase/supabase-js';
+
+export const handler = async (event) => {
   try {
-    const qs = new URLSearchParams(event.queryStringParameters || {});
-    const slug = (qs.get("slug") || "").replace(/[^a-z0-9-]/gi, "-").toLowerCase();
-    const ext = (qs.get("ext") || "webp").toLowerCase();
-    if (!slug) return { statusCode: 400, body: "Missing slug" };
+    if (event.httpMethod !== 'POST') {
+      return { statusCode: 405, body: 'Method Not Allowed' };
+    }
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE;
+    const ASSETS_BUCKET = process.env.ASSETS_BUCKET || 'guide-assets';
 
-    const isBase64 = event.isBase64Encoded;
-    const raw = isBase64 ? Buffer.from(event.body || "", "base64") : Buffer.from(event.body || "", "utf8");
-    const contentType = event.headers["content-type"] || event.headers["Content-Type"] || "application/octet-stream";
-
-    const path = `covers/${slug}.${ext}`;
-    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${ASSETS_BUCKET}/${encodeURI(path)}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        "Content-Type": contentType,
-        "x-upsert": "true"
-      },
-      body: raw
-    });
-
-    if (!res.ok) {
-      const txt = await res.text();
-      return { statusCode: res.status, body: `Supabase error: ${txt}` };
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE) {
+      return { statusCode: 500, body: 'Missing server env: SUPABASE_URL / SUPABASE_SERVICE_ROLE' };
     }
 
-    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${ASSETS_BUCKET}/${encodeURI(path)}`;
-    return { statusCode: 200, body: JSON.stringify({ ok: true, url: publicUrl }) };
+    const slug = event.queryStringParameters?.slug || '';
+    const ext  = (event.queryStringParameters?.ext || 'webp').toLowerCase();
+    if (!slug) return { statusCode: 400, body: 'Missing slug' };
+
+    // event.body est base64 (Netlify), on recompose le buffer
+    const isBase64 = event.isBase64Encoded;
+    const bin = isBase64 ? Buffer.from(event.body, 'base64') : Buffer.from(event.body || '', 'utf8');
+    if (!bin.length) return { statusCode: 400, body: 'Empty body' };
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);
+    const path = `covers/${slug}.${ext}`;
+    const contentType = event.headers['content-type'] || 'application/octet-stream';
+
+    const { error } = await supabase.storage.from(ASSETS_BUCKET).upload(path, bin, {
+      upsert: true, contentType
+    });
+    if (error) return { statusCode: 500, body: `Upload error: ${error.message}` };
+
+    const { data } = supabase.storage.from(ASSETS_BUCKET).getPublicUrl(path);
+    return { statusCode: 200, body: JSON.stringify({ ok:true, url: data.publicUrl, path }) };
   } catch (e) {
     return { statusCode: 500, body: `Server error: ${e.message}` };
   }
-}
+};
