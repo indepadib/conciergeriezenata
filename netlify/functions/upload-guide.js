@@ -1,41 +1,40 @@
-export async function handler(event) {
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Method Not Allowed" };
-  }
-  const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, GUIDES_BUCKET } = process.env;
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !GUIDES_BUCKET) {
-    const missing = [
-      !SUPABASE_URL && "SUPABASE_URL",
-      !SUPABASE_SERVICE_ROLE_KEY && "SUPABASE_SERVICE_ROLE_KEY",
-      !GUIDES_BUCKET && "GUIDES_BUCKET",
-    ].filter(Boolean).join(", ");
-    return { statusCode: 500, body: `Missing env: ${missing}` };
-  }
+// netlify/functions/upload-guide.js
+import { createClient } from '@supabase/supabase-js';
 
+export const handler = async (event) => {
   try {
-    const body = JSON.parse(event.body || "{}");
-    const { slug, guide } = body || {};
-    if (!slug || !guide) return { statusCode: 400, body: "Missing slug or guide" };
+    if (event.httpMethod !== 'POST') {
+      return { statusCode: 405, body: 'Method Not Allowed' };
+    }
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE;
+    const GUIDES_BUCKET = process.env.GUIDES_BUCKET || 'guides';
 
-    const path = `${slug}.json`;
-    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${GUIDES_BUCKET}/${encodeURI(path)}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        "Content-Type": "application/json",
-        "x-upsert": "true"
-      },
-      body: JSON.stringify(guide)
-    });
-
-    if (!res.ok) {
-      const txt = await res.text();
-      return { statusCode: res.status, body: `Supabase error: ${txt}` };
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE) {
+      return { statusCode: 500, body: 'Missing server env: SUPABASE_URL / SUPABASE_SERVICE_ROLE' };
     }
 
-    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${GUIDES_BUCKET}/${encodeURI(path)}`;
-    return { statusCode: 200, body: JSON.stringify({ ok: true, url: publicUrl }) };
+    const { slug, guide } = JSON.parse(event.body || '{}');
+    if (!slug || !guide) {
+      return { statusCode: 400, body: 'Missing slug or guide' };
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);
+    const path = `${slug}.json`;
+    const { error } = await supabase.storage.from(GUIDES_BUCKET).upload(
+      path,
+      new Blob([JSON.stringify(guide, null, 2)], { type: 'application/json' }),
+      { upsert: true, contentType: 'application/json' }
+    );
+    if (error) {
+      return { statusCode: 500, body: `Upload error: ${error.message}` };
+    }
+    const { data } = supabase.storage.from(GUIDES_BUCKET).getPublicUrl(path);
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ ok: true, url: data.publicUrl, path })
+    };
   } catch (e) {
     return { statusCode: 500, body: `Server error: ${e.message}` };
   }
-}
+};
