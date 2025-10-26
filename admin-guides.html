@@ -179,10 +179,16 @@
 <link rel="icon" href="/logo/logo_officiel_couleur_picto.png"/>
 <style>
   :root{--ink:#0B1220;--muted:#6F7782;--line:#E4E9F2;--card:#fff;--brand:#0F172A;--shadow:0 20px 40px rgba(16,24,40,.08)}
-  *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);
-    background:radial-gradient(1100px 640px at 16% -10%, #fff 0%, #f7f9fc 60%, #eef2f7 100%);padding:28px}
-  h1{margin:0 0 10px 0;font-size:24px} a{color:#C6A86A;text-decoration:none} a:hover{text-decoration:underline}
-  .wrap{max-width:1040px;margin:0 auto}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);
+    background:
+      radial-gradient(1200px 700px at 12% -15%, #ffffff 0%, #f6f8fb 45%, transparent 60%),
+      radial-gradient(900px 520px at 110% -15%, #f2f5fa 0%, transparent 60%),
+      linear-gradient(180deg,#f8fafc 0%, #eef3f8 100%);
+    padding:28px}
+  h1{margin:0 0 10px 0;font-size:24px}
+  a{color:#C6A86A;text-decoration:none} a:hover{text-decoration:underline}
+  .wrap{max-width:1120px;margin:0 auto}
   .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:22px;margin-bottom:20px}
   .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
   label{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
@@ -196,10 +202,8 @@
   .right{display:flex;gap:8px;align-items:center;justify-content:flex-end}
   .preview{border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
   .previewbox{display:grid;place-items:center;height:260px;background:#f8fafc;color:var(--muted)}
-  .ok{color:#0f766e}
-  .err{color:#b91c1c}
+  .ok{color:#0f766e}.err{color:#b91c1c}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="wrap">
@@ -222,7 +226,7 @@
         <div>
           <label>ou charger une image</label>
           <input type="file" id="f-cover-file" accept="image/*">
-          <div class="muted">Bucket: <code>guide-assets/covers/&lt;slug&gt;.&lt;ext&gt;</code></div>
+          <div class="muted">Stocké en : <code>guide-assets/covers/&lt;slug&gt;.&lt;ext&gt;</code></div>
         </div>
       </div>
 
@@ -271,69 +275,67 @@
   <div class="card">
     <h2 style="margin:0 0 10px 0">Aperçu</h2>
     <div class="preview" id="preview">
-      <div class="previewbox" id="previewbox">Remplissez le formulaire puis publiez pour voir l’aperçu public ici.<br/>(Le bouton “Aperçu local” fonctionne sans publication.)</div>
+      <div class="previewbox" id="previewbox">
+        Remplissez le formulaire puis cliquez “Publier” pour voir la version publique ici.<br>
+        (Le bouton “Aperçu local” fonctionne sans publication.)
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-  // === CONFIG SUPABASE (remplace si besoin) ===
-  const SUPABASE_URL  = "https://ojgchrqtvkwzhjvwwftd.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qZ2NocnF0dmt3emhqdnd3ZnRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2OTMxODEsImV4cCI6MjA3NTI2OTE4MX0.Ok7fj3QUs28Q8dOiNy6caSBmjcUmjFrZgmIvAnzJZ00";
-  const GUIDES_BUCKET = "guides";          // JSON
-  const ASSETS_BUCKET = "guide-assets";    // images
-
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // Helpers
-  function publicUrl(bucket, path){
-    const { data } = sb.storage.from(bucket).getPublicUrl(path);
-    return data?.publicUrl || null;
+  // === API (fonctions Netlify) ===
+  async function serverUploadGuide(slug, guide){
+    const r = await fetch('/.netlify/functions/upload-guide', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ slug, guide })
+    });
+    if(!r.ok) throw new Error(await r.text());
+    return await r.json();
   }
-  async function uploadJson(path, obj){
-    const blob = new Blob([JSON.stringify(obj, null, 2)], { type:'application/json' });
-    const { error } = await sb.storage.from(GUIDES_BUCKET).upload(path, blob, { upsert:true, contentType:'application/json' });
-    if(error) throw error;
-    return publicUrl(GUIDES_BUCKET, path);
-  }
-  async function uploadImage(file, slug){
-    const ext = (file.name.split('.').pop() || 'webp').toLowerCase();
-    const path = `covers/${slug}.${ext}`;
-    const { error } = await sb.storage.from(ASSETS_BUCKET).upload(path, file, { upsert:true, contentType: file.type || 'image/*' });
-    if(error) throw error;
-    return publicUrl(ASSETS_BUCKET, path);
+  async function serverUploadImage(file, slug){
+    const ext=(file.name.split('.').pop()||'webp').toLowerCase();
+    const r = await fetch(`/.netlify/functions/upload-image?slug=${encodeURIComponent(slug)}&ext=${encodeURIComponent(ext)}`, {
+      method:'POST',
+      headers:{ 'Content-Type': file.type || 'application/octet-stream' },
+      body: file
+    });
+    if(!r.ok) throw new Error(await r.text());
+    return await r.json();
   }
 
+  // === Form helpers ===
   function guideFromForm(){
     const get = id => document.getElementById(id).value.trim();
-    const token = get('f-token');
     const rules = get('f-rules').split('\n').map(s=>s.trim()).filter(Boolean);
     const notes = get('f-notes').split('\n').map(s=>s.trim()).filter(Boolean);
     const amenities = get('f-amenities').split(',').map(s=>s.trim()).filter(Boolean).map(a=>({label:a}));
+    const token = get('f-token');
     return {
-      id: 'prop_'+Date.now(),
-      slug: get('f-slug'),
-      brand: { name:'Conciergerie Zenata', logoUrl:'/logo/logo_officiel_couleur_picto.png', supportEmail:'hello@conciergeriezenata.com', site: location.origin },
-      cover: { imageUrl:get('f-cover'), caption:{ fr:'' } },
-      name: get('f-name'),
-      address: get('f-address'),
-      city: get('f-city') || 'Casablanca',
-      arrival: { fr:{ checkin_from:get('f-checkin') || '15:00', self_checkin:true, doorCode:get('f-door'), parking:get('f-parking'),
-                      wifi:{ ssid:get('f-ssid'), password:get('f-wifi') }, notes } },
-      rules: { fr:{ items: rules } },
-      departure: { fr:{ checkout_until:get('f-checkout') || '11:00', steps:[] } },
+      id:'prop_'+Date.now(),
+      slug:get('f-slug'),
+      brand:{ name:'Conciergerie Zenata', logoUrl:'/logo/logo_officiel_couleur_picto.png', supportEmail:'hello@conciergeriezenata.com', site: location.origin },
+      cover:{ imageUrl:get('f-cover'), caption:{ fr:'' } },
+      name:get('f-name'),
+      address:get('f-address'),
+      city:get('f-city')||'Casablanca',
+      arrival:{ fr:{
+        checkin_from:get('f-checkin')||'15:00', self_checkin:true,
+        doorCode:get('f-door'), parking:get('f-parking'),
+        wifi:{ ssid:get('f-ssid'), password:get('f-wifi') },
+        notes
+      }},
+      rules:{ fr:{ items: rules }},
+      departure:{ fr:{ checkout_until:get('f-checkout')||'11:00', steps:[] }},
       amenities,
-      geo: { lat: get('f-lat') ? parseFloat(get('f-lat')) : undefined,
-             lng: get('f-lng') ? parseFloat(get('f-lng')) : undefined },
-      __sensitive: token ? { token } : undefined
+      geo:{ lat: get('f-lat')?parseFloat(get('f-lat')):undefined, lng: get('f-lng')?parseFloat(get('f-lng')):undefined },
+      __sensitive: token? { token } : undefined
     };
   }
 
-  // Local preview (no fetch)
   function renderLocalPreview(){
     const box = document.getElementById('previewbox');
-    const g = guideFromForm();
-    const a = g.arrival?.fr || {};
+    const g = guideFromForm(); const a = g.arrival?.fr || {};
     box.innerHTML = `
       <div style="padding:16px;text-align:left;max-width:820px;width:100%">
         <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
@@ -349,22 +351,21 @@
       </div>`;
   }
 
-  // Public preview iframe (after publish)
   function setPublicPreview(slug, token){
     const el = document.getElementById('preview');
     const url = `/guide/${encodeURIComponent(slug)}${token?`?token=${encodeURIComponent(token)}`:''}${token?'&':'?'}ts=${Date.now()}`;
     el.innerHTML = `<iframe src="${url}" style="width:100%;height:640px;border:0"></iframe>`;
   }
 
-  // Image upload
+  // === Events ===
   document.getElementById('f-cover-file').addEventListener('change', async (e)=>{
     const file = e.target.files?.[0]; if(!file) return;
     const slug = (document.getElementById('f-slug').value.trim() || `temp-${Date.now()}`).replace(/[^a-z0-9-]/gi,'-').toLowerCase();
     const msg = document.getElementById('save-msg');
     msg.textContent = 'Téléversement image…';
     try{
-      const url = await uploadImage(file, slug);
-      document.getElementById('f-cover').value = url || '';
+      const res = await serverUploadImage(file, slug);
+      document.getElementById('f-cover').value = res.url || '';
       msg.innerHTML = '✅ Image uploadée';
       renderLocalPreview();
     }catch(err){
@@ -372,15 +373,14 @@
     }
   });
 
-  // Buttons
   document.getElementById('btn-preview-local').addEventListener('click', renderLocalPreview);
+
   document.getElementById('btn-open-public').addEventListener('click', ()=>{
     const g = guideFromForm();
     const url = `/guide/${encodeURIComponent(g.slug)}${g.__sensitive?.token?`?token=${encodeURIComponent(g.__sensitive.token)}`:''}`;
-    window.open(url, '_blank');
+    window.open(url,'_blank');
   });
 
-  // Publish
   document.getElementById('form').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const g = guideFromForm();
@@ -388,19 +388,18 @@
     if(!g.slug){ msg.innerHTML = '❌ Slug requis'; return; }
     try{
       msg.textContent = 'Publication…';
-      const url = await uploadJson(`${g.slug}.json`, g);
-      msg.innerHTML = `✅ Publié : <a href="${url}" target="_blank" rel="noreferrer">${url}</a>`;
+      const res = await serverUploadGuide(g.slug, g);
+      msg.innerHTML = `✅ Publié : <a href="${res.url}" target="_blank" rel="noreferrer">${res.url}</a>`;
       setPublicPreview(g.slug, g.__sensitive?.token);
     }catch(err){
       msg.innerHTML = '❌ '+(err.message||err);
     }
   });
 
-  // Auto-fill slug depuis ?slug= si présent
-  (function boot(){
-    const u = new URL(location.href);
-    const s = u.searchParams.get('slug');
-    if(s){ document.getElementById('f-slug').value = s; }
+  // Boot
+  (function(){
+    const s = new URLSearchParams(location.search).get('slug');
+    if (s) document.getElementById('f-slug').value = s;
     renderLocalPreview();
   })();
 </script>
