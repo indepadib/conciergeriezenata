@@ -173,46 +173,38 @@
 <!doctype html>
 <html lang="fr">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Admin – Guides | Conciergerie Zenata</title>
 <link rel="icon" href="/logo/logo_officiel_couleur_picto.png"/>
 <style>
-  :root{--ink:#0B1220;--muted:#6F7782;--line:#E4E9F2;--card:#fff;--brand:#0F172A;--shadow:0 20px 40px rgba(16,24,40,.08)}
-  *{box-sizing:border-box}
-  body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);
-    background:
-      radial-gradient(1200px 700px at 12% -15%, #ffffff 0%, #f6f8fb 45%, transparent 60%),
-      radial-gradient(900px 520px at 110% -15%, #f2f5fa 0%, transparent 60%),
-      linear-gradient(180deg,#f8fafc 0%, #eef3f8 100%);
-    padding:28px}
-  h1{margin:0 0 10px 0;font-size:24px}
-  a{color:#C6A86A;text-decoration:none} a:hover{text-decoration:underline}
-  .wrap{max-width:1120px;margin:0 auto}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:22px;margin-bottom:20px}
-  .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-  label{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
-  input,textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:14px}
-  input::placeholder,textarea::placeholder{color:#9aa3ad}
-  textarea{min-height:80px;resize:vertical}
-  .btn{appearance:none;cursor:pointer;border:none;border-radius:12px;padding:12px 16px;font-weight:600}
-  .btn.primary{background:linear-gradient(135deg,var(--brand),#1F2937);color:#fff}
-  .btn.ghost{background:#fff;border:1px solid var(--line)}
-  .muted{color:var(--muted);font-size:13px}
-  .right{display:flex;gap:8px;align-items:center;justify-content:flex-end}
-  .preview{border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
-  .previewbox{display:grid;place-items:center;height:260px;background:#f8fafc;color:var(--muted)}
-  .ok{color:#0f766e}.err{color:#b91c1c}
+:root{--ink:#0B1220;--muted:#6F7782;--line:#E4E9F2;--card:#fff;--brand:#0F172A;--accent:#C7A059;--shadow:0 20px 40px rgba(16,24,40,.08);--radius:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);background:radial-gradient(1100px 640px at 16% -10%, #fff 0%, #f7f9fc 60%, #eef2f7 100%);padding:28px}
+.wrap{max-width:1080px;margin:0 auto}
+h1{margin:0 0 10px 0;font-size:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;margin-bottom:20px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+label{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
+input,textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:14px}
+input::placeholder,textarea::placeholder{color:#9aa3ad}
+textarea{min-height:80px;resize:vertical}
+.btn{appearance:none;cursor:pointer;border:none;border-radius:12px;padding:12px 16px;font-weight:600}
+.btn.primary{background:linear-gradient(135deg,var(--brand),#1F2937);color:#fff}
+.btn.ghost{background:#fff;border:1px solid var(--line)}
+.right{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.muted{color:var(--muted);font-size:13px}
+.preview{border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+.previewbox{display:grid;place-items:center;height:260px;background:#f8fafc;color:var(--muted)}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Conciergerie Zenata – <span class="muted">Admin Guides</span></h1>
-  <p><a href="/guides.html">← Liste des guides</a></p>
+  <p><a href="/guides.html">← Retour à la liste</a></p>
 
   <div class="card">
-    <h2 style="margin:0 0 14px 0">Créer / éditer un guide</h2>
-    <form id="form" class="grid" autocomplete="off">
+    <h2 style="margin:0 0 14px 0">Créer / Éditer un guide</h2>
+    <form id="form" autocomplete="off">
       <div class="row">
         <div><label>Nom</label><input id="f-name" placeholder="Charmant Appartement 2ch vue mer" required></div>
         <div><label>Slug</label><input id="f-slug" placeholder="palm-zenata-001" required></div>
@@ -226,7 +218,7 @@
         <div>
           <label>ou charger une image</label>
           <input type="file" id="f-cover-file" accept="image/*">
-          <div class="muted">Stocké en : <code>guide-assets/covers/&lt;slug&gt;.&lt;ext&gt;</code></div>
+          <div class="muted">Stockage : <code>guide-assets/covers/&lt;slug&gt;.&lt;ext&gt;</code></div>
         </div>
       </div>
 
@@ -238,20 +230,44 @@
       <div class="row">
         <div><label>Code porte (sensible)</label><input id="f-door" placeholder="201998"></div>
         <div><label>Jeton d’accès (pour révéler)</label><input id="f-token" placeholder="01234"></div>
+        <div><label>Parking</label><input id="f-parking" placeholder="P2, Place 18"></div>
       </div>
 
       <div class="row">
-        <div><label>Parking</label><input id="f-parking" placeholder="P2, Place 18"></div>
         <div><label>Wi-Fi SSID</label><input id="f-ssid" placeholder="Palm House"></div>
         <div><label>Wi-Fi Password</label><input id="f-wifi" placeholder="Palmzenata1234"></div>
       </div>
 
-      <div><label>Règles (une par ligne)</label>
-        <textarea id="f-rules" placeholder="Non-fumeur&#10;Pas d'animaux&#10;Pas de bruit après 22h"></textarea>
+      <div class="row">
+        <div><label>Règles (une par ligne)</label>
+          <textarea id="f-rules" placeholder="Non-fumeur&#10;Pas d'animaux&#10;Pas de bruit après 22h"></textarea>
+        </div>
+        <div><label>Notes d’arrivée (une par ligne)</label>
+          <textarea id="f-notes" placeholder="Montrez votre réservation à l'agent de sécurité&#10;Badge dans la boîte à clés n°12"></textarea>
+        </div>
       </div>
 
-      <div><label>Notes d’arrivée (une par ligne)</label>
-        <textarea id="f-notes" placeholder="Montrez votre réservation à l'agent de sécurité&#10;Badge dans la boîte à clés n°12"></textarea>
+      <div class="row">
+        <div><label>Infos essentielles (texte libre)</label>
+          <textarea id="f-essentials" placeholder="Électricité : disjoncteur à côté de la porte. Eau chaude : chauffe-eau instantané..."></textarea>
+        </div>
+        <div><label>Numéros d’urgence (JSON)</label>
+          <textarea id="f-emergency" placeholder='[{"label":"Police","value":"19"},{"label":"Pompiers","value":"15"}]'></textarea>
+        </div>
+      </div>
+
+      <div class="row">
+        <div><label>Quartier – intro</label><textarea id="f-neigh-intro" placeholder="À 5 minutes de la plage de Zenata, proche commerces..."></textarea></div>
+        <div><label>Quartier – lieux (une par ligne)</label>
+          <textarea id="f-neigh-places" placeholder="Zenata Mall (2025)&#10;Plage de Zenata&#10;Saudi German Hospital (à venir)"></textarea>
+        </div>
+      </div>
+
+      <div class="row">
+        <div><label>Recommandations – intro</label><textarea id="f-rec-intro" placeholder="Nos meilleures adresses autour..."></textarea></div>
+        <div><label>Recommandations – tips (une par ligne)</label>
+          <textarea id="f-rec-tips" placeholder="Poissons - Le Marhaba Zenata&#10;Brunch - Café de la Mer"></textarea>
+        </div>
       </div>
 
       <div><label>Équipements (séparés par des virgules)</label>
@@ -275,133 +291,108 @@
   <div class="card">
     <h2 style="margin:0 0 10px 0">Aperçu</h2>
     <div class="preview" id="preview">
-      <div class="previewbox" id="previewbox">
-        Remplissez le formulaire puis cliquez “Publier” pour voir la version publique ici.<br>
-        (Le bouton “Aperçu local” fonctionne sans publication.)
-      </div>
+      <div class="previewbox" id="previewbox">Remplissez le formulaire puis publiez pour voir l’aperçu public ici.<br/>(“Aperçu local” fonctionne sans publication.)</div>
     </div>
   </div>
 </div>
 
 <script>
-  // === API (fonctions Netlify) ===
-  async function serverUploadGuide(slug, guide){
-    const r = await fetch('/.netlify/functions/upload-guide', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ slug, guide })
-    });
-    if(!r.ok) throw new Error(await r.text());
-    return await r.json();
-  }
-  async function serverUploadImage(file, slug){
-    const ext=(file.name.split('.').pop()||'webp').toLowerCase();
-    const r = await fetch(`/.netlify/functions/upload-image?slug=${encodeURIComponent(slug)}&ext=${encodeURIComponent(ext)}`, {
-      method:'POST',
-      headers:{ 'Content-Type': file.type || 'application/octet-stream' },
-      body: file
-    });
-    if(!r.ok) throw new Error(await r.text());
-    return await r.json();
-  }
+// ==== appels fonctions Netlify (server) ====
+async function serverUploadGuide(slug, guide){
+  const r=await fetch('/.netlify/functions/upload-guide',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug,guide})});
+  const t=await r.text(); if(!r.ok) throw new Error(t||'upload-guide: failed'); return JSON.parse(t);
+}
+async function serverUploadImage(file, slug){
+  const ext=(file.name.split('.').pop()||'webp').toLowerCase();
+  const r=await fetch(`/.netlify/functions/upload-image?slug=${encodeURIComponent(slug)}&ext=${encodeURIComponent(ext)}`,{method:'POST',headers:{'Content-Type':file.type||'application/octet-stream'},body:file});
+  const t=await r.text(); if(!r.ok) throw new Error(t||'upload-image: failed'); return JSON.parse(t);
+}
 
-  // === Form helpers ===
-  function guideFromForm(){
-    const get = id => document.getElementById(id).value.trim();
-    const rules = get('f-rules').split('\n').map(s=>s.trim()).filter(Boolean);
-    const notes = get('f-notes').split('\n').map(s=>s.trim()).filter(Boolean);
-    const amenities = get('f-amenities').split(',').map(s=>s.trim()).filter(Boolean).map(a=>({label:a}));
-    const token = get('f-token');
-    return {
-      id:'prop_'+Date.now(),
-      slug:get('f-slug'),
-      brand:{ name:'Conciergerie Zenata', logoUrl:'/logo/logo_officiel_couleur_picto.png', supportEmail:'hello@conciergeriezenata.com', site: location.origin },
-      cover:{ imageUrl:get('f-cover'), caption:{ fr:'' } },
-      name:get('f-name'),
-      address:get('f-address'),
-      city:get('f-city')||'Casablanca',
-      arrival:{ fr:{
-        checkin_from:get('f-checkin')||'15:00', self_checkin:true,
-        doorCode:get('f-door'), parking:get('f-parking'),
-        wifi:{ ssid:get('f-ssid'), password:get('f-wifi') },
-        notes
-      }},
-      rules:{ fr:{ items: rules }},
-      departure:{ fr:{ checkout_until:get('f-checkout')||'11:00', steps:[] }},
-      amenities,
-      geo:{ lat: get('f-lat')?parseFloat(get('f-lat')):undefined, lng: get('f-lng')?parseFloat(get('f-lng')):undefined },
-      __sensitive: token? { token } : undefined
-    };
-  }
+// ==== helpers ====
+function linesToArray(v){ return (v||'').split('\n').map(s=>s.trim()).filter(Boolean) }
+function csvToAmen(v){ return (v||'').split(',').map(s=>s.trim()).filter(Boolean).map(a=>({label:a})) }
+function getVal(id){ return document.getElementById(id).value.trim() }
 
-  function renderLocalPreview(){
-    const box = document.getElementById('previewbox');
-    const g = guideFromForm(); const a = g.arrival?.fr || {};
-    box.innerHTML = `
-      <div style="padding:16px;text-align:left;max-width:820px;width:100%">
-        <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
-          <img src="/logo/logo_officiel_couleur_picto.png" style="height:26px"><strong>${g.name || 'Sans titre'}</strong>
-        </div>
-        <div style="font-size:13px;color:#6b7280">${g.address || ''}</div>
-        <div style="margin-top:10px;font-size:14px">
-          ${a.wifi?.ssid||a.wifi?.password?`<div>Wi-Fi: <b>${a.wifi?.ssid||''}${a.wifi?.password?' • '+a.wifi.password:''}</b></div>`:''}
-          ${a.checkin_from?`<div>Check-in: <b>${a.checkin_from}</b></div>`:''}
-          ${g.departure?.fr?.checkout_until?`<div>Check-out: <b>${g.departure.fr.checkout_until}</b></div>`:''}
-        </div>
-        <div style="margin-top:8px" class="muted">Aperçu local (non publié)</div>
-      </div>`;
-  }
+function guideFromForm(){
+  const token=getVal('f-token');
+  return {
+    id:'prop_'+Date.now(),
+    slug:getVal('f-slug'),
+    brand:{ name:'Conciergerie Zenata', logoUrl:'/logo/logo_officiel_couleur_picto.png', supportEmail:'hello@conciergeriezenata.com', site:location.origin },
+    cover:{ imageUrl:getVal('f-cover'), caption:{ fr:'' } },
+    name:getVal('f-name'),
+    address:getVal('f-address'),
+    city:getVal('f-city')||'Casablanca',
+    arrival:{ fr:{
+      checkin_from:getVal('f-checkin')||'15:00', self_checkin:true,
+      doorCode:getVal('f-door'), parking:getVal('f-parking'),
+      wifi:{ ssid:getVal('f-ssid'), password:getVal('f-wifi') },
+      notes: linesToArray(getVal('f-notes'))
+    }},
+    rules:{ fr:{ items: linesToArray(getVal('f-rules')) }},
+    departure:{ fr:{ checkout_until:getVal('f-checkout')||'11:00', steps:[] }},
+    amenities: csvToAmen(getVal('f-amenities')),
+    essentials:{ fr: getVal('f-essentials') },
+    emergency: (()=>{
+      try{ return JSON.parse(getVal('f-emergency')||'[]') }catch{ return [] }
+    })(),
+    neighborhood:{ fr:{ intro:getVal('f-neigh-intro'), places: linesToArray(getVal('f-neigh-places')) }},
+    recommendations:{ fr:{ intro:getVal('f-rec-intro'), tips: linesToArray(getVal('f-rec-tips')) }},
+    geo:{
+      lat: getVal('f-lat')?parseFloat(getVal('f-lat')):undefined,
+      lng: getVal('f-lng')?parseFloat(getVal('f-lng')):undefined
+    },
+    __sensitive: token ? { token } : undefined
+  };
+}
 
-  function setPublicPreview(slug, token){
-    const el = document.getElementById('preview');
-    const url = `/guide/${encodeURIComponent(slug)}${token?`?token=${encodeURIComponent(token)}`:''}${token?'&':'?'}ts=${Date.now()}`;
-    el.innerHTML = `<iframe src="${url}" style="width:100%;height:640px;border:0"></iframe>`;
-  }
+function renderLocalPreview(){
+  const box=document.getElementById('previewbox'); const g=guideFromForm(); const a=g.arrival?.fr||{};
+  box.innerHTML=`
+    <div style="padding:16px;text-align:left;max-width:820px;width:100%">
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
+        <img src="/logo/logo_officiel_couleur_picto.png" style="height:26px" alt=""> <strong>${g.name||'Sans titre'}</strong>
+      </div>
+      <div style="font-size:13px;color:#6b7280">${g.address||''}</div>
+      <div style="margin-top:10px;font-size:14px">
+        ${(a.wifi?.ssid||a.wifi?.password)?`<div>Wi-Fi: <b>${a.wifi?.ssid||''}${a.wifi?.password?' • '+a.wifi.password:''}</b></div>`:''}
+        ${a.checkin_from?`<div>Check-in: <b>${a.checkin_from}</b></div>`:''}
+        ${g.departure?.fr?.checkout_until?`<div>Check-out: <b>${g.departure.fr.checkout_until}</b></div>`:''}
+      </div>
+      <div style="margin-top:8px" class="muted">Aperçu local (non publié)</div>
+    </div>`;
+}
+function setPublicPreview(slug, token){
+  const el=document.getElementById('preview');
+  const url=`/guide/${encodeURIComponent(slug)}${token?`?token=${encodeURIComponent(token)}`:''}${token?'&':'?'}ts=${Date.now()}`;
+  el.innerHTML=`<iframe src="${url}" style="width:100%;height:640px;border:0"></iframe>`;
+}
 
-  // === Events ===
-  document.getElementById('f-cover-file').addEventListener('change', async (e)=>{
-    const file = e.target.files?.[0]; if(!file) return;
-    const slug = (document.getElementById('f-slug').value.trim() || `temp-${Date.now()}`).replace(/[^a-z0-9-]/gi,'-').toLowerCase();
-    const msg = document.getElementById('save-msg');
-    msg.textContent = 'Téléversement image…';
-    try{
-      const res = await serverUploadImage(file, slug);
-      document.getElementById('f-cover').value = res.url || '';
-      msg.innerHTML = '✅ Image uploadée';
-      renderLocalPreview();
-    }catch(err){
-      msg.innerHTML = '❌ Upload image: '+(err.message||err);
-    }
-  });
+// ==== events ====
+document.getElementById('f-cover-file').addEventListener('change', async (e)=>{
+  const file=e.target.files?.[0]; if(!file) return;
+  const slug=(getVal('f-slug')||`temp-${Date.now()}`).replace(/[^a-z0-9-]/gi,'-').toLowerCase();
+  const msg=document.getElementById('save-msg'); msg.textContent='Téléversement image…';
+  try{ const res=await serverUploadImage(file, slug); document.getElementById('f-cover').value=res.url||''; msg.textContent='✅ Image uploadée'; renderLocalPreview(); }
+  catch(err){ msg.textContent='❌ Upload image: '+(err.message||err) }
+});
 
-  document.getElementById('btn-preview-local').addEventListener('click', renderLocalPreview);
+document.getElementById('btn-preview-local').onclick=renderLocalPreview;
 
-  document.getElementById('btn-open-public').addEventListener('click', ()=>{
-    const g = guideFromForm();
-    const url = `/guide/${encodeURIComponent(g.slug)}${g.__sensitive?.token?`?token=${encodeURIComponent(g.__sensitive.token)}`:''}`;
-    window.open(url,'_blank');
-  });
+document.getElementById('btn-open-public').onclick=()=>{
+  const g=guideFromForm(); const url=`/guide/${encodeURIComponent(g.slug)}${g.__sensitive?.token?`?token=${encodeURIComponent(g.__sensitive.token)}`:''}`; window.open(url,'_blank');
+};
 
-  document.getElementById('form').addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    const g = guideFromForm();
-    const msg = document.getElementById('save-msg');
-    if(!g.slug){ msg.innerHTML = '❌ Slug requis'; return; }
-    try{
-      msg.textContent = 'Publication…';
-      const res = await serverUploadGuide(g.slug, g);
-      msg.innerHTML = `✅ Publié : <a href="${res.url}" target="_blank" rel="noreferrer">${res.url}</a>`;
-      setPublicPreview(g.slug, g.__sensitive?.token);
-    }catch(err){
-      msg.innerHTML = '❌ '+(err.message||err);
-    }
-  });
+document.getElementById('form').addEventListener('submit', async (e)=>{
+  e.preventDefault(); const g=guideFromForm(); const msg=document.getElementById('save-msg');
+  if(!g.slug){ msg.textContent='❌ Slug requis'; return; }
+  try{ msg.textContent='Publication…'; const res=await serverUploadGuide(g.slug,g); msg.innerHTML=`✅ Publié : <a href="${res.url}" target="_blank" rel="noreferrer">${res.url}</a>`; setPublicPreview(g.slug,g.__sensitive?.token); }
+  catch(err){ msg.textContent='❌ '+(err.message||err) }
+});
 
-  // Boot
-  (function(){
-    const s = new URLSearchParams(location.search).get('slug');
-    if (s) document.getElementById('f-slug').value = s;
-    renderLocalPreview();
-  })();
+// boot (préremplir le slug si ?slug=)
+(function(){ const s=new URLSearchParams(location.search).get('slug'); if(s) document.getElementById('f-slug').value=s; renderLocalPreview(); })();
 </script>
 </body>
 </html>
+
