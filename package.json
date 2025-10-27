@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "echo 'Static build ok'"
+    "build": "echo 'static site' && exit 0"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.44.2"
+    "@supabase/supabase-js": "^2.45.4"
   }
 }
