@@ -177,16 +177,22 @@ Guide public premium – version statique sans build
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Guide Voyageur – Conciergerie Zenata</title>
 <link rel="icon" href="/logo/logo_officiel_couleur_picto.png"/>
+
 <style>
-:root {
-  --bg1:#0d0e11;--bg2:#1a1b1f;--accent:#c7a059;
-  --ink:#f5f5f5;--muted:#a3a3a3;--card:rgba(255,255,255,0.05);
-  --border:rgba(255,255,255,0.08);--radius:18px;--shadow:0 10px 30px rgba(0,0,0,.5);
+:root{
+  --bg1:#0d0e11; --bg2:#1a1b1f;
+  --ink:#f5f5f5; --muted:#a3a3a3;
+  --accent:#c7a059;
+  --card:rgba(255,255,255,.05);
+  --border:rgba(255,255,255,.08);
+  --radius:18px; --shadow:0 10px 30px rgba(0,0,0,.5);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Inter,system-ui,sans-serif;color:var(--ink);
+body{
+  font-family:Inter,system-ui,sans-serif;color:var(--ink);
   background:radial-gradient(1000px 700px at 20% -10%, var(--bg2), var(--bg1) 80%);
-  min-height:100vh;padding:28px}
+  min-height:100vh; padding:28px;
+}
 .wrap{max-width:1200px;margin:0 auto}
 .header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
 .header img{height:34px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}
@@ -196,37 +202,57 @@ body{font-family:Inter,system-ui,sans-serif;color:var(--ink);
 .hero .title{position:absolute;bottom:24px;left:28px;right:28px;color:#fff}
 .hero .title .badge{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:12px;border-radius:999px;padding:4px 10px;display:inline-block;margin-bottom:8px}
 .hero .title h1{margin:0;font-size:34px;font-weight:700;letter-spacing:.3px}
+
 .intro-card{
-  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-  box-shadow:var(--shadow);backdrop-filter:blur(12px);text-align:center;
-  padding:40px 28px;margin-bottom:40px;
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  box-shadow:var(--shadow); backdrop-filter:blur(12px);
+  text-align:center; padding:40px 28px; margin-bottom:40px;
 }
 .intro-card h2{font-size:22px;margin-bottom:10px;color:var(--accent)}
-.intro-card p{color:var(--muted);max-width:800px;margin:0 auto 10px;line-height:1.6}
-.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-bottom:40px}
-.tile{
-  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-  box-shadow:var(--shadow);backdrop-filter:blur(10px);padding:28px 20px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  cursor:pointer;transition:all .25s ease;text-align:center
+.intro-card p{color:var(--muted);max-width:840px;margin:0 auto 8px;line-height:1.65}
+.intro-card a{color:var(--accent);text-decoration:none}
+.intro-card a:hover{text-decoration:underline}
+
+.grid{
+  display:grid; gap:18px;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  margin-bottom:40px;
 }
-.tile:hover{transform:translateY(-3px);background:rgba(255,255,255,0.08)}
-.tile svg{width:34px;height:34px;margin-bottom:12px;stroke:var(--accent);stroke-width:1.7}
-.tile span{font-size:15px;font-weight:600;letter-spacing:.3px}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:24px;z-index:50}
-.modal[open]{display:flex}
-.modal-card{background:linear-gradient(180deg,#121317 0%,#0d0e11 100%);border:1px solid var(--border);border-radius:var(--radius);max-width:820px;width:100%;box-shadow:var(--shadow);color:#f8f8f8}
-.modal-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);padding:16px 20px}
-.modal-head strong{font-size:18px}
-.modal-close{background:transparent;border:1px solid var(--border);border-radius:999px;color:#ccc;padding:6px 12px;cursor:pointer}
-.modal-body{padding:22px 20px 24px;font-size:15px;line-height:1.6}
-.footer{text-align:center;color:var(--muted);margin-top:60px;font-size:13px}
+.tile{
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  box-shadow:var(--shadow); backdrop-filter:blur(10px);
+  padding:28px 20px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  cursor:pointer; transition:all .25s ease; text-align:center;
+}
+.tile:hover{ transform:translateY(-3px); background:rgba(255,255,255,.08) }
+.tile svg{ width:34px;height:34px;margin-bottom:12px;stroke:var(--accent);stroke-width:1.7 }
+.tile span{ font-size:15px; font-weight:600; letter-spacing:.3px }
+
+.modal{ position:fixed; inset:0; background:rgba(0,0,0,.55);
+  display:none; align-items:center; justify-content:center; padding:24px; z-index:50 }
+.modal[open]{ display:flex }
+.modal-card{
+  background:linear-gradient(180deg,#121317 0%,#0d0e11 100%);
+  border:1px solid var(--border); border-radius:var(--radius);
+  max-width:820px; width:100%; box-shadow:var(--shadow); color:#f8f8f8
+}
+.modal-head{ display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); padding:16px 20px }
+.modal-head strong{ font-size:18px }
+.modal-close{ background:transparent; border:1px solid var(--border); border-radius:999px; color:#ccc; padding:6px 12px; cursor:pointer }
+.modal-body{ padding:22px 20px 24px; font-size:15px; line-height:1.6 }
+.modal-body .mapbox{ height:420px; border-radius:14px; overflow:hidden; border:1px solid var(--border); box-shadow:inset 0 0 0 1px rgba(255,255,255,.02) }
+.modal-actions{ display:flex; gap:10px; margin-top:14px; flex-wrap:wrap }
+.btn{ appearance:none; border:1px solid var(--border); background:rgba(255,255,255,.06); color:#eee; border-radius:12px; padding:10px 14px; cursor:pointer; font-weight:600 }
+.btn.primary{ background:linear-gradient(135deg,#0F172A,#1F2937); border:none }
+
+.footer{ text-align:center; color:var(--muted); margin-top:60px; font-size:13px }
 </style>
 </head>
+
 <body>
 <div class="wrap">
   <div class="header">
-    <img src="/logo/logo_officiel_couleur_picto.png" alt="Zenata Logo">
+    <img src="/logo/logo_officiel_couleur_picto.png" alt="Zenata">
     <strong>Conciergerie Zenata</strong>
   </div>
 
@@ -236,47 +262,189 @@ body{font-family:Inter,system-ui,sans-serif;color:var(--ink);
     <div class="title"><div class="badge">Guide voyageur</div><h1 id="title"></h1></div>
   </div>
 
-  <div id="intro" class="intro-card" style="display:none">
+  <!-- Bloc Introduction & Accueil -->
+  <div id="intro-card" class="intro-card" style="display:none">
     <h2>Bienvenue à Zenata 🌴</h2>
     <p id="intro-text"></p>
-    <p><b>Contact :</b> <a href="mailto:conciergeriezenata@gmail.com" style="color:var(--accent)">conciergeriezenata@gmail.com</a></p>
+    <p><b>Contact :</b> <a href="mailto:conciergeriezenata@gmail.com">conciergeriezenata@gmail.com</a></p>
   </div>
 
   <div id="grid" class="grid"></div>
+
   <div class="footer">© <span id="year"></span> Conciergerie Zenata — Séjour Premium</div>
 </div>
 
-<div id="modal" class="modal"><div class="modal-card"><div class="modal-head"><strong id="m-title">Détail</strong><button class="modal-close" id="m-close">Fermer</button></div><div class="modal-body" id="m-body"></div></div></div>
+<!-- Modale -->
+<div id="modal" class="modal" aria-hidden="true">
+  <div class="modal-card">
+    <div class="modal-head">
+      <strong id="m-title">Détail</strong>
+      <button class="modal-close" id="m-close">Fermer</button>
+    </div>
+    <div class="modal-body" id="m-body"></div>
+  </div>
+</div>
 
 <script>
-const SUPABASE_URL="https://ojgchrqtvkwzhjvwwftd.supabase.co";const BUCKET="guides";
-document.getElementById("year").textContent=new Date().getFullYear();
-const M={open:(t,h)=>{m_title.textContent=t;m_body.innerHTML=h;modal.setAttribute("open","")},close:()=>modal.removeAttribute("open")};
-m_close.onclick=M.close;modal.addEventListener("click",e=>{if(e.target.id==="modal")M.close()});
-function icon(n){const i={wifi:`<svg fill="none" viewBox="0 0 24 24"><path d="M5 12a9 9 0 0114 0M2 9a12 12 0 0120 0M8.5 15.5a5 5 0 017 0M12 20h.01"/></svg>`,door:`<svg fill="none" viewBox="0 0 24 24"><path d="M14 12v.01M6 3h12v18H6z"/></svg>`,checkin:`<svg fill="none" viewBox="0 0 24 24"><path d="M3 3h18v18H3zM8 12l2 2 5-5"/></svg>`,map:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 3l6 3 6-3v18l-6 3-6-3-6 3V3l6-3z"/></svg>`,rules:`<svg fill="none" viewBox="0 0 24 24"><path d="M5 5h14M5 9h14M5 13h9M5 17h9"/></svg>`,amenities:`<svg fill="none" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/></svg>`,help:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 9a3 3 0 116 0c0 1.657-3 3-3 3m0 4h.01"/></svg>`,exit:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 4l5 5-5 5m5-5H9"/></svg>`};return i[n]||i.map}
-async function boot(){
- const slug=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
- const token=new URLSearchParams(location.search).get('token')||'';
- const url=`${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${slug}.json`;
- let g;try{const r=await fetch(url);if(!r.ok)throw new Error();g=await r.json()}catch{document.body.innerHTML='<div style="text-align:center;color:white;padding:40px">Guide introuvable.</div>';return}
- if(g.cover?.imageUrl){hero_img.src=g.cover.imageUrl;hero.style.display=''}
- title.textContent=g.name||'';const intro=g.intro?.fr||g.welcome?.fr||'Nous sommes ravis de vous accueillir à Zenata. Profitez de votre séjour dans notre logement premium et n’hésitez pas à nous contacter pour toute assistance.';intro_text.textContent=intro;intro_card.style.display='';
- const a=g.arrival?.fr||{},rules=g.rules?.fr?.items||[],ams=g.amenities||[];
- const allow=g.__sensitive?.token?(token===g.__sensitive.token):true;
- const cards=[
-  {key:'Adresse',icon:'map',content:`<p>${g.address||''}</p>`},
-  {key:'Wi-Fi',icon:'wifi',content:`<p><b>SSID</b>: ${a.wifi?.ssid||''}<br><b>Mot de passe</b>: ${a.wifi?.password||''}</p>`},
-  {key:'Code porte',icon:'door',content:allow?`<p style="font-size:28px"><b>${a.doorCode||''}</b></p>`:`<p>Informations sensibles masquées.</p>`},
-  {key:'Check-in',icon:'checkin',content:`<p>À partir de <b>${a.checkin_from||''}</b></p>${a.parking?`<p><b>Parking:</b> ${a.parking}</p>`:''}`},
-  {key:'Règles',icon:'rules',content:rules.length?`<ul>${rules.map(r=>`<li>${r}</li>`).join('')}</ul>`:`<p>Aucune règle.</p>`},
-  {key:'Équipements',icon:'amenities',content:ams.length?ams.map(a=>`<span style="display:inline-block;margin:4px 6px 0 0;padding:6px 10px;border:1px solid rgba(255,255,255,.1);border-radius:999px;">${a.label}</span>`).join(''):`<p>Non renseigné.</p>`},
-  {key:'Essentiels',icon:'map',content:`<p>${(g.essentials?.fr||'').replace(/\n/g,'<br>')}</p>`},
-  {key:'Départ',icon:'exit',content:`<p>Check-out avant <b>${g.departure?.fr?.checkout_until||'11:00'}</b></p>`},
-  {key:'Assistance',icon:'help',content:`<p><b>Email :</b> <a href="mailto:conciergeriezenata@gmail.com">conciergeriezenata@gmail.com</a></p>`}
- ];
- for(const c of cards){const d=document.createElement('div');d.className='tile';d.innerHTML=`${icon(c.icon)}<span>${c.key}</span>`;d.onclick=()=>M.open(c.key,c.content);grid.appendChild(d)}
+/* ===== CONFIG ===== */
+const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";
+const BUCKET = "guides";
+// Optionnel : active la carte Google Maps JS stylée en définissant ta clé ici
+// window.GMAPS_API_KEY = "TA_CLE";
+
+/* ===== BASE ===== */
+const el = (id)=>document.getElementById(id);
+el("year").textContent = new Date().getFullYear();
+
+function openModal(title, html){
+  el('m-title').textContent = title;
+  el('m-body').innerHTML = html;
+  el('modal').setAttribute('open','');
 }
-document.addEventListener('DOMContentLoaded',boot);
+function closeModal(){ el('modal').removeAttribute('open'); }
+el('m-close').onclick = closeModal;
+el('modal').addEventListener('click', (e)=>{ if(e.target.id==='modal') closeModal(); });
+
+function icon(name){
+  const icons = {
+    wifi:`<svg fill="none" viewBox="0 0 24 24"><path d="M5 12a9 9 0 0114 0M2 9a12 12 0 0120 0M8.5 15.5a5 5 0 017 0M12 20h.01"/></svg>`,
+    door:`<svg fill="none" viewBox="0 0 24 24"><path d="M14 12v.01M6 3h12v18H6z"/></svg>`,
+    checkin:`<svg fill="none" viewBox="0 0 24 24"><path d="M3 3h18v18H3zM8 12l2 2 5-5"/></svg>`,
+    map:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 3l6 3 6-3v18l-6 3-6-3-6 3V3l6-3z"/></svg>`,
+    rules:`<svg fill="none" viewBox="0 0 24 24"><path d="M5 5h14M5 9h14M5 13h9M5 17h9"/></svg>`,
+    amenities:`<svg fill="none" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/></svg>`,
+    help:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 9a3 3 0 116 0c0 1.657-3 3-3 3m0 4h.01"/></svg>`,
+    exit:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 4l5 5-5 5m5-5H9"/></svg>`,
+    location:`<svg fill="none" viewBox="0 0 24 24"><path d="M12 21s7-4.35 7-10a7 7 0 10-14 0c0 5.65 7 10 7 10zM12 11a2 2 0 110-4 2 2 0 010 4z"/></svg>`
+  };
+  return icons[name] || icons.map;
+}
+
+/* ===== Google Maps helpers ===== */
+const darkMapStyle = [
+  {"elementType":"geometry","stylers":[{"color":"#1f2023"}]},
+  {"elementType":"labels.text.fill","stylers":[{"color":"#e0e0e0"}]},
+  {"elementType":"labels.text.stroke","stylers":[{"color":"#1f2023"}]},
+  {"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#c7a059"}]},
+  {"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#1a1b1f"}]},
+  {"featureType":"road","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},
+  {"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#d6d6d6"}]},
+  {"featureType":"transit","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},
+  {"featureType":"water","elementType":"geometry","stylers":[{"color":"#0e1116"}]}
+];
+function loadGoogleMapsScript(cb){
+  if (window.google && window.google.maps){ cb(); return; }
+  const key = window.GMAPS_API_KEY;
+  if (!key){ cb(new Error('NO_KEY')); return; }
+  const s = document.createElement('script');
+  s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=marker`;
+  s.async = true;
+  s.onload = ()=>cb();
+  s.onerror = ()=>cb(new Error('LOAD_FAIL'));
+  document.head.appendChild(s);
+}
+function renderGoogleMapJS(lat,lng){
+  const container = document.getElementById('map-canvas');
+  if (!window.google || !window.google.maps) return;
+  const map = new google.maps.Map(container, {
+    center:{lat,lng}, zoom:15, disableDefaultUI:true, styles:darkMapStyle
+  });
+  new google.maps.Marker({
+    position:{lat,lng}, map,
+    icon:{ path:google.maps.SymbolPath.CIRCLE, scale:8, fillColor:'#c7a059', fillOpacity:1, strokeColor:'#fff', strokeWeight:2 }
+  });
+}
+
+/* ===== Boot ===== */
+async function boot(){
+  const slug = (location.pathname.split('/').pop()||'').replace(/\.html$/,'');
+  const token = new URLSearchParams(location.search).get('token')||'';
+  const jsonURL = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${encodeURIComponent(slug)}.json`;
+
+  let g;
+  try{
+    const r = await fetch(jsonURL);
+    if(!r.ok) throw new Error('notfound');
+    g = await r.json();
+  }catch{
+    document.body.innerHTML = '<div style="color:#fff;text-align:center;padding:48px">Guide introuvable.</div>';
+    return;
+  }
+
+  // Hero
+  if (g.cover?.imageUrl){ el('hero-img').src = g.cover.imageUrl; el('hero').style.display = ''; }
+  el('title').textContent = g.name || '';
+
+  // Introduction & email
+  const intro = g.intro?.fr || g.welcome?.fr || 'Nous sommes ravis de vous accueillir à Zenata. Profitez de votre séjour dans notre logement premium et n’hésitez pas à nous contacter pour toute assistance.';
+  el('intro-text').textContent = intro;
+  el('intro-card').style.display = '';
+
+  const allow = g.__sensitive?.token ? (token === g.__sensitive.token) : true;
+  const a = g.arrival?.fr || {};
+  const rules = g.rules?.fr?.items || [];
+  const ams = g.amenities || [];
+
+  const grid = el('grid');
+  const cards = [];
+
+  // Localisation (si geo)
+  if (g.geo && typeof g.geo.lat === 'number' && typeof g.geo.lng === 'number'){
+    cards.push({
+      key:'Localisation', icon:'location',
+      onClick: ()=>{
+        openModal('Localisation', `
+          <div class="mapbox">
+            <div id="map-canvas" style="width:100%;height:100%"></div>
+          </div>
+          <div class="modal-actions">
+            <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${g.geo.lat},${g.geo.lng}">Ouvrir dans Google Maps</a>
+            <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${g.geo.lat},${g.geo.lng}">Itinéraire</a>
+          </div>
+        `);
+        loadGoogleMapsScript((err)=>{
+          if(err){
+            el('m-body').innerHTML = `
+              <div class="mapbox">
+                <iframe src="https://www.google.com/maps?q=${g.geo.lat},${g.geo.lng}&z=15&output=embed" width="100%" height="100%" style="border:0" loading="lazy"></iframe>
+              </div>
+              <div class="modal-actions">
+                <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${g.geo.lat},${g.geo.lng}">Ouvrir dans Google Maps</a>
+                <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${g.geo.lat},${g.geo.lng}">Itinéraire</a>
+              </div>
+            `;
+          } else {
+            renderGoogleMapJS(g.geo.lat, g.geo.lng);
+          }
+        });
+      }
+    });
+  }
+
+  // Autres cartes (pictos + libellé, contenu en modale)
+  cards.push(
+    { key:'Adresse', icon:'map', onClick: ()=> openModal('Adresse', `<p>${g.address||''}</p>`) },
+    { key:'Wi-Fi', icon:'wifi', onClick: ()=> openModal('Wi-Fi', `<p><b>SSID</b> : ${a.wifi?.ssid||''}<br><b>Mot de passe</b> : ${a.wifi?.password||''}</p>`) },
+    { key:'Code porte', icon:'door', onClick: ()=> openModal('Code porte', allow ? `<p style="font-size:28px"><b>${a.doorCode||''}</b></p>` : `<p>Informations sensibles masquées. Ajoutez votre jeton : <code>?token=VOTRE_TOKEN</code></p>`) },
+    { key:'Check-in', icon:'checkin', onClick: ()=> openModal('Arrivée & Check-in', `<p>À partir de <b>${a.checkin_from||''}</b></p>${a.parking?`<p><b>Parking :</b> ${a.parking}</p>`:''}${(a.notes||[]).length?`<ul>${a.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}`) },
+    { key:'Règles', icon:'rules', onClick: ()=> openModal('Règles', rules.length?`<ul>${rules.map(r=>`<li>${r}</li>`).join('')}</ul>`:`<p>Aucune règle.</p>`) },
+    { key:'Équipements', icon:'amenities', onClick: ()=> openModal('Équipements', ams.length? ams.map(x=>`<span style="display:inline-block;margin:4px 6px 0 0;padding:6px 10px;border:1px solid rgba(255,255,255,.12);border-radius:999px;">${x.label}</span>`).join('') : `<p>Non renseigné.</p>`) },
+    { key:'Essentiels', icon:'map', onClick: ()=> openModal('Essentiels', `<p>${(g.essentials?.fr||'').replace(/\n/g,'<br>')}</p>`) },
+    { key:'Départ', icon:'exit', onClick: ()=> openModal('Départ', `<p>Check-out avant <b>${g.departure?.fr?.checkout_until||'11:00'}</b></p>`) },
+    { key:'Assistance', icon:'help', onClick: ()=> openModal('Assistance & Contact', `<p><b>Email :</b> <a href="mailto:conciergeriezenata@gmail.com">conciergeriezenata@gmail.com</a></p>`) },
+  );
+
+  // Render grid
+  for(const c of cards){
+    const d = document.createElement('div');
+    d.className = 'tile';
+    d.innerHTML = `${icon(c.icon)}<span>${c.key}</span>`;
+    d.onclick = c.onClick;
+    grid.appendChild(d);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', boot);
 </script>
 </body>
 </html>
