@@ -296,142 +296,227 @@ textarea{min-height:80px;resize:vertical}
   </div>
 </div>
 <script>
-/* ===== CONFIG ===== */
+/* ============ CONFIG ============ */
 const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";
-const BUCKET = "guides";
-// Optionnel : clé pour carte Google Maps “dark luxe”
-// window.GMAPS_API_KEY = "TA_CLE";
+const GUIDES_BUCKET = "guides";
 
-/* ===== UI helpers ===== */
-const $ = (id)=>document.getElementById(id);
-$("year").textContent = new Date().getFullYear();
+/* ============ HELPERS ============ */
+const $ = (id) => document.getElementById(id);
+const getVal = (id) => ($(id)?.value || "").trim();
+const setVal = (id, v) => { const el = $(id); if (el) el.value = (v ?? ""); };
+const linesToArray = (v) => (v || "").split("\n").map(s => s.trim()).filter(Boolean);
+const csvToAmen = (v) => (v || "").split(",").map(s=>s.trim()).filter(Boolean).map(a=>({label:a}));
 
-function openModal(title, html){ $("m-title").textContent = title; $("m-body").innerHTML = html; $("modal").setAttribute("open",""); }
-function closeModal(){ $("modal").removeAttribute("open"); }
-$("m-close").onclick = closeModal;
-$("modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(); });
-
-function icon(name){
-  const icons={
-    wifi:`<svg fill="none" viewBox="0 0 24 24"><path d="M5 12a9 9 0 0114 0M2 9a12 12 0 0120 0M8.5 15.5a5 5 0 017 0M12 20h.01"/></svg>`,
-    door:`<svg fill="none" viewBox="0 0 24 24"><path d="M14 12v.01M6 3h12v18H6z"/></svg>`,
-    checkin:`<svg fill="none" viewBox="0 0 24 24"><path d="M3 3h18v18H3zM8 12l2 2 5-5"/></svg>`,
-    map:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 3l6 3 6-3v18l-6 3-6-3-6 3V3l6-3z"/></svg>`,
-    rules:`<svg fill="none" viewBox="0 0 24 24"><path d="M5 5h14M5 9h14M5 13h9M5 17h9"/></svg>`,
-    amenities:`<svg fill="none" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/></svg>`,
-    help:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 9a3 3 0 116 0c0 1.657-3 3-3 3m0 4h.01"/></svg>`,
-    exit:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 4l5 5-5 5m5-5H9"/></svg>`,
-    location:`<svg fill="none" viewBox="0 0 24 24"><path d="M12 21s7-4.35 7-10a7 7 0 10-14 0c0 5.65 7 10 7 10zM12 11a2 2 0 110-4 2 2 0 010 4z"/></svg>`
+/* ============ FORM → OBJ ============ */
+function guideFromForm(){
+  const token = getVal('f-token');
+  return {
+    id: 'prop_'+Date.now(),
+    slug: getVal('f-slug'),
+    brand: {
+      name:'Conciergerie Zenata',
+      logoUrl:'/logo/logo_officiel_couleur_picto.png',
+      supportEmail:'conciergeriezenata@gmail.com',
+      site: location.origin
+    },
+    cover: { imageUrl: getVal('f-cover'), caption:{ fr:'' } },
+    name: getVal('f-name'),
+    address: getVal('f-address'),
+    city: getVal('f-city') || 'Casablanca',
+    arrival: { fr: {
+      checkin_from: getVal('f-checkin') || '15:00',
+      self_checkin:true,
+      doorCode: getVal('f-door'),
+      parking: getVal('f-parking'),
+      wifi: { ssid: getVal('f-ssid'), password: getVal('f-wifi') },
+      notes: linesToArray(getVal('f-notes'))
+    }},
+    rules: { fr: { items: linesToArray(getVal('f-rules')) }},
+    departure: { fr: { checkout_until: getVal('f-checkout') || '11:00', steps:[] }},
+    amenities: csvToAmen(getVal('f-amenities')),
+    essentials: { fr: getVal('f-essentials') },
+    emergency: (()=>{ try{ return JSON.parse(getVal('f-emergency')||'[]') } catch{ return [] } })(),
+    neighborhood: { fr: { intro: getVal('f-neigh-intro'), places: linesToArray(getVal('f-neigh-places')) }},
+    recommendations: { fr: { intro: getVal('f-rec-intro'), tips: linesToArray(getVal('f-rec-tips')) }},
+    geo: {
+      lat: getVal('f-lat') ? parseFloat(getVal('f-lat')) : undefined,
+      lng: getVal('f-lng') ? parseFloat(getVal('f-lng')) : undefined
+    },
+    intro: { fr: getVal('f-intro') || '' },
+    __sensitive: token ? { token } : undefined
   };
-  return icons[name] || icons.map;
 }
 
-/* ===== Google Maps helpers ===== */
-const darkMapStyle=[{"elementType":"geometry","stylers":[{"color":"#1f2023"}]},{"elementType":"labels.text.fill","stylers":[{"color":"#e0e0e0"}]},{"elementType":"labels.text.stroke","stylers":[{"color":"#1f2023"}]},{"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#c7a059"}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#1a1b1f"}]},{"featureType":"road","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#d6d6d6"}]},{"featureType":"transit","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},{"featureType":"water","elementType":"geometry","stylers":[{"color":"#0e1116"}]}];
-function loadGoogleMapsScript(cb){
-  if (window.google && window.google.maps){ cb(); return; }
-  const key = window.GMAPS_API_KEY;
-  if (!key){ cb(new Error('NO_KEY')); return; }
-  const s=document.createElement('script');
-  s.src=`https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=marker`;
-  s.async=true; s.onload=()=>cb(); s.onerror=()=>cb(new Error('LOAD_FAIL')); document.head.appendChild(s);
-}
-function renderGoogleMapJS(lat,lng){
-  const el = document.getElementById('map-canvas'); if(!el||!window.google) return;
-  const map = new google.maps.Map(el,{center:{lat,lng},zoom:15,disableDefaultUI:true,styles:darkMapStyle});
-  new google.maps.Marker({position:{lat,lng},map,icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:'#c7a059',fillOpacity:1,strokeColor:'#fff',strokeWeight:2}});
+/* ============ APERÇUS ============ */
+function renderLocalPreview(){
+  const box = $('previewbox'); if(!box) return;
+  const g = guideFromForm(); const a = g.arrival?.fr || {};
+  box.innerHTML = `
+    <div style="padding:16px;text-align:left;max-width:820px;width:100%">
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
+        <img src="/logo/logo_officiel_couleur_picto.png" style="height:26px" alt="">
+        <strong>${g.name||'Sans titre'}</strong>
+      </div>
+      <div style="font-size:13px;color:#6b7280">${g.address||''}</div>
+      <div style="margin-top:10px;font-size:14px">
+        ${(a.wifi?.ssid||a.wifi?.password)?`<div>Wi-Fi: <b>${a.wifi?.ssid||''}${a.wifi?.password?' • '+a.wifi.password:''}</b></div>`:''}
+        ${a.checkin_from?`<div>Check-in: <b>${a.checkin_from}</b></div>`:''}
+        ${g.departure?.fr?.checkout_until?`<div>Check-out: <b>${g.departure.fr.checkout_until}</b></div>`:''}
+      </div>
+      <div style="margin-top:8px;color:#6b7280;font-size:12px">Aperçu local (non publié)</div>
+    </div>`;
 }
 
-/* ===== Boot ===== */
-async function boot(){
-  const slug=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
-  const token=new URLSearchParams(location.search).get('token')||'';
-  // ✅ Cache-busting pour toujours récupérer la dernière version
-  const jsonURL=`${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${encodeURIComponent(slug)}.json?ts=${Date.now()}`;
+function setPublicPreview(slug, token){
+  const holder = $('preview'); if(!holder || !slug) return;
+  const url = `/guide/${encodeURIComponent(slug)}${token?`?token=${encodeURIComponent(token)}`:''}${token?'&':'?'}ts=${Date.now()}`;
+  holder.innerHTML = `<iframe src="${url}" style="width:100%;height:640px;border:0"></iframe>`;
+}
 
-  let g;
+/* ============ LOAD EXISTING (?slug) ============ */
+// Utilise la fonction Netlify proxy si dispo (meilleur anti-cache), sinon la public URL
+async function fetchGuideJSON(slug){
+  // essaie d’abord le proxy (si tu as ajouté /netlify/functions/get-guide.js)
   try{
-    const r=await fetch(jsonURL,{cache:'no-store'}); // <-- no-store côté fetch
-    if(!r.ok) throw new Error('notfound');
-    g=await r.json();
-  }catch{
-    document.body.innerHTML='<div style="color:#fff;text-align:center;padding:48px">Guide introuvable.</div>'; return;
+    const r = await fetch(`/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${Date.now()}`, { cache:'no-store' });
+    if (r.ok) return await r.json();
+  }catch(_){}
+  // fallback direct public storage
+  const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${GUIDES_BUCKET}/${encodeURIComponent(slug)}.json?ts=${Date.now()}`;
+  const r2 = await fetch(publicUrl, { cache:'no-store' });
+  if (!r2.ok) throw new Error(`Guide ${slug} introuvable`);
+  return await r2.json();
+}
+
+async function loadExisting(slug){
+  const msg = $('save-msg');
+  try{
+    msg.textContent = 'Chargement du guide…';
+    const g = await fetchGuideJSON(slug);
+
+    // Champs simples
+    setVal('f-name', g.name||'');
+    setVal('f-slug', slug); // garde le slug courant
+    setVal('f-address', g.address||'');
+    setVal('f-city', g.city||'');
+    setVal('f-cover', g.cover?.imageUrl||'');
+    setVal('f-checkin', g.arrival?.fr?.checkin_from||'');
+    setVal('f-checkout', g.departure?.fr?.checkout_until||'');
+    setVal('f-door', g.arrival?.fr?.doorCode||'');
+    setVal('f-parking', g.arrival?.fr?.parking||'');
+    setVal('f-ssid', g.arrival?.fr?.wifi?.ssid||'');
+    setVal('f-wifi', g.arrival?.fr?.wifi?.password||'');
+    setVal('f-essentials', g.essentials?.fr||'');
+    setVal('f-neigh-intro', g.neighborhood?.fr?.intro||'');
+    setVal('f-rec-intro', g.recommendations?.fr?.intro||'');
+    setVal('f-lat', (g.geo?.lat ?? ''));
+    setVal('f-lng', (g.geo?.lng ?? ''));
+    setVal('f-token', g.__sensitive?.token || '');
+
+    // Listes
+    setVal('f-rules', (g.rules?.fr?.items||[]).join('\n'));
+    setVal('f-notes', (g.arrival?.fr?.notes||[]).join('\n'));
+    setVal('f-neigh-places', (g.neighborhood?.fr?.places||[]).join('\n'));
+    setVal('f-rec-tips', (g.recommendations?.fr?.tips||[]).join('\n'));
+
+    // Équipements
+    setVal('f-amenities', (g.amenities||[]).map(a=>a.label).join(', '));
+
+    // Urgences JSON pretty
+    setVal('f-emergency', JSON.stringify(g.emergency||[], null, 2));
+
+    // Aperçus
+    renderLocalPreview();
+    setPublicPreview(slug, g.__sensitive?.token);
+
+    msg.textContent = '✅ Guide chargé. Modifiez puis “Publier”.';
+  }catch(err){
+    msg.textContent = '❌ ' + (err.message || err);
   }
+}
 
-  // Hero
-  if(g.cover?.imageUrl){ $("hero-img").src=g.cover.imageUrl; $("hero").style.display=''; }
-  $("title").textContent=g.name||'';
+/* ============ FUNCTIONS (Netlify) ============ */
+async function serverUploadGuide(slug, guide){
+  const r = await fetch('/.netlify/functions/upload-guide', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ slug, guide })
+  });
+  const txt = await r.text();
+  if(!r.ok) throw new Error(txt || 'upload-guide failed');
+  return JSON.parse(txt);
+}
+async function serverUploadImage(file, slug){
+  const ext=(file.name.split('.').pop()||'webp').toLowerCase();
+  const r = await fetch(`/.netlify/functions/upload-image?slug=${encodeURIComponent(slug)}&ext=${encodeURIComponent(ext)}`,{
+    method:'POST', headers:{'Content-Type': file.type || 'application/octet-stream'}, body:file
+  });
+  const txt = await r.text();
+  if(!r.ok) throw new Error(txt || 'upload-image failed');
+  return JSON.parse(txt);
+}
 
-  // Intro + email
-  const intro = g.intro?.fr || g.welcome?.fr || 'Nous sommes ravis de vous accueillir à Zenata. Profitez de votre séjour dans notre logement premium et n’hésitez pas à nous contacter.';
-  $("intro-text").textContent=intro; $("intro-card").style.display='';
+/* ============ BOOT ============ */
+document.addEventListener('DOMContentLoaded', ()=>{
+  const msg = $('save-msg');
 
-  const allow = g.__sensitive?.token ? (token===g.__sensitive.token) : true;
-  const a = g.arrival?.fr || {};
-  const rules = g.rules?.fr?.items || [];
-  const ams = g.amenities || [];
+  // Aperçu local en live
+  Array.from(document.querySelectorAll('input,textarea')).forEach(el=>{
+    el.addEventListener('input', renderLocalPreview);
+  });
+  renderLocalPreview();
 
-  const grid = $("grid");
-  const cards = [];
-
-  // ✅ Conversion robuste lat/lng (même si string)
-  const lat = g?.geo?.lat!=null ? parseFloat(g.geo.lat) : NaN;
-  const lng = g?.geo?.lng!=null ? parseFloat(g.geo.lng) : NaN;
-  const hasGeo = !Number.isNaN(lat) && !Number.isNaN(lng);
-
-  if (hasGeo){
-    cards.push({
-      key:'Localisation', icon:'location',
-      onClick: ()=>{
-        openModal('Localisation', `
-          <div class="mapbox"><div id="map-canvas" style="width:100%;height:100%"></div></div>
-          <div class="modal-actions">
-            <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">Ouvrir dans Google Maps</a>
-            <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">Itinéraire</a>
-          </div>
-        `);
-        loadGoogleMapsScript((err)=>{
-          if(err){
-            // Fallback iframe si pas de clé / échec
-            $("m-body").innerHTML = `
-              <div class="mapbox">
-                <iframe src="https://www.google.com/maps?q=${lat},${lng}&z=15&output=embed" width="100%" height="100%" style="border:0" loading="lazy"></iframe>
-              </div>
-              <div class="modal-actions">
-                <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">Ouvrir dans Google Maps</a>
-                <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">Itinéraire</a>
-              </div>
-            `;
-          } else {
-            renderGoogleMapJS(lat,lng);
-          }
-        });
+  // Upload image → remplit f-cover
+  const fileInput = $('f-cover-file');
+  if(fileInput){
+    fileInput.addEventListener('change', async (e)=>{
+      const file = e.target.files?.[0]; if(!file) return;
+      const slug = (getVal('f-slug')||`temp-${Date.now()}`).replace(/[^a-z0-9-]/gi,'-').toLowerCase();
+      msg.textContent = 'Téléversement image…';
+      try{
+        const res = await serverUploadImage(file, slug);
+        setVal('f-cover', res.url || '');
+        msg.textContent = '✅ Image uploadée';
+        renderLocalPreview();
+      }catch(err){
+        setVal('f-cover', '');
+        msg.textContent = '❌ Upload image: ' + (err.message||err);
       }
     });
   }
 
-  // Cartes “picto + libellé” → contenu en modale
-  cards.push(
-    { key:'Adresse', icon:'map', onClick:()=>openModal('Adresse', `<p>${g.address||''}</p>`) },
-    { key:'Wi-Fi', icon:'wifi', onClick:()=>openModal('Wi-Fi', `<p><b>SSID</b> : ${a.wifi?.ssid||''}<br><b>Mot de passe</b> : ${a.wifi?.password||''}</p>`) },
-    { key:'Code porte', icon:'door', onClick:()=>openModal('Code porte', allow? `<p style="font-size:28px"><b>${a.doorCode||''}</b></p>` : `<p>Informations sensibles masquées. Ajoutez votre jeton : <code>?token=VOTRE_TOKEN</code></p>`) },
-    { key:'Check-in', icon:'checkin', onClick:()=>openModal('Arrivée & Check-in', `<p>À partir de <b>${a.checkin_from||''}</b></p>${a.parking?`<p><b>Parking :</b> ${a.parking}</p>`:''}${(a.notes||[]).length?`<ul>${a.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}`) },
-    { key:'Règles', icon:'rules', onClick:()=>openModal('Règles', rules.length?`<ul>${rules.map(r=>`<li>${r}</li>`).join('')}</ul>`:`<p>Aucune règle.</p>`) },
-    { key:'Équipements', icon:'amenities', onClick:()=>openModal('Équipements', ams.length? ams.map(x=>`<span style="display:inline-block;margin:4px 6px 0 0;padding:6px 10px;border:1px solid rgba(255,255,255,.12);border-radius:999px;">${x.label}</span>`).join('') : `<p>Non renseigné.</p>`) },
-    { key:'Essentiels', icon:'map', onClick:()=>openModal('Essentiels', `<p>${(g.essentials?.fr||'').replace(/\n/g,'<br>')}</p>`) },
-    { key:'Départ', icon:'exit', onClick:()=>openModal('Départ', `<p>Check-out avant <b>${g.departure?.fr?.checkout_until||'11:00'}</b></p>`) },
-    { key:'Assistance', icon:'help', onClick:()=>openModal('Assistance & Contact', `<p><b>Email :</b> <a href="mailto:conciergeriezenata@gmail.com">conciergeriezenata@gmail.com</a></p>`) },
-  );
-
-  for (const c of cards){
-    const d=document.createElement('div');
-    d.className='tile';
-    d.innerHTML=`${icon(c.icon)}<span>${c.key}</span>`;
-    d.onclick=c.onClick;
-    grid.appendChild(d);
+  // Ouvrir la page publique
+  const openPublic = $('btn-open-public');
+  if(openPublic){
+    openPublic.onclick = ()=>{
+      const g = guideFromForm();
+      if(!g.slug){ msg.textContent='❌ Slug requis'; return; }
+      const url = `/guide/${encodeURIComponent(g.slug)}${g.__sensitive?.token?`?token=${encodeURIComponent(g.__sensitive.token)}`:''}`;
+      window.open(url, '_blank');
+    };
   }
-}
-document.addEventListener('DOMContentLoaded', boot);
+
+  // Publier
+  $('form').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const g = guideFromForm();
+    if(!g.slug){ msg.textContent = '❌ Slug requis'; return; }
+    try{
+      msg.textContent = 'Publication…';
+      const res = await serverUploadGuide(g.slug, g);
+      msg.innerHTML = `✅ Publié : <a href="${res.url}" target="_blank" rel="noreferrer">${res.url}</a>`;
+      setPublicPreview(g.slug, g.__sensitive?.token);
+    }catch(err){
+      msg.textContent = '❌ ' + (err.message || err);
+    }
+  });
+
+  // MODE ÉDITION : ?slug=xxx
+  const slug = new URLSearchParams(location.search).get('slug');
+  if (slug){
+    setVal('f-slug', slug);        // remplir le champ slug
+    loadExisting(slug);            // charger et préremplir TOUTES les valeurs
+  }
+});
 </script>
 
 
