@@ -1,30 +1,27 @@
+// netlify/functions/list-guides.js
 const { createClient } = require('@supabase/supabase-js');
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE;
+const BUCKET = 'guides';
 
 exports.handler = async () => {
   try {
-    const SUPABASE_URL = process.env.SUPABASE_URL;
-    const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE;
-    const GUIDES_BUCKET = process.env.GUIDES_BUCKET || 'guides';
-
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE) {
       return { statusCode: 500, body: 'Missing server env: SUPABASE_URL / SUPABASE_SERVICE_ROLE' };
     }
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);
-    const { data, error } = await supabase.storage.from(GUIDES_BUCKET).list('', { limit: 200 });
+    const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);
+    const { data, error } = await sb.storage.from(BUCKET).list('', { limit: 1000 });
     if (error) return { statusCode: 500, body: error.message };
 
-    const items = (data || [])
-      .filter(o => o.name.endsWith('.json'))
-      .map(o => {
-        const name = o.name.replace(/\.json$/, '');
-        const { data:pub } = supabase.storage.from(GUIDES_BUCKET).getPublicUrl(o.name);
-        return { name, publicUrl: pub.publicUrl };
-      });
+    const objects = (data || [])
+      .filter(x => x.name.endsWith('.json'))
+      .map(x => ({
+        name: x.name.replace(/\.json$/,''),
+        publicUrl: sb.storage.from(BUCKET).getPublicUrl(x.name).data.publicUrl,
+      }));
 
-    return { statusCode: 200, body: JSON.stringify({ ok: true, objects: items }) };
+    return { statusCode: 200, body: JSON.stringify({ objects }), headers: { 'Content-Type': 'application/json' } };
   } catch (e) {
-    return { statusCode: 500, body: `Server error: ${e.message}` };
+    return { statusCode: 500, body: e.message || String(e) };
   }
 };
-
