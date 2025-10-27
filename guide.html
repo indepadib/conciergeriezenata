@@ -173,372 +173,153 @@ Guide public premium – version statique sans build
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Guide Voyageur – Conciergerie Zenata</title>
-  <link rel="icon" href="/logo/logo_officiel_couleur_picto.png"/>
-  <meta name="theme-color" content="#0F172A">
-  <meta property="og:title" content="Guide Voyageur – Conciergerie Zenata">
-  <meta property="og:description" content="Toutes les informations utiles pour votre séjour.">
-  <meta property="og:image" content="/logo/logo_officiel_couleur_picto.png">
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Guide Voyageur – Conciergerie Zenata</title>
+<link rel="icon" href="/logo/logo_officiel_couleur_picto.png"/>
+<style>
+:root{--ink:#0B1220;--muted:#6F7782;--line:#E5E7EB;--card:#fff;--bg:#F8FAFC;--brand:#0F172A;--accent:#C7A059;--radius:18px;--shadow:0 24px 48px rgba(16,24,40,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);background:
+  radial-gradient(1100px 640px at 16% -10%, #ffffff 0%, #f7f9fc 55%, #eef2f7 100%);}
+.wrap{max-width:1200px;margin:0 auto;padding:18px}
+.header{display:flex;align-items:center;gap:12px;margin:10px 2px 16px}
+.header img{height:28px}
+.hero{position:relative;border-radius:26px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);margin-bottom:14px}
+.hero img{width:100%;height:420px;object-fit:cover;display:block}
+.hero .overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(0,0,0,.55) 100%)}
+.hero .title{position:absolute;left:22px;right:22px;bottom:18px;color:#fff}
+.hero .title .badge{font-size:12px;opacity:.9}
+.hero .title h1{margin:4px 0 0;font-size:30px;letter-spacing:.2px}
+.grid{display:grid;gap:14px}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:900px){.grid-3{grid-template-columns:1fr}}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow);cursor:pointer;transition:.15s}
+.tile:hover{transform:translateY(-1px)}
+.k{font-size:12px;color:var(--muted);margin-bottom:4px}
+.value{font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+.card h2{margin:0;padding:16px 18px;border-bottom:1px solid var(--line);font-size:16px}
+.content{padding:18px}
+.pill{display:inline-block;margin:6px 6px 0 0;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;background:#fff}
+.footer{padding:34px 0;color:var(--muted);font-size:12px;text-align:center}
 
-  <style>
-    :root{
-      /* Couleurs signature (luxe clair) */
-      --ink:#0B1220; --muted:#6F7782; --line:#E4E9F2; --card:#FFFFFF;
-      --brand:#0F172A; --gold:#C6A86A; /* or discret */
-      --r-xl:26px; --r-lg:18px; --r-md:12px;
-      --shadow:0 24px 64px rgba(16,24,40,.12), 0 8px 24px rgba(16,24,40,.06);
-    }
-
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%}
-    body{
-      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      color:var(--ink);
-      /* Halo premium : subtil, multi-couches */
-      background:
-        radial-gradient(1200px 700px at 12% -15%, #ffffff 0%, #f6f8fb 45%, transparent 60%),
-        radial-gradient(900px 520px at 110% -15%, #f2f5fa 0%, transparent 60%),
-        linear-gradient(180deg,#f8fafc 0%, #eef3f8 100%);
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-      min-height:100vh;
-    }
-    .container{max-width:1140px;margin:0 auto;padding:22px}
-
-    /* NAV – verre + blur + logo */
-    .nav{
-      position:sticky; top:0; z-index:60;
-      background:rgba(255,255,255,.88);
-      backdrop-filter:saturate(180%) blur(14px);
-      border-bottom:1px solid var(--line);
-    }
-    .nav-row{display:flex;align-items:center;gap:14px}
-    .brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.25px}
-    .brand img{height:28px}
-    .brand span{font-size:15px}
-    .nav-actions{margin-left:auto;display:flex;gap:10px}
-    .btn{
-      appearance:none; cursor:pointer;
-      border:1px solid var(--line); background:#fff; color:var(--ink);
-      border-radius:12px; padding:9px 14px; font-weight:600; font-size:13px;
-      transition:box-shadow .2s ease, transform .08s ease, border-color .2s ease;
-    }
-    .btn:hover{box-shadow:0 6px 14px rgba(16,24,40,.08)}
-    .btn:active{transform:translateY(1px)}
-    .btn.primary{
-      background:linear-gradient(135deg, var(--brand), #1F2937);
-      color:#fff; border:none;
-    }
-
-    /* HERO – image, badge logo, titre */
-    .hero{
-      position:relative; overflow:hidden;
-      border:1px solid var(--line); border-radius:var(--r-xl); box-shadow:var(--shadow);
-    }
-    .hero img{width:100%; height:440px; object-fit:cover; display:block}
-    .hero .overlay{position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 42%, rgba(0,0,0,.62) 100%)}
-    .hero-badge{
-      position:absolute; top:18px; left:18px; z-index:2;
-      width:46px; height:46px; border-radius:14px; overflow:hidden; display:grid; place-items:center;
-      background:radial-gradient(120% 120% at 30% 20%, #ffffff 0%, #f3f5f8 100%);
-      border:1px solid rgba(16,24,40,.10); box-shadow:0 10px 24px rgba(16,24,40,.16);
-    }
-    .hero-badge img{width:28px; height:28px; object-fit:contain; opacity:.95}
-    .hero .title{position:absolute; left:22px; right:22px; bottom:18px; color:#fff}
-    .hero .k{font-size:12px; opacity:.95}
-    .hero h1{margin:.25rem 0 0; font-size:30px; letter-spacing:.2px; text-shadow:0 3px 12px rgba(0,0,0,.35)}
-
-    /* Deck cartes – verre + micro accent or */
-    .deck{display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:16px; margin-top:18px}
-    .c-card{
-      position:relative; cursor:pointer; border-radius:18px; padding:16px 16px 18px 60px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.82)),
-        radial-gradient(130% 130% at 110% -10%, rgba(198,168,106,.10), transparent 60%);
-      border:1px solid rgba(16,24,40,.10);
-      box-shadow:0 12px 24px rgba(16,24,40,.07), 0 28px 56px rgba(16,24,40,.08);
-      transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-    }
-    .c-card:hover{transform:translateY(-3px); border-color:rgba(16,24,40,.16); box-shadow:0 22px 46px rgba(16,24,40,.12)}
-    .c-icon{
-      position:absolute; left:14px; top:14px; width:34px; height:34px; border-radius:12px; display:grid; place-items:center;
-      background:radial-gradient(100% 100% at 50% 0%, #ffffff 0%, #f1f3f7 100%); border:1px solid rgba(16,24,40,.08);
-      box-shadow:inset 0 8px 18px rgba(16,24,40,.08);
-    }
-    .c-icon svg{width:18px; height:18px; opacity:.9}
-    .c-title{font-weight:800; letter-spacing:.2px}
-    .c-hint{font-size:12px; color:var(--muted); margin-top:2px}
-
-    /* Sections complémentaires */
-    .section{margin-top:18px}
-    .card{background:#fff; border:1px solid var(--line); border-radius:var(--r-lg); box-shadow:var(--shadow); overflow:hidden}
-    .card h2{margin:0; padding:14px 16px; border-bottom:1px solid var(--line); font-size:16px; letter-spacing:.2px}
-    .content{padding:16px}
-    .pill{display:inline-flex; gap:6px; padding:6px 10px; border:1px solid var(--line); border-radius:999px; font-size:12px; margin:4px 6px 0 0; background:#fff}
-
-    /* Skeleton loader */
-    .skeleton{border-radius:18px; height:220px; background:linear-gradient(90deg,#eef2f7 25%,#f6f8fb 37%,#eef2f7 63%); background-size:400% 100%; animation:sk 1.4s ease infinite}
-    .skeleton + .skeleton{height:120px; margin-top:12px}
-    @keyframes sk{0%{background-position:100% 0}100%{background-position:0 0}}
-
-    /* Modal premium */
-    .modal{position:fixed; inset:0; display:none; place-items:center; padding:24px; z-index:70}
-    .modal.open{display:grid}
-    .modal::before{content:""; position:absolute; inset:0; backdrop-filter:blur(10px); background:rgba(10,14,22,.38)}
-    .modal-card{position:relative; width:min(760px,92vw); max-height:80vh; overflow:auto; background:#fff; border:1px solid var(--line); border-radius:18px; box-shadow:0 24px 64px rgba(16,24,40,.22); animation:fade .22s ease}
-    @keyframes fade{from{opacity:0; transform:translateY(10px)}to{opacity:1; transform:translateY(0)}}
-    .modal-head{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; border-bottom:1px solid var(--line); background:#f9fafb; position:sticky; top:0; z-index:1}
-    .modal-body{padding:18px; font-size:15px; line-height:1.6}
-    .modal-close{appearance:none; background:#fff; border:1px solid #d1d5db; border-radius:10px; padding:8px 12px; cursor:pointer}
-    .modal-close:hover{background:#f1f5f9}
-
-    .foot{margin:34px 0 12px; color:var(--muted); font-size:12px; text-align:center}
-
-    @media print{
-      .nav,.btn{display:none}
-      .hero img{height:300px}
-      .c-card{box-shadow:none}
-    }
-  </style>
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;padding:18px}
+.modal[open]{display:flex}
+.modal-card{background:#fff;border-radius:18px;max-width:680px;width:100%;box-shadow:var(--shadow);border:1px solid var(--line)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line)}
+.modal-body{padding:16px}
+.modal-close{appearance:none;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
+</style>
 </head>
 <body>
-
-  <!-- NAV -->
-  <header class="nav">
-    <div class="container nav-row">
-      <div class="brand">
-        <img src="/logo/logo_officiel_couleur_picto.png" alt="Conciergerie Zenata">
-        <span>Conciergerie Zenata</span>
-      </div>
-      <div class="nav-actions">
-        <button class="btn" id="copyLink">Copier le lien</button>
-        <button class="btn" id="qrBtn">QR</button>
-        <button class="btn primary" id="dlPdf">Télécharger PDF</button>
-      </div>
-    </div>
-  </header>
-
-  <!-- MAIN -->
-  <main class="container" id="root">
-    <div class="skeleton"></div>
-    <div class="skeleton"></div>
-  </main>
-
-  <!-- MODAL -->
-  <div id="modal" class="modal" aria-hidden="true">
-    <div class="modal-card">
-      <div class="modal-head">
-        <strong id="m-title">Détail</strong>
-        <button class="modal-close" id="m-close">Fermer</button>
-      </div>
-      <div class="modal-body" id="m-body"></div>
+<div class="wrap">
+  <div class="header"><img src="/logo/logo_officiel_couleur_picto.png" alt=""><b>Conciergerie Zenata</b></div>
+  <div id="hero" class="hero" style="display:none">
+    <img id="hero-img" alt="">
+    <div class="overlay"></div>
+    <div class="title">
+      <div class="badge">Guide voyageur</div>
+      <h1 id="title"></h1>
     </div>
   </div>
 
-  <div class="foot">© <span id="y"></span> Conciergerie Zenata — Guide Voyageur</div>
+  <div id="quick" class="grid grid-3" style="margin-bottom:10px"></div>
 
-  <script>
-    document.getElementById('y').textContent = new Date().getFullYear();
+  <div class="grid" style="grid-template-columns:1.2fr .8fr">
+    <div class="vstack">
+      <div class="card"><h2>Arrivée & Check-in</h2><div class="content" id="arrival"></div></div>
+      <div class="card"><h2>Départ & Check-out</h2><div class="content" id="departure"></div></div>
+      <div class="card"><h2>Essentiels</h2><div class="content" id="essentials"></div></div>
+      <div class="card"><h2>Quartier</h2><div class="content" id="neighborhood"></div></div>
+      <div class="card"><h2>Recommandations</h2><div class="content" id="reco"></div></div>
+    </div>
+    <div class="vstack">
+      <div class="card"><h2>Règles</h2><div class="content" id="rules"></div></div>
+      <div class="card"><h2>Équipements</h2><div class="content" id="amenities"></div></div>
+      <div class="card"><h2>Assistance & Urgences</h2><div class="content" id="help"></div></div>
+    </div>
+  </div>
 
-    /* Config lecture */
-    const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";
-    const BUCKET = "guides";
-    const token = new URLSearchParams(location.search).get("token") || "";
+  <div class="footer">© <span id="year"></span> Conciergerie Zenata — Guide Voyageur</div>
+</div>
 
-    /* Helpers */
-    function b64(s){ return btoa(unescape(encodeURIComponent(s))).replace(/=/g,""); }
-    function icon(name){
-      const i={
-        map:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18-6 3V6l6-3 6 3 6-3v15l-6 3-6-3Z"/><path d="M9 3v15"/><path d="M15 6v15"/></svg>`,
-        wifi:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h.01"/><path d="M2 8.82a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16.2a5 5 0 0 1 7 0"/></svg>`,
-        key:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/><path d="m8 21 3-3"/><path d="m10.5 18.5 3-3"/></svg>`,
-        clock:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`,
-        rules:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>`,
-        phone:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.08 4.18 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.63 2.63a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.45-1.08a2 2 0 0 1 2.11-.45c.85.3 1.73.51 2.63.63A2 2 0 0 1 22 16.92z"/></svg>`
-      }; return i[name]||i.map;
-    }
+<!-- Modal -->
+<div id="modal" class="modal" aria-hidden="true">
+  <div class="modal-card">
+    <div class="modal-head">
+      <strong id="m-title">Détail</strong>
+      <button class="modal-close" id="m-close">Fermer</button>
+    </div>
+    <div class="modal-body" id="m-body"></div>
+  </div>
+</div>
 
-    function card({iconName, title, hint, detailHtml}){
-      const uid = b64(title + (hint||""));
-      return `
-        <div class="c-card" data-modal="${uid}" role="button" tabindex="0" aria-label="${title}">
-          <div class="c-icon">${icon(iconName)}</div>
-          <div class="c-title">${title}</div>
-          <div class="c-hint">${hint || "Voir les détails"}</div>
-          <template id="tpl-${uid}">${detailHtml}</template>
-        </div>`;
-    }
+<script>
+const SUPABASE_URL="https://ojgchrqtvkwzhjvwwftd.supabase.co";
+const BUCKET="guides";
 
-    function hero(g){
-      const logo = "/logo/logo_officiel_couleur_picto.png";
-      return `
-        <section class="hero">
-          <img src="${g.cover?.imageUrl || ""}" alt="${g.name||""}">
-          <div class="overlay"></div>
-          <div class="hero-badge"><img src="${logo}" alt="CZ"></div>
-          <div class="title">
-            <div class="k">Guide voyageur</div>
-            <h1>${g.name || "Sans titre"}</h1>
-          </div>
-        </section>`;
-    }
+function qs(k){return new URLSearchParams(location.search).get(k)||''}
+function openModal(title,html){document.getElementById('m-title').textContent=title;document.getElementById('m-body').innerHTML=html;document.getElementById('modal').setAttribute('open','')}
+function closeModal(){document.getElementById('modal').removeAttribute('open')}
+document.getElementById('m-close').onclick=closeModal; document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal') closeModal()})
+document.getElementById('year').textContent=new Date().getFullYear();
 
-    /* Modal */
-    function openModal(t,h){ const m=document.getElementById("modal"); document.getElementById("m-title").textContent=t; document.getElementById("m-body").innerHTML=h; m.classList.add("open"); m.setAttribute("aria-hidden","false"); }
-    function closeModal(){ const m=document.getElementById("modal"); m.classList.remove("open"); m.setAttribute("aria-hidden","true"); }
-    document.getElementById("m-close").onclick = closeModal;
-    document.getElementById("modal").onclick = (e)=>{ if(e.target.id==="modal") closeModal(); }
+function tile({label, sub, click}){const d=document.createElement('div');d.className='tile';d.innerHTML=`<div class="k">${label}</div><div class="value">${sub||''}</div>`; if(click) d.onclick=click; return d}
 
-    function wireCards(){
-      document.querySelectorAll("[data-modal]").forEach(el=>{
-        el.addEventListener("click", ()=>{
-          const id = el.dataset.modal;
-          const t  = el.querySelector(".c-title")?.textContent?.trim() || "Détail";
-          const tpl= document.getElementById("tpl-"+id);
-          openModal(t, tpl? tpl.innerHTML : "");
-        });
-        el.addEventListener("keypress", (e)=>{ if(e.key==="Enter"||e.key===" ") el.click(); });
-      });
-    }
+async function boot(){
+  const slug=(location.pathname.split('/').pop()||'').replace(/\.html$/,'') || qs('slug');
+  const token = qs('token') || '';
+  const url = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${encodeURIComponent(slug)}.json`;
+  let g; try{ const r=await fetch(url); if(!r.ok) throw new Error('Guide introuvable'); g=await r.json(); }catch(e){ document.body.innerHTML='<div style="padding:24px;font-family:Inter">Guide introuvable.</div>'; return }
+  // header
+  document.getElementById('title').textContent=g.name||'';
+  const cover=g.cover?.imageUrl||''; if(cover){ document.getElementById('hero-img').src=cover; document.getElementById('hero').style.display='' }
+  // quick tiles
+  const q=document.getElementById('quick'); const a=g.arrival?.fr||{}; const allow = g.__sensitive?.token ? (token===g.__sensitive.token) : true;
+  q.appendChild(tile({label:'Adresse', sub:(g.address||'Cliquez'), click:()=>openModal('Adresse', `<p>${g.address||''}</p>${g.geo?.lat?`<p>Lat/Lng: ${g.geo.lat}, ${g.geo.lng}</p>`:''}`)}));
+  q.appendChild(tile({label:'Wi-Fi', sub:[a.wifi?.ssid, a.wifi?.password].filter(Boolean).join(' • ')||'SSID & mot de passe', click:()=>openModal('Wi-Fi', `<p><b>SSID</b> : ${a.wifi?.ssid||''}<br><b>Mot de passe</b> : ${a.wifi?.password||''}</p>`)}));
+  q.appendChild(tile({label:'Code porte', sub: allow ? (a.doorCode||'') : 'Cliquez pour afficher', click:()=>openModal('Code porte', allow? `<p style="font-size:28px"><b>${a.doorCode||''}</b></p>`:`<p>Informations sensibles. Ajoutez votre jeton à l’URL : <code>?token=VOTRE_TOKEN</code></p>`)}));
+  q.appendChild(tile({label:'Arrivée / Check-in', sub: a.checkin_from?`À partir de ${a.checkin_from}`:'', click:()=>openModal('Arrivée', `<p>À partir de <b>${a.checkin_from||''}</b></p>${a.parking?`<p><b>Parking</b> : ${a.parking}</p>`:''}${(a.notes||[]).length? `<ul>${a.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}`)}));
 
-    /* Actions nav */
-    document.getElementById('dlPdf').onclick = ()=> window.print();
-    document.getElementById('copyLink').onclick = async ()=>{
-      try{ await navigator.clipboard.writeText(location.href);
-        const b = document.getElementById('copyLink'); const t = b.textContent; b.textContent = 'Lien copié'; setTimeout(()=> b.textContent=t, 1200);
-      }catch{}
-    };
-    document.getElementById('qrBtn').onclick = ()=>{
-      const url = encodeURIComponent(location.href);
-      const img = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${url}`;
-      openModal('Partager ce guide', `<div style="display:grid;place-items:center;gap:10px">
-        <img src="${img}" alt="QR" width="220" height="220" style="border-radius:12px;border:1px solid var(--line)"/>
-        <div class="c-hint">Scannez pour ouvrir</div>
-      </div>`);
-    };
+  // sections
+  const rules = (g.rules?.fr?.items||[]).map(r=>`<li>${r}</li>`).join('') || '<span class="k">Aucune règle renseignée</span>';
+  document.getElementById('rules').innerHTML = `<ul>${rules}</ul>`;
 
-    async function boot(){
-      const root = document.getElementById("root");
+  const arrHTML = `${a.checkin_from?`<div><span class="k">À partir de</span> <b>${a.checkin_from}</b></div>`:''}${a.parking?`<div><span class="k">Parking</span> <b>${a.parking}</b></div>`:''}${(a.notes||[]).length? `<ul style="margin-top:10px">${a.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}`;
+  document.getElementById('arrival').innerHTML = arrHTML || '<span class="k">Non renseigné</span>';
 
-      // Récup slug via path /guide/<slug> ou ?slug=
-      let slug = new URL(location.href).searchParams.get("slug");
-      if(!slug){
-        const parts = location.pathname.split("/").filter(Boolean);
-        slug = parts[parts.length-1] || "";
-      }
-      if(!slug){ root.innerHTML = `<div class="card"><h2>Slug manquant</h2><div class="content">URL attendue : <code>/guide/&lt;slug&gt;</code></div></div>`; return; }
+  document.getElementById('departure').innerHTML = g.departure?.fr?.checkout_until?`Avant <b>${g.departure.fr.checkout_until}</b>`:'<span class="k">Non renseigné</span>';
 
-      const jsonUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${encodeURIComponent(slug)}.json`;
+  // essentiels (texte libre) + urgence
+  const ess = (g.essentials?.fr || '').trim();
+  const emg = Array.isArray(g.emergency)? g.emergency.map(e=>`<li><b>${e.label} :</b> ${e.value}</li>`).join('') : '';
+  document.getElementById('essentials').innerHTML = (ess? `<p>${ess.replace(/\n/g,'<br>')}</p>`:'' ) + (emg? `<h3 style="margin:14px 0 6px">Urgences</h3><ul>${emg}</ul>`:'' ) || '<span class="k">Non renseigné</span>';
 
-      try{
-        const r = await fetch(jsonUrl, { cache:"no-store" });
-        if(!r.ok){
-          root.innerHTML = `<div class="card"><h2>Guide introuvable</h2><div class="content">
-            <p>Fichier <code>${slug}.json</code> non trouvé dans le bucket <b>${BUCKET}</b>.</p>
-            <p><a class="btn" href="/admin-guides.html?slug=${slug}">Créer/éditer ce guide</a></p>
-          </div></div>`;
-          return;
-        }
-        const g = await r.json();
-        document.title = `${g?.name || "Guide"} – Conciergerie Zenata`;
+  // quartier
+  const neigh = g.neighborhood?.fr || {};
+  const places = (neigh.places||[]).map(p=>`<span class="pill">${p}</span>`).join('');
+  document.getElementById('neighborhood').innerHTML = `${neigh.intro?`<p>${neigh.intro}</p>`:''}${places||'<span class="k">Non renseigné</span>'}`;
 
-        /* HERO */
-        const top = hero(g);
+  // recommandations
+  const rec = g.recommendations?.fr || {};
+  const tips = (rec.tips||[]).map(p=>`<li>${p}</li>`).join('');
+  document.getElementById('reco').innerHTML = `${rec.intro?`<p>${rec.intro}</p>`:''}${tips?`<ul>${tips}</ul>`:'<span class="k">Non renseigné</span>'}`;
 
-        /* Cartes */
-        const a = g.arrival?.fr || {};
-        const allow = g.__sensitive?.token ? (token === g.__sensitive.token) : true;
-        const door  = allow ? (a.doorCode||"") : "•••• (masqué)";
+  // équipements
+  const ams=(g.amenities||[]).map(a=>`<span class="pill">${a.label}</span>`).join('');
+  document.getElementById('amenities').innerHTML = ams || '<span class="k">Non renseigné</span>';
 
-        const cards = [];
-
-        if (g.address) cards.push(card({
-          iconName:"map", title:"Adresse", hint:"Cliquez pour l’adresse complète",
-          detailHtml:`<p style="margin-bottom:10px"><strong>${g.address}</strong></p>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(g.address)}">Itinéraire</a>
-            </div>`
-        }));
-
-        if (a.wifi?.ssid || a.wifi?.password) cards.push(card({
-          iconName:"wifi", title:"Wi-Fi", hint:"SSID & mot de passe",
-          detailHtml:`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
-            <div class="pill"><span style="opacity:.7">Réseau</span>&nbsp;<b>${a.wifi?.ssid||""}</b></div>
-            <div class="pill"><span style="opacity:.7">Mot de passe</span>&nbsp;<b>${a.wifi?.password||""}</b></div>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn" onclick="navigator.clipboard.writeText('${a.wifi?.password||''}')">Copier le mot de passe</button>
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(`WIFI:T:WPA;S:${a.wifi?.ssid||''};P:${a.wifi?.password||''};;`)}" alt="QR Wi-Fi" width="160" height="160" style="border:1px solid var(--line);border-radius:12px">
-          </div>`
-        }));
-
-        if (door) cards.push(card({
-          iconName:"key", title:"Code porte", hint: allow ? "Cliquez pour afficher" : "Masqué – token requis",
-          detailHtml:`<div style="font-size:22px"><b>${door}</b></div>
-            ${!allow?`<p style="margin-top:8px;color:#9aa3ad">Ajoutez <code>?token=VOTRE_TOKEN</code> à l’URL pour révéler le code.</p>`:""}`
-        }));
-
-        if (a.checkin_from) cards.push(card({
-          iconName:"clock", title:"Arrivée / Check-in",
-          hint: a.parking ? `Parking : ${a.parking}` : `Dès ${a.checkin_from}`,
-          detailHtml:`${a.checkin_from?`<p><span style="opacity:.7">À partir de</span> : <b>${a.checkin_from}</b></p>`:""}
-                     ${a.parking?`<p><span style="opacity:.7">Parking</span> : <b>${a.parking}</b></p>`:""}
-                     ${(a.notes||[]).length?`<ul style="margin-top:8px">${a.notes.map(n=>`<li>${n}</li>`).join("")}</ul>`:""}`
-        }));
-
-        const rules = g.rules?.fr?.items || [];
-        if (rules.length) cards.push(card({
-          iconName:"rules", title:"Règles du logement", hint:`${rules.length} règle${rules.length>1?"s":""}`,
-          detailHtml:`<ul>${rules.map(r=>`<li>${r}</li>`).join("")}</ul>`
-        }));
-
-        if (g.brand?.supportPhone || g.brand?.supportWhatsApp || g.brand?.supportEmail) cards.push(card({
-          iconName:"phone", title:"Assistance 24/7", hint:"Contacter l’hôte",
-          detailHtml:`<div style="display:flex;gap:8px;flex-wrap:wrap">
-            ${g.brand?.supportPhone ? `<a class="btn" href="tel:${g.brand.supportPhone}">📞 Appeler</a>` : ""}
-            ${g.brand?.supportWhatsApp ? `<a class="btn" target="_blank" rel="noreferrer" href="${g.brand.supportWhatsApp}">💬 WhatsApp</a>` : ""}
-            ${g.brand?.supportEmail ? `<a class="btn" href="mailto:${g.brand.supportEmail}">✉️ Email</a>` : ""}
-          </div>
-          <div class="c-hint" style="margin-top:6px">Disponibilité : 8h–22h (GMT+1)</div>`
-        }));
-
-        const deck = `<section class="deck">${cards.join("")}</section>`;
-
-        /* Sections optionnelles */
-        const dep = g.departure?.fr || {};
-        const ams = g.amenities || [];
-        const extras = `
-          ${(dep.checkout_until)?`
-            <div class="section">
-              <div class="card">
-                <h2>Départ & Check-out</h2>
-                <div class="content">Avant <b>${dep.checkout_until}</b></div>
-              </div>
-            </div>`:""}
-          ${(ams||[]).length?`
-            <div class="section">
-              <div class="card">
-                <h2>Équipements</h2>
-                <div class="content">${ams.map(a=>`<span class="pill">${a.label||a}</span>`).join("")}</div>
-              </div>
-            </div>`:""}
-        `;
-
-        const signature = `
-          <div class="container" style="margin:-6px 0 2px 0; color:#8a8f98; font-size:13px;">
-            Service 5★ by Conciergerie Zenata — arrivée autonome, qualité hôtelière, assistance 24/7.
-          </div>`;
-
-        root.innerHTML = top + signature + deck + extras;
-        wireCards();
-
-      }catch(e){
-        root.innerHTML = `<div class="card"><h2>Erreur</h2><div class="content"><p style="color:#b91c1c">${e.message||e}</p></div></div>`;
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", boot);
-  </script>
+  // assistance
+  const helpHTML = `
+    <p>Pour toute demande :</p>
+    <ul>
+      <li><b>Email :</b> <a href="mailto:${g.brand?.supportEmail||'hello@conciergeriezenata.com'}">${g.brand?.supportEmail||'hello@conciergeriezenata.com'}</a></li>
+      ${g.brand?.site? `<li><b>Site :</b> <a href="${g.brand.site}" target="_blank" rel="noreferrer">${g.brand.site}</a></li>`:''}
+    </ul>`;
+  document.getElementById('help').innerHTML = helpHTML;
+}
+document.addEventListener('DOMContentLoaded', boot);
+</script>
 </body>
 </html>
