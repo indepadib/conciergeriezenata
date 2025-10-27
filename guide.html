@@ -286,27 +286,17 @@ body{
 </div>
 
 <script>
-/* ===== CONFIG ===== */
-const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";
-const BUCKET = "guides";
-// Optionnel : active la carte Google Maps JS stylée en définissant ta clé ici
-// window.GMAPS_API_KEY = "TA_CLE";
+/* ===== UI helpers ===== */
+const $ = (id)=>document.getElementById(id);
+$("year").textContent = new Date().getFullYear();
 
-/* ===== BASE ===== */
-const el = (id)=>document.getElementById(id);
-el("year").textContent = new Date().getFullYear();
-
-function openModal(title, html){
-  el('m-title').textContent = title;
-  el('m-body').innerHTML = html;
-  el('modal').setAttribute('open','');
-}
-function closeModal(){ el('modal').removeAttribute('open'); }
-el('m-close').onclick = closeModal;
-el('modal').addEventListener('click', (e)=>{ if(e.target.id==='modal') closeModal(); });
+function openModal(title, html){ $("m-title").textContent = title; $("m-body").innerHTML = html; $("modal").setAttribute("open",""); }
+function closeModal(){ $("modal").removeAttribute("open"); }
+$("m-close").onclick = closeModal;
+$("modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(); });
 
 function icon(name){
-  const icons = {
+  const icons={
     wifi:`<svg fill="none" viewBox="0 0 24 24"><path d="M5 12a9 9 0 0114 0M2 9a12 12 0 0120 0M8.5 15.5a5 5 0 017 0M12 20h.01"/></svg>`,
     door:`<svg fill="none" viewBox="0 0 24 24"><path d="M14 12v.01M6 3h12v18H6z"/></svg>`,
     checkin:`<svg fill="none" viewBox="0 0 24 24"><path d="M3 3h18v18H3zM8 12l2 2 5-5"/></svg>`,
@@ -320,131 +310,117 @@ function icon(name){
   return icons[name] || icons.map;
 }
 
-/* ===== Google Maps helpers ===== */
-const darkMapStyle = [
-  {"elementType":"geometry","stylers":[{"color":"#1f2023"}]},
-  {"elementType":"labels.text.fill","stylers":[{"color":"#e0e0e0"}]},
-  {"elementType":"labels.text.stroke","stylers":[{"color":"#1f2023"}]},
-  {"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#c7a059"}]},
-  {"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#1a1b1f"}]},
-  {"featureType":"road","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},
-  {"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#d6d6d6"}]},
-  {"featureType":"transit","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},
-  {"featureType":"water","elementType":"geometry","stylers":[{"color":"#0e1116"}]}
-];
+/* ===== Google Maps helpers (dark luxe) ===== */
+// Optionnel : mets ta clé pour la version JS stylée
+// window.GMAPS_API_KEY = "TA_CLE";
+const darkMapStyle=[{"elementType":"geometry","stylers":[{"color":"#1f2023"}]},{"elementType":"labels.text.fill","stylers":[{"color":"#e0e0e0"}]},{"elementType":"labels.text.stroke","stylers":[{"color":"#1f2023"}]},{"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#c7a059"}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#1a1b1f"}]},{"featureType":"road","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#d6d6d6"}]},{"featureType":"transit","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},{"featureType":"water","elementType":"geometry","stylers":[{"color":"#0e1116"}]}];
 function loadGoogleMapsScript(cb){
   if (window.google && window.google.maps){ cb(); return; }
   const key = window.GMAPS_API_KEY;
   if (!key){ cb(new Error('NO_KEY')); return; }
-  const s = document.createElement('script');
-  s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=marker`;
-  s.async = true;
-  s.onload = ()=>cb();
-  s.onerror = ()=>cb(new Error('LOAD_FAIL'));
-  document.head.appendChild(s);
+  const s=document.createElement('script');
+  s.src=`https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=marker`;
+  s.async=true; s.onload=()=>cb(); s.onerror=()=>cb(new Error('LOAD_FAIL')); document.head.appendChild(s);
 }
 function renderGoogleMapJS(lat,lng){
-  const container = document.getElementById('map-canvas');
-  if (!window.google || !window.google.maps) return;
-  const map = new google.maps.Map(container, {
-    center:{lat,lng}, zoom:15, disableDefaultUI:true, styles:darkMapStyle
-  });
-  new google.maps.Marker({
-    position:{lat,lng}, map,
-    icon:{ path:google.maps.SymbolPath.CIRCLE, scale:8, fillColor:'#c7a059', fillOpacity:1, strokeColor:'#fff', strokeWeight:2 }
-  });
+  const el = document.getElementById('map-canvas'); if(!el||!window.google) return;
+  const map = new google.maps.Map(el,{center:{lat,lng},zoom:15,disableDefaultUI:true,styles:darkMapStyle});
+  new google.maps.Marker({position:{lat,lng},map,icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:'#c7a059',fillOpacity:1,strokeColor:'#fff',strokeWeight:2}});
 }
 
 /* ===== Boot ===== */
 async function boot(){
-  const slug = (location.pathname.split('/').pop()||'').replace(/\.html$/,'');
-  const token = new URLSearchParams(location.search).get('token')||'';
-  const jsonURL = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${encodeURIComponent(slug)}.json`;
+  const slug=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
+  const token=new URLSearchParams(location.search).get('token')||'';
+
+  // 👉 On passe par la fonction Netlify pour éviter le cache Storage
+  const api = `/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${Date.now()}`;
 
   let g;
   try{
-    const r = await fetch(jsonURL);
-    if(!r.ok) throw new Error('notfound');
+    const r = await fetch(api, { cache: 'no-store' });
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
     g = await r.json();
-  }catch{
-    document.body.innerHTML = '<div style="color:#fff;text-align:center;padding:48px">Guide introuvable.</div>';
+  }catch(err){
+    console.error('Guide fetch failed:', err);
+    document.body.innerHTML='<div style="color:#fff;text-align:center;padding:48px">Guide introuvable ou indisponible.</div>';
     return;
   }
 
   // Hero
-  if (g.cover?.imageUrl){ el('hero-img').src = g.cover.imageUrl; el('hero').style.display = ''; }
-  el('title').textContent = g.name || '';
+  if(g.cover?.imageUrl){ $("hero-img").src=g.cover.imageUrl; $("hero").style.display=''; }
+  $("title").textContent=g.name||'';
 
-  // Introduction & email
-  const intro = g.intro?.fr || g.welcome?.fr || 'Nous sommes ravis de vous accueillir à Zenata. Profitez de votre séjour dans notre logement premium et n’hésitez pas à nous contacter pour toute assistance.';
-  el('intro-text').textContent = intro;
-  el('intro-card').style.display = '';
+  // Intro + email
+  const intro = g.intro?.fr || g.welcome?.fr || 'Nous sommes ravis de vous accueillir à Zenata. Profitez de votre séjour dans notre logement premium et n’hésitez pas à nous contacter.';
+  $("intro-text").textContent=intro; $("intro-card").style.display='';
 
-  const allow = g.__sensitive?.token ? (token === g.__sensitive.token) : true;
+  const allow = g.__sensitive?.token ? (token===g.__sensitive.token) : true;
   const a = g.arrival?.fr || {};
   const rules = g.rules?.fr?.items || [];
   const ams = g.amenities || [];
 
-  const grid = el('grid');
+  const grid = $("grid");
   const cards = [];
 
-  // Localisation (si geo)
-  if (g.geo && typeof g.geo.lat === 'number' && typeof g.geo.lng === 'number'){
+  // lat/lng robustes même si strings
+  const lat = g?.geo?.lat!=null ? parseFloat(g.geo.lat) : NaN;
+  const lng = g?.geo?.lng!=null ? parseFloat(g.geo.lng) : NaN;
+  const hasGeo = !Number.isNaN(lat) && !Number.isNaN(lng);
+
+  if (hasGeo){
     cards.push({
       key:'Localisation', icon:'location',
       onClick: ()=>{
         openModal('Localisation', `
-          <div class="mapbox">
-            <div id="map-canvas" style="width:100%;height:100%"></div>
-          </div>
+          <div class="mapbox"><div id="map-canvas" style="width:100%;height:100%"></div></div>
           <div class="modal-actions">
-            <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${g.geo.lat},${g.geo.lng}">Ouvrir dans Google Maps</a>
-            <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${g.geo.lat},${g.geo.lng}">Itinéraire</a>
+            <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">Ouvrir dans Google Maps</a>
+            <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">Itinéraire</a>
           </div>
         `);
         loadGoogleMapsScript((err)=>{
           if(err){
-            el('m-body').innerHTML = `
+            $("m-body").innerHTML = `
               <div class="mapbox">
-                <iframe src="https://www.google.com/maps?q=${g.geo.lat},${g.geo.lng}&z=15&output=embed" width="100%" height="100%" style="border:0" loading="lazy"></iframe>
+                <iframe src="https://www.google.com/maps?q=${lat},${lng}&z=15&output=embed" width="100%" height="100%" style="border:0" loading="lazy"></iframe>
               </div>
               <div class="modal-actions">
-                <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${g.geo.lat},${g.geo.lng}">Ouvrir dans Google Maps</a>
-                <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${g.geo.lat},${g.geo.lng}">Itinéraire</a>
+                <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">Ouvrir dans Google Maps</a>
+                <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">Itinéraire</a>
               </div>
             `;
           } else {
-            renderGoogleMapJS(g.geo.lat, g.geo.lng);
+            renderGoogleMapJS(lat,lng);
           }
         });
       }
     });
   }
 
-  // Autres cartes (pictos + libellé, contenu en modale)
+  // Cartes "picto + libellé"
   cards.push(
-    { key:'Adresse', icon:'map', onClick: ()=> openModal('Adresse', `<p>${g.address||''}</p>`) },
-    { key:'Wi-Fi', icon:'wifi', onClick: ()=> openModal('Wi-Fi', `<p><b>SSID</b> : ${a.wifi?.ssid||''}<br><b>Mot de passe</b> : ${a.wifi?.password||''}</p>`) },
-    { key:'Code porte', icon:'door', onClick: ()=> openModal('Code porte', allow ? `<p style="font-size:28px"><b>${a.doorCode||''}</b></p>` : `<p>Informations sensibles masquées. Ajoutez votre jeton : <code>?token=VOTRE_TOKEN</code></p>`) },
-    { key:'Check-in', icon:'checkin', onClick: ()=> openModal('Arrivée & Check-in', `<p>À partir de <b>${a.checkin_from||''}</b></p>${a.parking?`<p><b>Parking :</b> ${a.parking}</p>`:''}${(a.notes||[]).length?`<ul>${a.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}`) },
-    { key:'Règles', icon:'rules', onClick: ()=> openModal('Règles', rules.length?`<ul>${rules.map(r=>`<li>${r}</li>`).join('')}</ul>`:`<p>Aucune règle.</p>`) },
-    { key:'Équipements', icon:'amenities', onClick: ()=> openModal('Équipements', ams.length? ams.map(x=>`<span style="display:inline-block;margin:4px 6px 0 0;padding:6px 10px;border:1px solid rgba(255,255,255,.12);border-radius:999px;">${x.label}</span>`).join('') : `<p>Non renseigné.</p>`) },
-    { key:'Essentiels', icon:'map', onClick: ()=> openModal('Essentiels', `<p>${(g.essentials?.fr||'').replace(/\n/g,'<br>')}</p>`) },
-    { key:'Départ', icon:'exit', onClick: ()=> openModal('Départ', `<p>Check-out avant <b>${g.departure?.fr?.checkout_until||'11:00'}</b></p>`) },
-    { key:'Assistance', icon:'help', onClick: ()=> openModal('Assistance & Contact', `<p><b>Email :</b> <a href="mailto:conciergeriezenata@gmail.com">conciergeriezenata@gmail.com</a></p>`) },
+    { key:'Adresse', icon:'map', onClick:()=>openModal('Adresse', `<p>${g.address||''}</p>`) },
+    { key:'Wi-Fi', icon:'wifi', onClick:()=>openModal('Wi-Fi', `<p><b>SSID</b> : ${a.wifi?.ssid||''}<br><b>Mot de passe</b> : ${a.wifi?.password||''}</p>`) },
+    { key:'Code porte', icon:'door', onClick:()=>openModal('Code porte', allow? `<p style="font-size:28px"><b>${a.doorCode||''}</b></p>` : `<p>Informations sensibles masquées. Ajoutez votre jeton : <code>?token=VOTRE_TOKEN</code></p>`) },
+    { key:'Check-in', icon:'checkin', onClick:()=>openModal('Arrivée & Check-in', `<p>À partir de <b>${a.checkin_from||''}</b></p>${a.parking?`<p><b>Parking :</b> ${a.parking}</p>`:''}${(a.notes||[]).length?`<ul>${a.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}`) },
+    { key:'Règles', icon:'rules', onClick:()=>openModal('Règles', rules.length?`<ul>${rules.map(r=>`<li>${r}</li>`).join('')}</ul>`:`<p>Aucune règle.</p>`) },
+    { key:'Équipements', icon:'amenities', onClick:()=>openModal('Équipements', ams.length? ams.map(x=>`<span style="display:inline-block;margin:4px 6px 0 0;padding:6px 10px;border:1px solid rgba(255,255,255,.12);border-radius:999px;">${x.label}</span>`).join('') : `<p>Non renseigné.</p>`) },
+    { key:'Essentiels', icon:'map', onClick:()=>openModal('Essentiels', `<p>${(g.essentials?.fr||'').replace(/\n/g,'<br>')}</p>`) },
+    { key:'Départ', icon:'exit', onClick:()=>openModal('Départ', `<p>Check-out avant <b>${g.departure?.fr?.checkout_until||'11:00'}</b></p>`) },
+    { key:'Assistance', icon:'help', onClick:()=>openModal('Assistance & Contact', `<p><b>Email :</b> <a href="mailto:conciergeriezenata@gmail.com">conciergeriezenata@gmail.com</a></p>`) },
   );
 
-  // Render grid
   for(const c of cards){
-    const d = document.createElement('div');
-    d.className = 'tile';
-    d.innerHTML = `${icon(c.icon)}<span>${c.key}</span>`;
-    d.onclick = c.onClick;
+    const d=document.createElement('div');
+    d.className='tile';
+    d.innerHTML=`${icon(c.icon)}<span>${c.key}</span>`;
+    d.onclick=c.onClick;
     grid.appendChild(d);
   }
 }
-
 document.addEventListener('DOMContentLoaded', boot);
 </script>
+
 </body>
 </html>
