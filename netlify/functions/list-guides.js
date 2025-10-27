@@ -1,7 +1,6 @@
-// netlify/functions/list-guides.js
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
-export const handler = async () => {
+exports.handler = async () => {
   try {
     const SUPABASE_URL = process.env.SUPABASE_URL;
     const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE;
@@ -15,16 +14,17 @@ export const handler = async () => {
     const { data, error } = await supabase.storage.from(GUIDES_BUCKET).list('', { limit: 200 });
     if (error) return { statusCode: 500, body: error.message };
 
-    const items = (data||[])
+    const items = (data || [])
       .filter(o => o.name.endsWith('.json'))
       .map(o => {
-        const name = o.name.replace(/\.json$/,'');
+        const name = o.name.replace(/\.json$/, '');
         const { data:pub } = supabase.storage.from(GUIDES_BUCKET).getPublicUrl(o.name);
         return { name, publicUrl: pub.publicUrl };
       });
 
-    return { statusCode: 200, body: JSON.stringify({ ok:true, objects: items }) };
+    return { statusCode: 200, body: JSON.stringify({ ok: true, objects: items }) };
   } catch (e) {
     return { statusCode: 500, body: `Server error: ${e.message}` };
   }
 };
+
