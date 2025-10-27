@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Admin – Pricing dynamique | Conciergerie Zenata</title>
+<style>
+:root{--ink:#0B1220;--muted:#6F7782;--line:#E4E9F2;--card:#fff;--brand:#0F172A;--accent:#C7A059;--shadow:0 20px 40px rgba(16,24,40,.08);--radius:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);background:#f7f9fc;padding:26px}
+.wrap{max-width:1080px;margin:0 auto}
+h1{font-size:22px;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+select,input{padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.btn{appearance:none;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;cursor:pointer}
+.btn.primary{background:linear-gradient(135deg,var(--brand),#1F2937);color:#fff;border:none}
+.table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);font-size:14px}
+th{background:#eef2f7;text-align:left}
+tfoot td{background:#fafbff;color:var(--muted)}
+.muted{color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Pricing dynamique</h1>
+
+  <div class="card">
+    <div class="row">
+      <label>Bien</label>
+      <select id="prop"></select>
+
+      <label>Date de début</label>
+      <input type="date" id="start">
+
+      <label>Jours</label>
+      <input type="number" id="days" value="90" min="1" max="540" style="width:90px">
+
+      <button class="btn" id="btn-load">Charger</button>
+      <button class="btn primary" id="btn-reprice">Recalculer</button>
+      <button class="btn" id="btn-export">Export CSV</button>
+    </div>
+    <div class="muted" id="msg"></div>
+  </div>
+
+  <div class="card">
+    <table class="table" id="tbl">
+      <thead><tr><th>Date</th><th>Jour</th><th>Prix (MAD)</th></tr></thead>
+      <tbody></tbody>
+      <tfoot><tr><td colspan="3" class="muted">Affichage lecture seule — l’édition arrive ensuite.</td></tr></tfoot>
+    </table>
+  </div>
+</div>
+
+<script>
+const $ = (id)=>document.getElementById(id);
+
+// charge la liste des biens
+async function loadProps(){
+  const res = await fetch('/.netlify/functions/get-properties');
+  const js = await res.json();
+  const sel = $('prop'); sel.innerHTML = '';
+  (js.properties || []).forEach(p=>{
+    const o=document.createElement('option');
+    o.value=p.id; o.textContent=`${p.name} — ${p.slug}`; sel.appendChild(o);
+  });
+}
+
+// affiche le tableau
+function draw(prices){
+  const tb = document.querySelector('#tbl tbody'); tb.innerHTML = '';
+  const days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  (prices||[]).forEach(r=>{
+    const d = new Date(r.stay_date+'T00:00:00');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.stay_date}</td><td>${days[d.getDay()]}</td><td>${r.price}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+// fetch des prix
+async function fetchPrices(){
+  const property_id = $('prop').value; if(!property_id){ $('msg').textContent='Choisis un bien'; return; }
+  const start = $('start').value || new Date().toISOString().slice(0,10);
+  const days = $('days').value || 90;
+  $('msg').textContent = 'Chargement…';
+  const r = await fetch(`/.netlify/functions/get-prices?property_id=${encodeURIComponent(property_id)}&start=${encodeURIComponent(start)}&days=${encodeURIComponent(days)}`);
+  const js = await r.json();
+  draw(js.prices || []);
+  $('msg').textContent = `OK — ${js.prices?.length||0} jours`;
+}
+
+// déclenche le recalcul
+async function reprice(){
+  const property_id = $('prop').value; if(!property_id){ $('msg').textContent='Choisis un bien'; return; }
+  const days = $('days').value || 120;
+  $('msg').textContent = 'Recalcul en cours…';
+  const r = await fetch(`/.netlify/functions/reprice?property_id=${encodeURIComponent(property_id)}&days=${encodeURIComponent(days)}`);
+  const js = await r.json();
+  $('msg').textContent = js.ok ? `Recalcul OK — ${js.updated} prix mis à jour` : 'Erreur';
+}
+
+function exportCSV(){
+  const rows = [['date','jour','price']];
+  document.querySelectorAll('#tbl tbody tr').forEach(tr=>{
+    const tds = tr.querySelectorAll('td');
+    rows.push([tds[0].textContent, tds[1].textContent, tds[2].textContent]);
+  });
+  const csv = rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'prices.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.addEventListener('DOMContentLoaded', async ()=>{
+  await loadProps();
+  $('start').value = new Date().toISOString().slice(0,10);
+  $('btn-load').onclick = fetchPrices;
+  $('btn-reprice').onclick = async ()=>{ await reprice(); await fetchPrices(); };
+  $('btn-export').onclick = exportCSV;
+});
+</script>
+</body>
+</html>
