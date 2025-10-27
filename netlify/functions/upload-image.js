@@ -1,11 +1,9 @@
-// netlify/functions/upload-image.js
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
-export const handler = async (event) => {
+exports.handler = async (event) => {
   try {
-    if (event.httpMethod !== 'POST') {
-      return { statusCode: 405, body: 'Method Not Allowed' };
-    }
+    if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
+
     const SUPABASE_URL = process.env.SUPABASE_URL;
     const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE;
     const ASSETS_BUCKET = process.env.ASSETS_BUCKET || 'guide-assets';
@@ -18,9 +16,11 @@ export const handler = async (event) => {
     const ext  = (event.queryStringParameters?.ext || 'webp').toLowerCase();
     if (!slug) return { statusCode: 400, body: 'Missing slug' };
 
-    // event.body est base64 (Netlify), on recompose le buffer
-    const isBase64 = event.isBase64Encoded;
-    const bin = isBase64 ? Buffer.from(event.body, 'base64') : Buffer.from(event.body || '', 'utf8');
+    // Netlify transmet le body en base64 pour le binaire
+    const bin = event.isBase64Encoded
+      ? Buffer.from(event.body || '', 'base64')
+      : Buffer.from(event.body || '', 'utf8');
+
     if (!bin.length) return { statusCode: 400, body: 'Empty body' };
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);
