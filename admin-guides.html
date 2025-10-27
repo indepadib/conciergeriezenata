@@ -392,6 +392,45 @@ document.getElementById('form').addEventListener('submit', async (e)=>{
 
 // boot (préremplir le slug si ?slug=)
 (function(){ const s=new URLSearchParams(location.search).get('slug'); if(s) document.getElementById('f-slug').value=s; renderLocalPreview(); })();
+
+  // === préremplir le formulaire si ?slug= ===
+async function loadExisting(slug){
+  const url = `${SUPABASE_URL}/storage/v1/object/public/guides/${slug}.json`;
+  try{
+    const r = await fetch(url);
+    if(!r.ok) return;
+    const g = await r.json();
+    // Remplir tous les champs
+    f_name.value = g.name||'';
+    f_address.value = g.address||'';
+    f_city.value = g.city||'';
+    f_cover.value = g.cover?.imageUrl||'';
+    f_checkin.value = g.arrival?.fr?.checkin_from||'';
+    f_checkout.value = g.departure?.fr?.checkout_until||'';
+    f_door.value = g.arrival?.fr?.doorCode||'';
+    f_parking.value = g.arrival?.fr?.parking||'';
+    f_wifi.value = g.arrival?.fr?.wifi?.password||'';
+    f_ssid.value = g.arrival?.fr?.wifi?.ssid||'';
+    f_rules.value = (g.rules?.fr?.items||[]).join('\n');
+    f_notes.value = (g.arrival?.fr?.notes||[]).join('\n');
+    f_amenities.value = (g.amenities||[]).map(a=>a.label).join(', ');
+    f_essentials.value = g.essentials?.fr||'';
+    f_emergency.value = JSON.stringify(g.emergency||[],null,2);
+    f_neigh_intro.value = g.neighborhood?.fr?.intro||'';
+    f_neigh_places.value = (g.neighborhood?.fr?.places||[]).join('\n');
+    f_rec_intro.value = g.recommendations?.fr?.intro||'';
+    f_rec_tips.value = (g.recommendations?.fr?.tips||[]).join('\n');
+    f_lat.value = g.geo?.lat||'';
+    f_lng.value = g.geo?.lng||'';
+  }catch(err){
+    console.error('Erreur chargement guide',err);
+  }
+}
+(function(){
+  const s = new URLSearchParams(location.search).get('slug');
+  if(s){ f_slug.value=s; loadExisting(s); }
+})();
+
 </script>
 </body>
 </html>
