@@ -178,113 +178,53 @@ Guide public premium – version statique sans build
 <title>Guide Voyageur – Conciergerie Zenata</title>
 <link rel="icon" href="/logo/logo_officiel_couleur_picto.png"/>
 
-<!-- STYLE PREMIUM -->
 <style>
 :root {
-  --bg1: #0d0e11;
-  --bg2: #1a1b1f;
-  --accent: #c7a059;
-  --ink: #f5f5f5;
-  --muted: #a3a3a3;
-  --card: rgba(255,255,255,0.04);
-  --border: rgba(255,255,255,0.08);
-  --radius: 18px;
-  --shadow: 0 10px 30px rgba(0,0,0,.5);
+  --bg1:#0d0e11; --bg2:#1a1b1f; --accent:#c7a059;
+  --ink:#f5f5f5; --muted:#a3a3a3; --card:rgba(255,255,255,0.04);
+  --border:rgba(255,255,255,0.08); --radius:18px; --shadow:0 10px 30px rgba(0,0,0,.5);
 }
-* {box-sizing:border-box;margin:0;padding:0;}
-body {
-  font-family: 'Inter', system-ui, sans-serif;
-  color: var(--ink);
-  background: radial-gradient(1000px 700px at 20% -10%, var(--bg2), var(--bg1) 80%);
-  min-height: 100vh;
-  padding: 28px;
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:Inter,system-ui,sans-serif; color:var(--ink);
+  background:radial-gradient(1000px 700px at 20% -10%, var(--bg2), var(--bg1) 80%);
+  min-height:100vh; padding:28px;
 }
-.wrap {max-width:1200px;margin:0 auto;}
-.header {display:flex;align-items:center;gap:12px;margin-bottom:18px;}
-.header img {height:30px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4));}
-.hero {
-  position:relative;overflow:hidden;border-radius:var(--radius);
-  height:400px;margin-bottom:30px;border:1px solid var(--border);
-  box-shadow:var(--shadow);
-}
-.hero img {width:100%;height:100%;object-fit:cover;filter:brightness(.85);}
-.hero .overlay {position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 50%,rgba(0,0,0,.65) 100%);}
-.hero .title {
-  position:absolute;bottom:24px;left:28px;right:28px;color:#fff;
-}
-.hero .title h1 {margin:0;font-size:34px;font-weight:700;letter-spacing:.3px;}
-.hero .title .badge {
-  background:rgba(0,0,0,.4);
-  border:1px solid rgba(255,255,255,.2);
-  color:#fff;
-  font-size:12px;
-  border-radius:999px;
-  padding:4px 10px;
-  display:inline-block;
-  margin-bottom:8px;
-}
-
-/* GRID DES CARTES */
-.grid {
-  display:grid;
-  gap:18px;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-  margin-bottom:40px;
-}
-.tile {
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  backdrop-filter:blur(10px);
-  padding:28px 20px;
+.wrap{max-width:1200px;margin:0 auto}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.header img{height:30px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}
+.hero{position:relative;overflow:hidden;border-radius:var(--radius);height:400px;margin-bottom:30px;border:1px solid var(--border);box-shadow:var(--shadow)}
+.hero img{width:100%;height:100%;object-fit:cover;filter:brightness(.85)}
+.hero .overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 50%,rgba(0,0,0,.65) 100%)}
+.hero .title{position:absolute;bottom:24px;left:28px;right:28px;color:#fff}
+.hero .title .badge{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:12px;border-radius:999px;padding:4px 10px;display:inline-block;margin-bottom:8px}
+.hero .title h1{margin:0;font-size:34px;font-weight:700;letter-spacing:.3px}
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-bottom:40px}
+.tile{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);backdrop-filter:blur(10px);padding:28px 20px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  cursor:pointer;transition:all .25s ease;
-  text-align:center;
+  cursor:pointer;transition:all .25s ease;text-align:center
 }
-.tile:hover {
-  transform:translateY(-3px);
-  background:rgba(255,255,255,0.08);
-}
-.tile svg {
-  width:34px;height:34px;margin-bottom:12px;stroke:var(--accent);stroke-width:1.7;
-}
-.tile span {font-size:15px;font-weight:600;letter-spacing:.3px;}
+.tile:hover{transform:translateY(-3px);background:rgba(255,255,255,0.08)}
+.tile svg{width:34px;height:34px;margin-bottom:12px;stroke:var(--accent);stroke-width:1.7}
+.tile span{font-size:15px;font-weight:600;letter-spacing:.3px}
 
-/* MODALE */
-.modal {
-  position:fixed;inset:0;background:rgba(0,0,0,.55);
-  display:none;align-items:center;justify-content:center;padding:24px;z-index:50;
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:24px;z-index:50}
+.modal[open]{display:flex}
+.modal-card{background:linear-gradient(180deg,#121317 0%,#0d0e11 100%);border:1px solid var(--border);border-radius:var(--radius);max-width:820px;width:100%;box-shadow:var(--shadow);color:#f8f8f8}
+.modal-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);padding:16px 20px}
+.modal-head strong{font-size:18px}
+.modal-close{background:transparent;border:1px solid var(--border);border-radius:999px;color:#ccc;padding:6px 12px;cursor:pointer}
+.modal-body{padding:22px 20px 24px;font-size:15px;line-height:1.6}
+.modal-body .mapbox{height:420px;border-radius:14px;overflow:hidden;border:1px solid var(--border);box-shadow:inset 0 0 0 1px rgba(255,255,255,.02)}
+.modal-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.btn{
+  appearance:none;border:1px solid var(--border);background:rgba(255,255,255,.06);
+  color:#eee;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:600
 }
-.modal[open]{display:flex;}
-.modal-card {
-  background:linear-gradient(180deg,#121317 0%,#0d0e11 100%);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  max-width:680px;width:100%;
-  box-shadow:var(--shadow);
-  color:#f8f8f8;
-}
-.modal-head {
-  display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid var(--border);
-  padding:16px 20px;
-}
-.modal-head strong {font-size:18px;}
-.modal-close {
-  background:transparent;border:1px solid var(--border);
-  border-radius:999px;color:#ccc;padding:6px 12px;cursor:pointer;
-}
-.modal-body {padding:24px;font-size:15px;line-height:1.6;}
-.modal-body ul{margin-left:20px;margin-top:10px}
-.modal-body li{margin-bottom:6px;}
-.footer {
-  text-align:center;
-  color:var(--muted);
-  margin-top:60px;
-  font-size:13px;
-  letter-spacing:.2px;
-}
+.btn.primary{background:linear-gradient(135deg,#0F172A,#1F2937);border:none}
+.footer{text-align:center;color:var(--muted);margin-top:60px;font-size:13px;letter-spacing:.2px}
 </style>
 </head>
 
@@ -321,18 +261,18 @@ body {
 </div>
 
 <script>
+/* === CONFIG === */
 const SUPABASE_URL="https://ojgchrqtvkwzhjvwwftd.supabase.co";
 const BUCKET="guides";
-document.getElementById("year").textContent=new Date().getFullYear();
+// Optionnel : place ta clé pour le rendu Google Maps JS stylé. Sinon on utilise un iframe embed.
+// window.GMAPS_API_KEY = "TA_CLE";
 
-function openModal(t,html){
-  document.getElementById('m-title').textContent=t;
-  document.getElementById('m-body').innerHTML=html;
-  document.getElementById('modal').setAttribute('open','');
-}
-function closeModal(){document.getElementById('modal').removeAttribute('open');}
+/* === Utils UI === */
+document.getElementById("year").textContent=new Date().getFullYear();
+function openModal(t,html){document.getElementById('m-title').textContent=t;document.getElementById('m-body').innerHTML=html;document.getElementById('modal').setAttribute('open','')}
+function closeModal(){document.getElementById('modal').removeAttribute('open')}
 document.getElementById('m-close').onclick=closeModal;
-document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
 
 function icon(name){
   const icons={
@@ -344,52 +284,154 @@ function icon(name){
     amenities:`<svg fill="none" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/></svg>`,
     help:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 9a3 3 0 116 0c0 1.657-3 3-3 3m0 4h.01"/></svg>`,
     exit:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 4l5 5-5 5m5-5H9"/></svg>`,
+    location:`<svg fill="none" viewBox="0 0 24 24"><path d="M12 21s7-4.35 7-10a7 7 0 10-14 0c0 5.65 7 10 7 10zM12 11a2 2 0 110-4 2 2 0 010 4z"/></svg>`
   };
   return icons[name]||icons.map;
 }
 
+/* === Google Maps helpers === */
+const darkMapStyle = [
+  {"elementType":"geometry","stylers":[{"color":"#1f2023"}]},
+  {"elementType":"labels.text.fill","stylers":[{"color":"#e0e0e0"}]},
+  {"elementType":"labels.text.stroke","stylers":[{"color":"#1f2023"}]},
+  {"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#c7a059"}]},
+  {"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#1a1b1f"}]},
+  {"featureType":"road","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},
+  {"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#d6d6d6"}]},
+  {"featureType":"transit","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},
+  {"featureType":"water","elementType":"geometry","stylers":[{"color":"#0e1116"}]}
+];
+
+function renderGoogleMapJS(lat,lng){
+  const container = document.createElement('div');
+  container.className = 'mapbox';
+  container.id = 'map-canvas';
+  return {
+    node: container,
+    onOpen: () => {
+      if (!window.google || !window.google.maps) return;
+      const map = new google.maps.Map(container, {
+        center: {lat, lng},
+        zoom: 15,
+        disableDefaultUI: true,
+        styles: darkMapStyle
+      });
+      new google.maps.Marker({
+        position: {lat, lng},
+        map,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+          fillColor: '#c7a059',
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 2
+        }
+      });
+    }
+  };
+}
+
+function loadGoogleMapsScript(cb){
+  if (window.google && window.google.maps) { cb(); return; }
+  const key = window.GMAPS_API_KEY;
+  if (!key) { cb(new Error('NO_KEY')); return; }
+  const s = document.createElement('script');
+  s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=marker`;
+  s.async = true;
+  s.onload = () => cb();
+  s.onerror = () => cb(new Error('LOAD_FAIL'));
+  document.head.appendChild(s);
+}
+
+/* === Boot === */
 async function boot(){
   const slug=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
   const token=new URLSearchParams(location.search).get('token')||'';
   const url=`${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${slug}.json`;
+
   let g;
-  try{const r=await fetch(url);if(!r.ok)throw new Error();g=await r.json();}
-  catch{document.body.innerHTML='<div style="color:white;text-align:center;padding:50px">Guide introuvable.</div>';return;}
+  try{ const r=await fetch(url); if(!r.ok) throw new Error(); g=await r.json(); }
+  catch{ document.body.innerHTML='<div style="color:white;text-align:center;padding:50px">Guide introuvable.</div>'; return; }
 
   // Hero
-  if(g.cover?.imageUrl){
-    document.getElementById('hero-img').src=g.cover.imageUrl;
-    document.getElementById('hero').style.display='';
-  }
+  if (g.cover?.imageUrl){ document.getElementById('hero-img').src=g.cover.imageUrl; document.getElementById('hero').style.display=''; }
   document.getElementById('title').textContent=g.name||'';
 
-  const allow = g.__sensitive?.token ? (token===g.__sensitive.token) : true;
-  const a=g.arrival?.fr||{};
-  const rules=g.rules?.fr?.items||[];
-  const ams=g.amenities||[];
+  const allow = g.__sensitive?.token ? (token === g.__sensitive.token) : true;
+  const a = g.arrival?.fr || {};
+  const rules = g.rules?.fr?.items || [];
+  const ams = g.amenities || [];
 
-  const grid=document.getElementById('grid');
-  const cards=[
-    {key:'Adresse',icon:'map',content:`<p>${g.address||''}</p>`},
-    {key:'Wi-Fi',icon:'wifi',content:`<p><b>SSID:</b> ${a.wifi?.ssid||''}<br><b>Mot de passe:</b> ${a.wifi?.password||''}</p>`},
-    {key:'Code porte',icon:'door',content: allow ? `<p style="font-size:28px"><b>${a.doorCode||''}</b></p>`:`<p>Informations sensibles masquées.<br>Ajoutez votre token : ?token=VOTRE_TOKEN</p>`},
-    {key:'Check-in',icon:'checkin',content:`<p>À partir de <b>${a.checkin_from||''}</b></p>${a.parking?`<p><b>Parking:</b> ${a.parking}</p>`:''}`},
-    {key:'Règles',icon:'rules',content:rules.length?`<ul>${rules.map(r=>`<li>${r}</li>`).join('')}</ul>`:`<p>Aucune règle.</p>`},
-    {key:'Équipements',icon:'amenities',content:ams.length?ams.map(a=>`<span style="display:inline-block;margin:4px 6px 0 0;padding:6px 10px;border:1px solid rgba(255,255,255,.1);border-radius:999px;">${a.label}</span>`).join(''):`<p>Non renseigné.</p>`},
-    {key:'Essentiels',icon:'map',content:`<p>${(g.essentials?.fr||'').replace(/\n/g,'<br>')}</p>`},
-    {key:'Départ',icon:'exit',content:`<p>Check-out avant <b>${g.departure?.fr?.checkout_until||'11:00'}</b></p>`},
-    {key:'Assistance',icon:'help',content:`<p><b>Email :</b> <a href="mailto:${g.brand?.supportEmail||'hello@conciergeriezenata.com'}">${g.brand?.supportEmail||''}</a><br><b>Site :</b> <a href="${g.brand?.site||'#'}" target="_blank">${g.brand?.site||''}</a></p>`},
+  const grid = document.getElementById('grid');
+  const cards = [
+    { key:'Adresse', icon:'location', content:`<p style="opacity:.9">${g.address||''}</p>${g.geo?.lat?`<p class="muted" style="opacity:.7">Lat/Lng : ${g.geo.lat}, ${g.geo.lng}</p>`:''}` },
+    { key:'Wi-Fi', icon:'wifi', content:`<p><b>SSID</b> : ${a.wifi?.ssid||''}<br><b>Mot de passe</b> : ${a.wifi?.password||''}</p>` },
+    { key:'Code porte', icon:'door', content: allow ? `<p style="font-size:28px"><b>${a.doorCode||''}</b></p>` : `<p>Infos sensibles masquées.<br>Ajoutez votre jeton : <code>?token=VOTRE_TOKEN</code></p>` },
+    { key:'Check-in', icon:'checkin', content:`<p>À partir de <b>${a.checkin_from||''}</b></p>${a.parking?`<p><b>Parking :</b> ${a.parking}</p>`:''}${(a.notes||[]).length?`<ul>${a.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}` },
+    { key:'Règles', icon:'rules', content: rules.length?`<ul>${rules.map(r=>`<li>${r}</li>`).join('')}</ul>`:`<p>Aucune règle.</p>` },
+    { key:'Équipements', icon:'amenities', content: ams.length? ams.map(x=>`<span style="display:inline-block;margin:4px 6px 0 0;padding:6px 10px;border:1px solid rgba(255,255,255,.1);border-radius:999px;">${x.label}</span>`).join('') : `<p>Non renseigné.</p>` },
+    { key:'Essentiels', icon:'map', content:`<p>${(g.essentials?.fr||'').replace(/\n/g,'<br>')}</p>` },
+    { key:'Départ', icon:'exit', content:`<p>Check-out avant <b>${g.departure?.fr?.checkout_until||'11:00'}</b></p>` },
+    { key:'Assistance', icon:'help', content:`<p><b>Email :</b> <a href="mailto:${g.brand?.supportEmail||'hello@conciergeriezenata.com'}">${g.brand?.supportEmail||''}</a><br><b>Site :</b> <a href="${g.brand?.site||'#'}" target="_blank" rel="noreferrer">${g.brand?.site||''}</a></p>` }
   ];
 
-  for(const c of cards){
+  // Ajouter une carte si lat/lng présents
+  if (g.geo && typeof g.geo.lat === 'number' && typeof g.geo.lng === 'number') {
+    cards.unshift({
+      key:'Localisation',
+      icon:'map',
+      content: `<div id="map-holder"></div>`
+    });
+  }
+
+  for (const c of cards){
     const d=document.createElement('div');
     d.className='tile';
     d.innerHTML=`${icon(c.icon)}<span>${c.key}</span>`;
-    d.onclick=()=>openModal(c.key,c.content);
+    d.onclick=async ()=>{
+      if (c.key === 'Localisation' && g.geo?.lat && g.geo?.lng){
+        // Si clé fournie → API JS stylée, sinon iframe embed
+        if (window.GMAPS_API_KEY){
+          const m = renderGoogleMapJS(g.geo.lat, g.geo.lng);
+          openModal('Localisation', `
+            <div class="mapbox" id="map-canvas"></div>
+            <div class="modal-actions">
+              <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${g.geo.lat},${g.geo.lng}">Ouvrir dans Google Maps</a>
+              <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${g.geo.lat},${g.geo.lng}">Itinéraire</a>
+            </div>
+          `);
+          loadGoogleMapsScript((err)=>{ if(!err) m.onOpen(); else {
+            // Fallback si erreur de chargement clé
+            document.getElementById('m-body').innerHTML = `
+              <div class="mapbox">
+                <iframe src="https://www.google.com/maps?q=${g.geo.lat},${g.geo.lng}&z=15&output=embed" width="100%" height="100%" style="border:0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+              </div>
+              <div class="modal-actions">
+                <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${g.geo.lat},${g.geo.lng}">Ouvrir dans Google Maps</a>
+                <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${g.geo.lat},${g.geo.lng}">Itinéraire</a>
+              </div>
+            `;
+          }});
+        } else {
+          openModal('Localisation', `
+            <div class="mapbox">
+              <iframe src="https://www.google.com/maps?q=${g.geo.lat},${g.geo.lng}&z=15&output=embed" width="100%" height="100%" style="border:0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+            <div class="modal-actions">
+              <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${g.geo.lat},${g.geo.lng}">Ouvrir dans Google Maps</a>
+              <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${g.geo.lat},${g.geo.lng}">Itinéraire</a>
+            </div>
+          `);
+        }
+      } else {
+        openModal(c.key, c.content);
+      }
+    };
     grid.appendChild(d);
   }
 }
-document.addEventListener('DOMContentLoaded',boot);
+document.addEventListener('DOMContentLoaded', boot);
 </script>
 </body>
 </html>
