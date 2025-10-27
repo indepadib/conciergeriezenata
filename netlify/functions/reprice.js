@@ -18,6 +18,21 @@ exports.handler = async (event) => {
     const start = new Date(qs.start || new Date().toISOString().slice(0,10));
     const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate()); // normalisé
 
+    let props;
+
+    if (slug) {
+      const { data, error } = await sb.from('properties').select('*').eq('slug', slug).limit(1).maybeSingle();
+      if (error) throw error;
+      props = data ? [data] : [];
+    } else if (propertyId) {
+      const { data, error } = await sb.from('properties').select('*').eq('id', propertyId);
+      if (error) throw error;
+      props = data || [];
+    } else {
+      const { data, error } = await sb.from('properties').select('*');
+      if (error) throw error;
+      props = data || [];
+    }
     // Load properties
     let { data: props, error: propsErr } = propertyId
       ? await sb.from('properties').select('*').eq('id', propertyId)
