@@ -173,48 +173,128 @@ Guide public premium – version statique sans build
 <!doctype html>
 <html lang="fr">
 <head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Guide Voyageur – Conciergerie Zenata</title>
 <link rel="icon" href="/logo/logo_officiel_couleur_picto.png"/>
-<style>
-:root{--ink:#0B1220;--muted:#6F7782;--line:#E5E7EB;--card:#fff;--bg:#F8FAFC;--brand:#0F172A;--accent:#C7A059;--radius:18px;--shadow:0 24px 48px rgba(16,24,40,.08)}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);background:
-  radial-gradient(1100px 640px at 16% -10%, #ffffff 0%, #f7f9fc 55%, #eef2f7 100%);}
-.wrap{max-width:1200px;margin:0 auto;padding:18px}
-.header{display:flex;align-items:center;gap:12px;margin:10px 2px 16px}
-.header img{height:28px}
-.hero{position:relative;border-radius:26px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);margin-bottom:14px}
-.hero img{width:100%;height:420px;object-fit:cover;display:block}
-.hero .overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(0,0,0,.55) 100%)}
-.hero .title{position:absolute;left:22px;right:22px;bottom:18px;color:#fff}
-.hero .title .badge{font-size:12px;opacity:.9}
-.hero .title h1{margin:4px 0 0;font-size:30px;letter-spacing:.2px}
-.grid{display:grid;gap:14px}
-.grid-3{grid-template-columns:repeat(3,1fr)}
-@media(max-width:900px){.grid-3{grid-template-columns:1fr}}
-.tile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow);cursor:pointer;transition:.15s}
-.tile:hover{transform:translateY(-1px)}
-.k{font-size:12px;color:var(--muted);margin-bottom:4px}
-.value{font-weight:700}
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
-.card h2{margin:0;padding:16px 18px;border-bottom:1px solid var(--line);font-size:16px}
-.content{padding:18px}
-.pill{display:inline-block;margin:6px 6px 0 0;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;background:#fff}
-.footer{padding:34px 0;color:var(--muted);font-size:12px;text-align:center}
 
-/* Modal */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;padding:18px}
-.modal[open]{display:flex}
-.modal-card{background:#fff;border-radius:18px;max-width:680px;width:100%;box-shadow:var(--shadow);border:1px solid var(--line)}
-.modal-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line)}
-.modal-body{padding:16px}
-.modal-close{appearance:none;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
+<!-- STYLE PREMIUM -->
+<style>
+:root {
+  --bg1: #0d0e11;
+  --bg2: #1a1b1f;
+  --accent: #c7a059;
+  --ink: #f5f5f5;
+  --muted: #a3a3a3;
+  --card: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.08);
+  --radius: 18px;
+  --shadow: 0 10px 30px rgba(0,0,0,.5);
+}
+* {box-sizing:border-box;margin:0;padding:0;}
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--ink);
+  background: radial-gradient(1000px 700px at 20% -10%, var(--bg2), var(--bg1) 80%);
+  min-height: 100vh;
+  padding: 28px;
+}
+.wrap {max-width:1200px;margin:0 auto;}
+.header {display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.header img {height:30px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4));}
+.hero {
+  position:relative;overflow:hidden;border-radius:var(--radius);
+  height:400px;margin-bottom:30px;border:1px solid var(--border);
+  box-shadow:var(--shadow);
+}
+.hero img {width:100%;height:100%;object-fit:cover;filter:brightness(.85);}
+.hero .overlay {position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 50%,rgba(0,0,0,.65) 100%);}
+.hero .title {
+  position:absolute;bottom:24px;left:28px;right:28px;color:#fff;
+}
+.hero .title h1 {margin:0;font-size:34px;font-weight:700;letter-spacing:.3px;}
+.hero .title .badge {
+  background:rgba(0,0,0,.4);
+  border:1px solid rgba(255,255,255,.2);
+  color:#fff;
+  font-size:12px;
+  border-radius:999px;
+  padding:4px 10px;
+  display:inline-block;
+  margin-bottom:8px;
+}
+
+/* GRID DES CARTES */
+.grid {
+  display:grid;
+  gap:18px;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  margin-bottom:40px;
+}
+.tile {
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(10px);
+  padding:28px 20px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .25s ease;
+  text-align:center;
+}
+.tile:hover {
+  transform:translateY(-3px);
+  background:rgba(255,255,255,0.08);
+}
+.tile svg {
+  width:34px;height:34px;margin-bottom:12px;stroke:var(--accent);stroke-width:1.7;
+}
+.tile span {font-size:15px;font-weight:600;letter-spacing:.3px;}
+
+/* MODALE */
+.modal {
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  display:none;align-items:center;justify-content:center;padding:24px;z-index:50;
+}
+.modal[open]{display:flex;}
+.modal-card {
+  background:linear-gradient(180deg,#121317 0%,#0d0e11 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  max-width:680px;width:100%;
+  box-shadow:var(--shadow);
+  color:#f8f8f8;
+}
+.modal-head {
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+  padding:16px 20px;
+}
+.modal-head strong {font-size:18px;}
+.modal-close {
+  background:transparent;border:1px solid var(--border);
+  border-radius:999px;color:#ccc;padding:6px 12px;cursor:pointer;
+}
+.modal-body {padding:24px;font-size:15px;line-height:1.6;}
+.modal-body ul{margin-left:20px;margin-top:10px}
+.modal-body li{margin-bottom:6px;}
+.footer {
+  text-align:center;
+  color:var(--muted);
+  margin-top:60px;
+  font-size:13px;
+  letter-spacing:.2px;
+}
 </style>
 </head>
+
 <body>
 <div class="wrap">
-  <div class="header"><img src="/logo/logo_officiel_couleur_picto.png" alt=""><b>Conciergerie Zenata</b></div>
+  <div class="header">
+    <img src="/logo/logo_officiel_couleur_picto.png" alt="Zenata Logo">
+    <strong>Conciergerie Zenata</strong>
+  </div>
+
   <div id="hero" class="hero" style="display:none">
     <img id="hero-img" alt="">
     <div class="overlay"></div>
@@ -224,27 +304,12 @@ body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(-
     </div>
   </div>
 
-  <div id="quick" class="grid grid-3" style="margin-bottom:10px"></div>
+  <div id="grid" class="grid"></div>
 
-  <div class="grid" style="grid-template-columns:1.2fr .8fr">
-    <div class="vstack">
-      <div class="card"><h2>Arrivée & Check-in</h2><div class="content" id="arrival"></div></div>
-      <div class="card"><h2>Départ & Check-out</h2><div class="content" id="departure"></div></div>
-      <div class="card"><h2>Essentiels</h2><div class="content" id="essentials"></div></div>
-      <div class="card"><h2>Quartier</h2><div class="content" id="neighborhood"></div></div>
-      <div class="card"><h2>Recommandations</h2><div class="content" id="reco"></div></div>
-    </div>
-    <div class="vstack">
-      <div class="card"><h2>Règles</h2><div class="content" id="rules"></div></div>
-      <div class="card"><h2>Équipements</h2><div class="content" id="amenities"></div></div>
-      <div class="card"><h2>Assistance & Urgences</h2><div class="content" id="help"></div></div>
-    </div>
-  </div>
-
-  <div class="footer">© <span id="year"></span> Conciergerie Zenata — Guide Voyageur</div>
+  <div class="footer">© <span id="year"></span> Conciergerie Zenata — Séjour Premium</div>
 </div>
 
-<!-- Modal -->
+<!-- Modale -->
 <div id="modal" class="modal" aria-hidden="true">
   <div class="modal-card">
     <div class="modal-head">
@@ -258,68 +323,73 @@ body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(-
 <script>
 const SUPABASE_URL="https://ojgchrqtvkwzhjvwwftd.supabase.co";
 const BUCKET="guides";
+document.getElementById("year").textContent=new Date().getFullYear();
 
-function qs(k){return new URLSearchParams(location.search).get(k)||''}
-function openModal(title,html){document.getElementById('m-title').textContent=title;document.getElementById('m-body').innerHTML=html;document.getElementById('modal').setAttribute('open','')}
-function closeModal(){document.getElementById('modal').removeAttribute('open')}
-document.getElementById('m-close').onclick=closeModal; document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal') closeModal()})
-document.getElementById('year').textContent=new Date().getFullYear();
+function openModal(t,html){
+  document.getElementById('m-title').textContent=t;
+  document.getElementById('m-body').innerHTML=html;
+  document.getElementById('modal').setAttribute('open','');
+}
+function closeModal(){document.getElementById('modal').removeAttribute('open');}
+document.getElementById('m-close').onclick=closeModal;
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
 
-function tile({label, sub, click}){const d=document.createElement('div');d.className='tile';d.innerHTML=`<div class="k">${label}</div><div class="value">${sub||''}</div>`; if(click) d.onclick=click; return d}
+function icon(name){
+  const icons={
+    wifi:`<svg fill="none" viewBox="0 0 24 24"><path d="M5 12a9 9 0 0114 0M2 9a12 12 0 0120 0M8.5 15.5a5 5 0 017 0M12 20h.01"/></svg>`,
+    door:`<svg fill="none" viewBox="0 0 24 24"><path d="M14 12v.01M6 3h12v18H6z"/></svg>`,
+    checkin:`<svg fill="none" viewBox="0 0 24 24"><path d="M3 3h18v18H3zM8 12l2 2 5-5"/></svg>`,
+    map:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 3l6 3 6-3v18l-6 3-6-3-6 3V3l6-3z"/></svg>`,
+    rules:`<svg fill="none" viewBox="0 0 24 24"><path d="M5 5h14M5 9h14M5 13h9M5 17h9"/></svg>`,
+    amenities:`<svg fill="none" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/></svg>`,
+    help:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 9a3 3 0 116 0c0 1.657-3 3-3 3m0 4h.01"/></svg>`,
+    exit:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 4l5 5-5 5m5-5H9"/></svg>`,
+  };
+  return icons[name]||icons.map;
+}
 
 async function boot(){
-  const slug=(location.pathname.split('/').pop()||'').replace(/\.html$/,'') || qs('slug');
-  const token = qs('token') || '';
-  const url = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${encodeURIComponent(slug)}.json`;
-  let g; try{ const r=await fetch(url); if(!r.ok) throw new Error('Guide introuvable'); g=await r.json(); }catch(e){ document.body.innerHTML='<div style="padding:24px;font-family:Inter">Guide introuvable.</div>'; return }
-  // header
+  const slug=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
+  const token=new URLSearchParams(location.search).get('token')||'';
+  const url=`${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${slug}.json`;
+  let g;
+  try{const r=await fetch(url);if(!r.ok)throw new Error();g=await r.json();}
+  catch{document.body.innerHTML='<div style="color:white;text-align:center;padding:50px">Guide introuvable.</div>';return;}
+
+  // Hero
+  if(g.cover?.imageUrl){
+    document.getElementById('hero-img').src=g.cover.imageUrl;
+    document.getElementById('hero').style.display='';
+  }
   document.getElementById('title').textContent=g.name||'';
-  const cover=g.cover?.imageUrl||''; if(cover){ document.getElementById('hero-img').src=cover; document.getElementById('hero').style.display='' }
-  // quick tiles
-  const q=document.getElementById('quick'); const a=g.arrival?.fr||{}; const allow = g.__sensitive?.token ? (token===g.__sensitive.token) : true;
-  q.appendChild(tile({label:'Adresse', sub:(g.address||'Cliquez'), click:()=>openModal('Adresse', `<p>${g.address||''}</p>${g.geo?.lat?`<p>Lat/Lng: ${g.geo.lat}, ${g.geo.lng}</p>`:''}`)}));
-  q.appendChild(tile({label:'Wi-Fi', sub:[a.wifi?.ssid, a.wifi?.password].filter(Boolean).join(' • ')||'SSID & mot de passe', click:()=>openModal('Wi-Fi', `<p><b>SSID</b> : ${a.wifi?.ssid||''}<br><b>Mot de passe</b> : ${a.wifi?.password||''}</p>`)}));
-  q.appendChild(tile({label:'Code porte', sub: allow ? (a.doorCode||'') : 'Cliquez pour afficher', click:()=>openModal('Code porte', allow? `<p style="font-size:28px"><b>${a.doorCode||''}</b></p>`:`<p>Informations sensibles. Ajoutez votre jeton à l’URL : <code>?token=VOTRE_TOKEN</code></p>`)}));
-  q.appendChild(tile({label:'Arrivée / Check-in', sub: a.checkin_from?`À partir de ${a.checkin_from}`:'', click:()=>openModal('Arrivée', `<p>À partir de <b>${a.checkin_from||''}</b></p>${a.parking?`<p><b>Parking</b> : ${a.parking}</p>`:''}${(a.notes||[]).length? `<ul>${a.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}`)}));
 
-  // sections
-  const rules = (g.rules?.fr?.items||[]).map(r=>`<li>${r}</li>`).join('') || '<span class="k">Aucune règle renseignée</span>';
-  document.getElementById('rules').innerHTML = `<ul>${rules}</ul>`;
+  const allow = g.__sensitive?.token ? (token===g.__sensitive.token) : true;
+  const a=g.arrival?.fr||{};
+  const rules=g.rules?.fr?.items||[];
+  const ams=g.amenities||[];
 
-  const arrHTML = `${a.checkin_from?`<div><span class="k">À partir de</span> <b>${a.checkin_from}</b></div>`:''}${a.parking?`<div><span class="k">Parking</span> <b>${a.parking}</b></div>`:''}${(a.notes||[]).length? `<ul style="margin-top:10px">${a.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}`;
-  document.getElementById('arrival').innerHTML = arrHTML || '<span class="k">Non renseigné</span>';
+  const grid=document.getElementById('grid');
+  const cards=[
+    {key:'Adresse',icon:'map',content:`<p>${g.address||''}</p>`},
+    {key:'Wi-Fi',icon:'wifi',content:`<p><b>SSID:</b> ${a.wifi?.ssid||''}<br><b>Mot de passe:</b> ${a.wifi?.password||''}</p>`},
+    {key:'Code porte',icon:'door',content: allow ? `<p style="font-size:28px"><b>${a.doorCode||''}</b></p>`:`<p>Informations sensibles masquées.<br>Ajoutez votre token : ?token=VOTRE_TOKEN</p>`},
+    {key:'Check-in',icon:'checkin',content:`<p>À partir de <b>${a.checkin_from||''}</b></p>${a.parking?`<p><b>Parking:</b> ${a.parking}</p>`:''}`},
+    {key:'Règles',icon:'rules',content:rules.length?`<ul>${rules.map(r=>`<li>${r}</li>`).join('')}</ul>`:`<p>Aucune règle.</p>`},
+    {key:'Équipements',icon:'amenities',content:ams.length?ams.map(a=>`<span style="display:inline-block;margin:4px 6px 0 0;padding:6px 10px;border:1px solid rgba(255,255,255,.1);border-radius:999px;">${a.label}</span>`).join(''):`<p>Non renseigné.</p>`},
+    {key:'Essentiels',icon:'map',content:`<p>${(g.essentials?.fr||'').replace(/\n/g,'<br>')}</p>`},
+    {key:'Départ',icon:'exit',content:`<p>Check-out avant <b>${g.departure?.fr?.checkout_until||'11:00'}</b></p>`},
+    {key:'Assistance',icon:'help',content:`<p><b>Email :</b> <a href="mailto:${g.brand?.supportEmail||'hello@conciergeriezenata.com'}">${g.brand?.supportEmail||''}</a><br><b>Site :</b> <a href="${g.brand?.site||'#'}" target="_blank">${g.brand?.site||''}</a></p>`},
+  ];
 
-  document.getElementById('departure').innerHTML = g.departure?.fr?.checkout_until?`Avant <b>${g.departure.fr.checkout_until}</b>`:'<span class="k">Non renseigné</span>';
-
-  // essentiels (texte libre) + urgence
-  const ess = (g.essentials?.fr || '').trim();
-  const emg = Array.isArray(g.emergency)? g.emergency.map(e=>`<li><b>${e.label} :</b> ${e.value}</li>`).join('') : '';
-  document.getElementById('essentials').innerHTML = (ess? `<p>${ess.replace(/\n/g,'<br>')}</p>`:'' ) + (emg? `<h3 style="margin:14px 0 6px">Urgences</h3><ul>${emg}</ul>`:'' ) || '<span class="k">Non renseigné</span>';
-
-  // quartier
-  const neigh = g.neighborhood?.fr || {};
-  const places = (neigh.places||[]).map(p=>`<span class="pill">${p}</span>`).join('');
-  document.getElementById('neighborhood').innerHTML = `${neigh.intro?`<p>${neigh.intro}</p>`:''}${places||'<span class="k">Non renseigné</span>'}`;
-
-  // recommandations
-  const rec = g.recommendations?.fr || {};
-  const tips = (rec.tips||[]).map(p=>`<li>${p}</li>`).join('');
-  document.getElementById('reco').innerHTML = `${rec.intro?`<p>${rec.intro}</p>`:''}${tips?`<ul>${tips}</ul>`:'<span class="k">Non renseigné</span>'}`;
-
-  // équipements
-  const ams=(g.amenities||[]).map(a=>`<span class="pill">${a.label}</span>`).join('');
-  document.getElementById('amenities').innerHTML = ams || '<span class="k">Non renseigné</span>';
-
-  // assistance
-  const helpHTML = `
-    <p>Pour toute demande :</p>
-    <ul>
-      <li><b>Email :</b> <a href="mailto:${g.brand?.supportEmail||'hello@conciergeriezenata.com'}">${g.brand?.supportEmail||'hello@conciergeriezenata.com'}</a></li>
-      ${g.brand?.site? `<li><b>Site :</b> <a href="${g.brand.site}" target="_blank" rel="noreferrer">${g.brand.site}</a></li>`:''}
-    </ul>`;
-  document.getElementById('help').innerHTML = helpHTML;
+  for(const c of cards){
+    const d=document.createElement('div');
+    d.className='tile';
+    d.innerHTML=`${icon(c.icon)}<span>${c.key}</span>`;
+    d.onclick=()=>openModal(c.key,c.content);
+    grid.appendChild(d);
+  }
 }
-document.addEventListener('DOMContentLoaded', boot);
+document.addEventListener('DOMContentLoaded',boot);
 </script>
 </body>
 </html>
