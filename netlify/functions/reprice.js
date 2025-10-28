@@ -1,149 +1,100 @@
-// netlify/functions/reprice.js
-const { createClient } = require('@supabase/supabase-js');
-
+/const { createClient } = require('@supabase/supabase-js');
 const url = process.env.SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE;
 
 exports.handler = async (event) => {
   try {
-    if (!url || !key) {
-      return { statusCode: 500, body: 'Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE' };
-    }
+    if (!url || !key)
+      return { statusCode: 500, body: 'Missing env' };
+
     const sb = createClient(url, key);
-
-    // Params
     const qs = event.queryStringParameters || {};
-    const propertyId = qs.property_id || null;
-    const days = Math.max(1, Math.min(parseInt(qs.days || '365', 10), 540));
-    const start = new Date(qs.start || new Date().toISOString().slice(0,10));
-    const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate()); // normalisé
+    const property_id = qs.property_id;
+    const days = parseInt(qs.days || '90');
+    if (!property_id)
+      return { statusCode: 400, body: 'property_id required' };
 
-    let props;
+    // 1️⃣ Load property data
+    const { data: props, error: errProp } = await sb
+      .from('properties')
+      .select('*')
+      .eq('id', property_id)
+      .maybeSingle();
+    if (errProp || !props) throw errProp || new Error('Property not found');
 
-    if (slug) {
-      const { data, error } = await sb.from('properties').select('*').eq('slug', slug).limit(1).maybeSingle();
-      if (error) throw error;
-      props = data ? [data] : [];
-    } else if (propertyId) {
-      const { data, error } = await sb.from('properties').select('*').eq('id', propertyId);
-      if (error) throw error;
-      props = data || [];
-    } else {
-      const { data, error } = await sb.from('properties').select('*');
-      if (error) throw error;
-      props = data || [];
-    }
-    // Load properties
-    let { data: props, error: propsErr } = propertyId
-      ? await sb.from('properties').select('*').eq('id', propertyId)
-      : await sb.from('properties').select('*');
-    if (propsErr) throw propsErr;
-    if (!props || props.length === 0) {
-      return { statusCode: 200, body: JSON.stringify({ ok: true, updated: 0 }) };
-    }
+    const base = Number(props.base_rate || 0);
+    const min = Number(props.min_rate || base * 0.8);
+    const max = Number(props.max_rate || base * 1.4);
+    const weekday = props.weekday_multipliers || {};
 
-    // Helper weekday from date
-    const weekdayKey = (d) => ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+    // 2️⃣ Load modifiers
+    const { data: occ } = await sb
+      .from('occupancy_stats')
+      .select('occupancy_pct')
+      .eq('property_id', property_id)
+      .order('as_of', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    // Iterate properties
-    let totalUpserts = 0;
+    const { data: seasons } = await sb
+      .from('seasons')
+      .select('start_date,end_date,multiplier')
+      .eq('property_id', property_id);
 
-    for (const p of props) {
-      // Pull seasons for property (only ranges overlapping window)
-      const endDate = new Date(startDate); endDate.setDate(endDate.getDate() + days);
-      const { data: seasons, error: sErr } = await sb
-        .from('seasons')
-        .select('*')
-        .eq('property_id', p.id)
-        .lte('start_date', endDate.toISOString().slice(0,10))
-        .gte('end_date', startDate.toISOString().slice(0,10));
-      if (sErr) throw sErr;
+    const { data: events } = await sb
+      .from('calendar_events')
+      .select('date,multiplier')
+      .eq('city', props.city || '')
+      .gte('date', new Date().toISOString().slice(0, 10));
 
-      // Pull events per city for the whole window
-      const { data: events, error: eErr } = await sb
-        .from('calendar_events')
-        .select('*')
-        .eq('city', p.city || '')
-        .gte('date', startDate.toISOString().slice(0,10))
-        .lte('date', endDate.toISOString().slice(0,10));
-      if (eErr) throw eErr;
+    // 3️⃣ Prepare the price list
+    const start = new Date();
+    const rows = [];
+    for (let i = 0; i < days; i++) {
+      const d = new Date(start);
+      d.setDate(d.getDate() + i);
+      const stay_date = d.toISOString().slice(0, 10);
+      const wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()];
 
-      // Occupancy (take latest row)
-      const { data: occ, error: oErr } = await sb
-        .from('occupancy_stats')
-        .select('*')
-        .eq('property_id', p.id)
-        .order('as_of', { ascending: false })
-        .limit(1);
-      if (oErr) throw oErr;
-      const occPct = occ?.[0]?.occupancy_pct ?? null;
+      let mult = Number(weekday[wd] || 1);
 
-      // Helpers multipliers
-      const weekdayMult = (p.weekday_multipliers || {});
-      const seasonsMultFor = (iso) => {
-        if (!seasons || seasons.length === 0) return 1;
-        const d = iso;
+      // Season
+      if (seasons && seasons.length) {
         for (const s of seasons) {
-          if (d >= s.start_date && d <= s.end_date) return Number(s.multiplier || 1) || 1;
+          if (stay_date >= s.start_date && stay_date <= s.end_date) {
+            mult *= Number(s.multiplier || 1);
+          }
         }
-        return 1;
-      };
-      const eventMultFor = (iso) => {
-        if (!events || events.length === 0) return 1;
-        for (const ev of events) {
-          if (ev.date === iso) return Number(ev.multiplier || 1) || 1;
-        }
-        return 1;
-      };
-      const leadTimeMultFor = (daysOut) => {
-        if (daysOut < 7) return 1.15;
-        if (daysOut < 21) return 1.05;
-        if (daysOut > 60) return 0.90;
-        return 1.00;
-      };
-      const occupancyMult = (() => {
-        if (occPct == null) return 1.0;
-        const n = Number(occPct);
-        if (n < 40) return 0.90;
-        if (n > 90) return 1.10;
-        return 1.00;
-      })();
-
-      // Build rows to upsert
-      const rows = [];
-      for (let i = 0; i < days; i++) {
-        const d = new Date(startDate); d.setDate(d.getDate() + i);
-        const iso = d.toISOString().slice(0,10);
-        const dow = weekdayKey(d);
-        const base = Number(p.base_rate);
-        const minr = Number(p.min_rate);
-        const maxr = Number(p.max_rate);
-
-        const mSeason = seasonsMultFor(iso);
-        const mDow = Number(weekdayMult[dow] || 1);
-        const daysOut = Math.round((d - new Date()) / 86400000);
-        const mLead = leadTimeMultFor(daysOut);
-        const mEvent = eventMultFor(iso);
-
-        let price = base * mSeason * mDow * mLead * occupancyMult * mEvent;
-        if (minr) price = Math.max(minr, price);
-        if (maxr) price = Math.min(maxr, price);
-        price = Math.round(price); // arrondir au MAD
-
-        rows.push({ property_id: p.id, stay_date: iso, price });
       }
 
-      // Upsert nightly_prices (ON CONFLICT (property_id, stay_date))
-      const { error: upErr } = await sb
-        .from('nightly_prices')
-        .upsert(rows, { onConflict: 'property_id,stay_date' });
-      if (upErr) throw upErr;
+      // Event
+      if (events && events.length) {
+        for (const ev of events) {
+          if (ev.date === stay_date) mult *= Number(ev.multiplier || 1);
+        }
+      }
 
-      totalUpserts += rows.length;
+      // Occupancy factor
+      const occFactor = occ ? (1 + ((occ.occupancy_pct - 50) / 100) * 0.2) : 1;
+      mult *= occFactor;
+
+      // Compute price and clamp between min/max
+      let price = Math.round(base * mult);
+      if (price < min) price = min;
+      if (price > max) price = max;
+
+      rows.push({ property_id, stay_date, price });
     }
 
-    return { statusCode: 200, body: JSON.stringify({ ok: true, updated: totalUpserts }) };
+    // 4️⃣ Upsert into nightly_prices
+    const { error: errUp } = await sb
+      .from('nightly_prices')
+      .upsert(rows, { onConflict: 'property_id,stay_date' });
+    if (errUp) throw errUp;
+
+    return { statusCode: 200, body: JSON.stringify({ ok: true, updated: rows.length }) };
   } catch (e) {
     return { statusCode: 500, body: `reprice error: ${e.message || e}` };
   }
 };
+
