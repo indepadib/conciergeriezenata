@@ -232,8 +232,6 @@ body{
     en:{traveler_guide:"Traveler Guide",call:"Call",pdf:"PDF",download_pdf:"Download PDF",welcome_title:"Welcome to Zenata 🌴",welcome_fallback:"We’re delighted to host you in Zenata. Enjoy your stay.",location:"Location",open_gmaps:"Open in Google Maps",directions:"Directions",explore_nearby:"Explore nearby",neighborhood:"Neighborhood",do_see:"Do & See",link:"Link",view:"View",address:"Address",wifi:"Wi-Fi",door_code:"Door code",sensitive_hidden:"Sensitive info hidden. Add your token",checkin:"Arrival & Check-in",from:"From",parking:"Parking",house_rules:"House rules",no_rules:"No rules.",amenities:"Amenities",not_provided:"Not provided.",essentials:"Essentials",checkout:"Checkout",checkout_before:"Check-out before",support:"Support",email:"Email",whatsapp:"WhatsApp",report_issue:"Report an issue",help_issues:"Help & Issues",report_thanks:"Thanks, received.",report_error:"Error",network_error:"Network error",appliances:"Appliances",no_data:"No data.",parking_access:"Parking & Access",spot:"Spot",extras:"Extras",book_extra:"Book an extra:",detail:"Detail"}
   };
   const S = (k)=> (UI[LANG] && UI[LANG][k]) || UI['fr'][k] || k;
-
-  const br = s => (s||'').replace(/\n/g,'<br>');
   // on remplace notre pick par deux helper
 function pickLang(v){
   if (v == null) return null;
