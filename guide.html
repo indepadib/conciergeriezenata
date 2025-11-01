@@ -238,6 +238,8 @@ body{
   };
   const S = (k)=> (UI[LANG] && UI[LANG][k]) || UI['fr'][k] || k;
 
+
+  
   // Helpers multi-langues
   function pickLang(v){
     if (v == null) return null;
@@ -266,6 +268,61 @@ body{
     const box = $("alert"); if(box) box.style.display="none";
   }
 
+// ---- HERO helpers (résolution d'URL + essai multi-candidats)
+function isHttpUrl(s){ return typeof s === 'string' && /^https?:\/\//i.test(s); }
+
+function resolveCoverCandidates(g, SUPABASE_URL, GUIDES_BUCKET){
+  const cand = [];
+
+  // 1) champs possibles
+  const c = g?.cover;
+  const direct =
+    (c && typeof c === 'object' && (c.imageUrl || c.url || c.src)) ||
+    (typeof c === 'string' ? c : null);
+  if (direct) cand.push(direct);
+
+  // 2) autres variantes que j'ai vues dans tes guides
+  if (typeof g?.coverPath === 'string') cand.push(g.coverPath);
+  if (typeof g?.coverKey  === 'string') cand.push(g.coverKey);
+  if (typeof g?.image     === 'string') cand.push(g.image);
+
+  // 3) si le champ est un chemin Supabase (pas d’http), on génère l’URL publique
+  const expanded = [];
+  const ts = Date.now();
+  for (const v of cand){
+    if (!v) continue;
+    if (isHttpUrl(v)) { expanded.push(`${v}${v.includes('?') ? '' : `?ts=${ts}`}`); continue; }
+
+    // Si la valeur ressemble à "guides/palm-zenata-001/cover.jpg" (clé interne)
+    // -> faire pointer vers l’URL publique
+    const maybeKey = v.replace(/^\/+/, ''); // strip leading /
+    // 2 options: a) le JSON donne déjà "guides/..." b) il donne "cover.jpg"
+    expanded.push(`${SUPABASE_URL}/storage/v1/object/public/${GUIDES_BUCKET}/${encodeURIComponent(maybeKey)}?ts=${ts}`);
+
+    // au cas où la valeur contient déjà le bucket (ex: "guides/cover.jpg"), on teste brut aussi
+    expanded.push(`${SUPABASE_URL}/storage/v1/object/public/${maybeKey}?ts=${ts}`);
+  }
+
+  // 4) Nettoyage doublons
+  return [...new Set(expanded)];
+}
+
+function loadFirstWorkingImage(urls, imgEl, onOk, onFail){
+  if (!urls || !urls.length) { onFail?.('Aucun candidat'); return; }
+  let i = 0;
+  const tryNext = () => {
+    if (i >= urls.length) { onFail?.('Aucune URL valide'); return; }
+    const url = urls[i++];
+    const tmp = new Image();
+    tmp.onload = () => { imgEl.src = url; onOk?.(url); };
+    tmp.onerror = () => { tryNext(); };
+    tmp.referrerPolicy = 'no-referrer'; // évite quelques blocages
+    tmp.src = url;
+  };
+  tryNext();
+}
+
+  
   function openModal(title, html){
     $("m-title").textContent = title || S('detail');
     $("m-body").innerHTML = html || "";
@@ -383,20 +440,38 @@ if (fp) fp.textContent = (LANG==='en'?'Premium Stay':'Séjour Premium');
     }
 
     // --- HERO (affichage conditionné au onload de l'image, fallback si erreur)
-const hero = document.getElementById('hero');
-const heroImg = document.getElementById('hero-img');
+// --- HERO (robuste multi-formats & Supabase)
+(function setupHero(){
+  const hero = document.getElementById('hero');
+  const heroImg = document.getElementById('hero-img');
+  if (!hero || !heroImg) return;
 
-const coverUrl =
-  (g.cover && typeof g.cover === 'object' && (g.cover.imageUrl || g.cover.url)) ||
-  (typeof g.cover === 'string' ? g.cover : null);
+  const candidates = resolveCoverCandidates(g, SUPABASE_URL, GUIDES_BUCKET);
+  console.log('[cover candidates]', candidates, 'raw cover:', g?.cover);
 
-if (coverUrl && hero && heroImg) {
-  heroImg.onload  = () => { hero.style.display = 'block'; };
-  heroImg.onerror = () => { console.warn('Cover failed:', coverUrl); /* hero reste caché */ };
-  heroImg.src = coverUrl;
-}
+  if (!candidates.length){
+    // pas d’image fournie -> ne rien afficher
+    hero.style.display = 'none';
+    return;
+  }
 
-document.getElementById('title').textContent = g.name || '';
+  loadFirstWorkingImage(
+    candidates,
+    heroImg,
+    (okUrl)=>{ 
+      // succès
+      hero.style.display = 'block';
+      // titre (si fourni)
+      document.getElementById('title').textContent = g.name || '';
+    },
+    (reason)=>{
+      console.warn('Cover failed:', reason, candidates);
+      // on cache le hero si aucune URL ne marche
+      hero.style.display = 'none';
+    }
+  );
+})();
+
 
 // --- INTRO (toujours visible avec fallback)
 const introText = (()=>{
