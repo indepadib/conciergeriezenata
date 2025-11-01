@@ -267,6 +267,23 @@ body{
 .pill:hover{background:rgba(255,255,255,.12)}
 .k{font-size:12px;color:#bbb;margin-top:6px}
 
+    /*css chatbot */
+.cz-chat{position:fixed;right:18px;bottom:18px;z-index:60}
+.cz-chat-fab{width:56px;height:56px;border-radius:50%;border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(135deg,#0F172A,#1F2937);color:#fff;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.cz-chat-box{position:absolute;right:0;bottom:70px;width:340px;max-height:70vh;display:flex;flex-direction:column;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden}
+.cz-chat-head{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.12);color:#eee}
+.cz-chat-stream{padding:10px;display:flex;flex-direction:column;gap:8px;overflow:auto}
+.cz-chat-msg{padding:10px 12px;border:1px solid rgba(255,255,255,.1);border-radius:12px;max-width:85%}
+.cz-chat-msg.user{align-self:flex-end;background:rgba(255,255,255,.08)}
+.cz-chat-msg.bot{align-self:flex-start;background:rgba(255,255,255,.04)}
+.cz-chat-form{display:flex;gap:8px;padding:10px;border-top:1px solid rgba(255,255,255,.12)}
+.cz-chat-form input{flex:1;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px;background:rgba(255,255,255,.06);color:#fff}
+.cz-send{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
+.cz-chat-suggest{display:flex;gap:8px;padding:8px 10px;flex-wrap:wrap}
+.cz-chip{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;border-radius:999px;padding:6px 10px;font-size:12px;cursor:pointer}
+
 /* print */
 @media print{
   body{ background:#fff; color:#000; padding:0 }
@@ -822,6 +839,80 @@ async function boot(){
 }
 
 document.addEventListener('DOMContentLoaded', boot);
+
+// --- Chat Concierge ---
+(function(){
+  const qs = new URLSearchParams(location.search);
+  const slug = (location.pathname.split('/').pop()||'').replace(/\.html$/,'');
+  const token = qs.get('token') || '';
+  const langParam = (qs.get('lang')||'').toLowerCase();
+  const LANG = (langParam==='en') ? 'en' : 'fr';
+
+  const $ = id => document.getElementById(id);
+  const box = $('cz-chat-box'), fab = $('cz-chat-toggle'), closeBtn = $('cz-chat-close');
+  const stream = $('cz-chat-stream'), form = $('cz-chat-form'), input = $('cz-chat-input');
+  const chips = Array.from(document.querySelectorAll('.cz-chip'));
+  $('cz-chat-lang').textContent = LANG.toUpperCase();
+
+  function push(role, text){
+    const div = document.createElement('div');
+    div.className = 'cz-chat-msg ' + (role==='user'?'user':'bot');
+    div.innerHTML = text.replace(/\n/g,'<br>');
+    stream.appendChild(div);
+    stream.scrollTop = stream.scrollHeight;
+  }
+
+  async function ask(q){
+    if(!q.trim()) return;
+    push('user', q);
+    input.value = '';
+    const thinking = document.createElement('div');
+    thinking.className='cz-chat-msg bot';
+    thinking.textContent = (LANG==='en'?'Thinking…':'Réflexion…');
+    stream.appendChild(thinking); stream.scrollTop = stream.scrollHeight;
+
+    try{
+      const r = await fetch('/.netlify/functions/guide-chat', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ slug, token, lang: LANG, question: q })
+      });
+      const data = await r.json();
+      thinking.remove();
+      if(!r.ok) throw new Error(data.error||('HTTP '+r.status));
+      push('bot', data.answer || (LANG==='en'?'(No answer)':'(Pas de réponse)'));
+    }catch(e){
+      thinking.remove();
+      push('bot', (LANG==='en'?'Error: ':'Erreur : ')+(e.message||e));
+    }
+  }
+
+  fab.onclick = ()=>{ box.hidden = !box.hidden; if(!box.hidden) input.focus(); };
+  closeBtn.onclick = ()=>{ box.hidden = true; };
+  form.addEventListener('submit', e=>{ e.preventDefault(); ask(input.value); });
+  chips.forEach(c => c.onclick = ()=> ask(c.getAttribute('data-q')||''));
+})();
 </script>
+
+    <!-- Chat Concierge -->
+<div id="cz-chat" class="cz-chat">
+  <button id="cz-chat-toggle" class="cz-chat-fab">💬</button>
+  <div id="cz-chat-box" class="cz-chat-box" hidden>
+    <div class="cz-chat-head">
+      <div>Concierge Zenata · <span id="cz-chat-lang">FR</span></div>
+      <button id="cz-chat-close">✕</button>
+    </div>
+    <div id="cz-chat-stream" class="cz-chat-stream"></div>
+    <div class="cz-chat-suggest">
+      <button class="cz-chip" data-q="Wi-Fi password? / Mot de passe Wi-Fi ?">Wi-Fi ?</button>
+      <button class="cz-chip" data-q="Check-in time / Heure de check-in">Check-in</button>
+      <button class="cz-chip" data-q="Best restaurants nearby / Meilleurs restos">Restos</button>
+    </div>
+    <form id="cz-chat-form" class="cz-chat-form">
+      <input id="cz-chat-input" placeholder="Pose ta question…" autocomplete="off"/>
+      <button class="cz-send" aria-label="Envoyer">↩︎</button>
+    </form>
+  </div>
+</div>
+
 </body>
 </html>
