@@ -391,14 +391,9 @@ const coverUrl =
   (typeof g.cover === 'string' ? g.cover : null);
 
 if (coverUrl && hero && heroImg) {
-  heroImg.onload = () => { hero.style.display = ''; };
-  heroImg.onerror = () => {
-    console.warn('Cover failed to load:', coverUrl);
-    hero.style.display = 'none'; // on cache le hero si l'image est KO
-  };
+  heroImg.onload  = () => { hero.style.display = 'block'; };
+  heroImg.onerror = () => { console.warn('Cover failed:', coverUrl); /* hero reste caché */ };
   heroImg.src = coverUrl;
-} else {
-  if (hero) hero.style.display = 'none';
 }
 
 document.getElementById('title').textContent = g.name || '';
@@ -414,8 +409,9 @@ const introCard = document.getElementById('intro-card');
 const introP = document.getElementById('intro-text');
 if (introCard && introP) {
   introP.innerHTML = String(introText).replace(/\n/g,'<br>');
-  introCard.style.display = '';
+  introCard.style.display = 'block';
 }
+
 
 
     // ==== DATA (avec helpers) ====
