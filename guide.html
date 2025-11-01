@@ -292,34 +292,33 @@ body{
     </div>
 
     <!-- Contact rapide -->
-    <a class="btn" id="btn-wa" target="https://api.whatsapp.com/send/?phone=212665889233&text=Bonjour+Conciergerie+Zenata%2C%0AJe+souhaite+une+%C3%A9valuation+gratuite+de+ma+propri%C3%A9t%C3%A9.%0AVille%3A+__%0AType%3A+__%0AChambres%3A+__%0AQuand+%C3%AAtes-vous+disponibles+%3F&type=phone_number&app_absent=0" rel="noreferrer">
-      <!-- icône WhatsApp -->
+    <a class="btn" id="btn-wa" target="_blank" rel="noreferrer">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"><path d="M20 12a8 8 0 10-14.32 4.906L4 21l4.2-1.1A8 8 0 1020 12z"/><path d="M7.5 8.5c.5 4 4 6 6.5 6.5l1.5-1.5"/></svg>
       WhatsApp
     </a>
-    <a class="btn" id="btn-call" href="tel:+212665889233">Appeler</a>
-    <button class="btn" onclick="window.print()">PDF</button>
+    <a class="btn" id="btn-call" href="tel:+212600000000" data-i18n="call">Appeler</a>
+    <button class="btn" onclick="window.print()" data-i18n="pdf">PDF</button>
   </div>
 
   <div id="hero" class="hero" style="display:none">
     <img id="hero-img" alt="">
     <div class="overlay"></div>
-    <div class="title"><div class="badge">Guide voyageur</div><h1 id="title"></h1></div>
+    <div class="title"><div class="badge" data-i18n="traveler_guide">Guide voyageur</div><h1 id="title"></h1></div>
   </div>
 
   <!-- Bloc Introduction & Accueil -->
   <div id="intro-card" class="intro-card" style="display:none">
-    <h2>Bienvenue à votre Guide Conciergerie 🌴</h2>
+    <h2 id="welcome-title">Bienvenue à Zenata 🌴</h2>
     <p id="intro-text"></p>
-    <p><b>Contact :</b> <a href="mailto:conciergeriezenata@gmail.com">conciergeriezenata@gmail.com</a></p>
+    <p><b>Email :</b> <a href="mailto:conciergeriezenata@gmail.com">conciergeriezenata@gmail.com</a></p>
   </div>
 
   <div id="grid" class="grid"></div>
 
   <div class="footer">
-    © <span id="year"></span> Conciergerie Zenata — Séjour Premium
+    © <span id="year"></span> Conciergerie Zenata — <span id="footer-premium">Séjour Premium</span>
     <br/>
-    <button class="btn" onclick="window.print()">Télécharger en PDF</button>
+    <button class="btn" onclick="window.print()" data-i18n="download_pdf">Télécharger en PDF</button>
   </div>
 </div>
 
@@ -328,13 +327,109 @@ body{
   <div class="modal-card">
     <div class="modal-head">
       <strong id="m-title">Détail</strong>
-      <button class="modal-close" id="m-close">Fermer</button>
+      <button class="modal-close" id="m-close" data-i18n="close">Fermer</button>
     </div>
     <div class="modal-body" id="m-body"></div>
   </div>
 </div>
 
 <script>
+/* ===== i18n ===== */
+let LANG='fr';
+const UI = {
+  fr: {
+    traveler_guide: "Guide voyageur",
+    call: "Appeler",
+    pdf: "PDF",
+    download_pdf: "Télécharger en PDF",
+    welcome_title: "Bienvenue à Zenata 🌴",
+    welcome_fallback: "Nous sommes ravis de vous accueillir à Zenata. Profitez de votre séjour.",
+    location: "Localisation",
+    open_gmaps: "Ouvrir dans Google Maps",
+    directions: "Itinéraire",
+    explore_nearby: "Explorer autour",
+    neighborhood: "Quartier",
+    do_see: "À faire / Recos",
+    link: "Lien",
+    view: "Voir",
+    address: "Adresse",
+    wifi: "Wi-Fi",
+    door_code: "Code porte",
+    sensitive_hidden: "Infos sensibles masquées. Ajoutez votre jeton",
+    checkin: "Arrivée & Check-in",
+    from: "À partir de",
+    parking: "Parking",
+    house_rules: "Règles",
+    no_rules: "Aucune règle.",
+    amenities: "Équipements",
+    not_provided: "Non renseigné.",
+    essentials: "Essentiels",
+    checkout: "Départ",
+    checkout_before: "Check-out avant",
+    support: "Assistance & Contact",
+    email: "Email",
+    whatsapp: "WhatsApp",
+    report_issue: "Signaler un souci",
+    help_issues: "Dépannage",
+    report_thanks: "Merci, c’est envoyé.",
+    report_error: "Erreur",
+    network_error: "Erreur réseau",
+    appliances: "Appareils & Mode d’emploi",
+    no_data: "Non renseigné.",
+    parking_access: "Parking & Accès",
+    spot: "Emplacement",
+    extras: "Services additionnels",
+    book_extra: "Réserver un extra :",
+    detail: "Détail"
+  },
+  en: {
+    traveler_guide: "Traveler Guide",
+    call: "Call",
+    pdf: "PDF",
+    download_pdf: "Download PDF",
+    welcome_title: "Welcome to Zenata 🌴",
+    welcome_fallback: "We’re delighted to host you in Zenata. Enjoy your stay.",
+    location: "Location",
+    open_gmaps: "Open in Google Maps",
+    directions: "Directions",
+    explore_nearby: "Explore nearby",
+    neighborhood: "Neighborhood",
+    do_see: "Do & See",
+    link: "Link",
+    view: "View",
+    address: "Address",
+    wifi: "Wi-Fi",
+    door_code: "Door code",
+    sensitive_hidden: "Sensitive info hidden. Add your token",
+    checkin: "Arrival & Check-in",
+    from: "From",
+    parking: "Parking",
+    house_rules: "House rules",
+    no_rules: "No rules.",
+    amenities: "Amenities",
+    not_provided: "Not provided.",
+    essentials: "Essentials",
+    checkout: "Checkout",
+    checkout_before: "Check-out before",
+    support: "Support",
+    email: "Email",
+    whatsapp: "WhatsApp",
+    report_issue: "Report an issue",
+    help_issues: "Help & Issues",
+    report_thanks: "Thanks, we got it.",
+    report_error: "Error",
+    network_error: "Network error",
+    appliances: "Appliances",
+    no_data: "No data.",
+    parking_access: "Parking & Access",
+    spot: "Spot",
+    extras: "Extras",
+    book_extra: "Book an extra:",
+    detail: "Detail"
+  }
+};
+const S = (k)=> (UI[LANG] && UI[LANG][k]) || UI['fr'][k] || k;
+
 /* ===== Helpers ===== */
 const $ = (id)=>document.getElementById(id);
 $("year").textContent = new Date().getFullYear();
@@ -365,7 +460,7 @@ function icon(name){
   return icons[name] || icons.map;
 }
 
-/* Google Maps (optionnel clé JS) */
+/* Google Maps */
 // window.GMAPS_API_KEY = "TA_CLE";
 const darkMapStyle=[{"elementType":"geometry","stylers":[{"color":"#1f2023"}]},{"elementType":"labels.text.fill","stylers":[{"color":"#e0e0e0"}]},{"elementType":"labels.text.stroke","stylers":[{"color":"#1f2023"}]},{"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#c7a059"}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#1a1b1f"}]},{"featureType":"road","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#d6d6d6"}]},{"featureType":"transit","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},{"featureType":"water","elementType":"geometry","stylers":[{"color":"#0e1116"}]}];
 function loadGoogleMapsScript(cb){
@@ -397,7 +492,6 @@ function parseLines(arr){
     if(parts[2] && /-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?/.test(parts[2])){
       const [a,b]=parts[2].split(',').map(x=>parseFloat(x.trim())); lat=a; lng=b;
     }
-    // catégorie
     let cat=null, text=left;
     const m = left.match(/^\s*\[([^\]]+)\]\s*(.*)$/);
     if(m){ cat = m[1]; text = m[2]||''; }
@@ -405,11 +499,8 @@ function parseLines(arr){
   });
 }
 
-/* Text utils */
+/* Text utils & lang picking */
 const br = s => (s||'').replace(/\n/g,'<br>');
-
-/* Lang helpers */
-let LANG='fr';
 function pick(obj){ if(!obj) return null; return obj[LANG] ?? obj['fr'] ?? obj['en'] ?? null; }
 
 /* ===== Boot ===== */
@@ -420,7 +511,16 @@ async function boot(){
   const langParam=(qs.get('lang')||'').toLowerCase();
   if(langParam==='en') LANG='en';
 
-  // Analytics soft (non-bloquant)
+  // Apply static i18n on fixed labels
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k = el.getAttribute('data-i18n');
+    el.textContent = S(k);
+  });
+  document.getElementById('welcome-title').textContent = S('welcome_title');
+  document.querySelector('.badge').textContent = S('traveler_guide');
+  document.getElementById('footer-premium').textContent = (LANG==='en'?'Premium Stay':'Séjour Premium');
+
+  // Analytics soft
   try{
     const payload = JSON.stringify({ slug, lang: LANG, ts: Date.now() });
     if(navigator.sendBeacon){
@@ -432,15 +532,13 @@ async function boot(){
 
   // via Netlify function pour éviter le cache
   const api = `/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${Date.now()}`;
-
   let g;
   try{
     const r = await fetch(api, { cache: 'no-store' });
     if(!r.ok) throw new Error(`HTTP ${r.status}`);
     g = await r.json();
   }catch(err){
-    console.error('Guide fetch failed:', err);
-    document.body.innerHTML='<div style="color:#fff;text-align:center;padding:48px">Guide introuvable ou indisponible.</div>';
+    document.body.innerHTML = `<div style="color:#fff;text-align:center;padding:48px">${LANG==='en'?'Guide not found.':'Guide introuvable.'}</div>`;
     return;
   }
 
@@ -448,12 +546,12 @@ async function boot(){
   if(g.cover?.imageUrl){ $("hero-img").src=g.cover.imageUrl; $("hero").style.display=''; }
   $("title").textContent=g.name||'';
 
-  // header actions contextuelles
+  // header actions
   const waMsg = encodeURIComponent(`Bonjour 👋 (guide ${slug})`);
-  $("btn-wa").href = `https://wa.me/212665889233?text=${waMsg}`;
+  $("btn-wa").href = `https://wa.me/212600000000?text=${waMsg}`;
 
-  // intro + email
-  const intro = pick(g.intro) || pick(g.welcome) || 'Nous sommes ravis de vous accueillir à Zenata. Profitez de votre séjour.';
+  // intro
+  const intro = pick(g.intro) || pick(g.welcome) || S('welcome_fallback');
   $("intro-text").innerHTML = br(intro); $("intro-card").style.display='';
 
   const allow = g.__sensitive?.token ? (token===g.__sensitive.token) : true;
@@ -465,18 +563,18 @@ async function boot(){
   const grid = $("grid");
   const cards = [];
 
-  // lang toggle UI
+  // lang toggle
   const langToggle = $("langToggle");
   langToggle.querySelectorAll('button').forEach(b=>{
     b.onclick = ()=>{
-      const l=b.getAttribute('data-lang'); if(!l) return;
+      const l=b.getAttribute('data-lang');
       const url = new URL(location.href); url.searchParams.set('lang', l);
       location.href = url.toString();
     };
+    b.classList.toggle('active', b.dataset.lang===LANG);
   });
-  langToggle.querySelectorAll('button').forEach(b=> b.classList.toggle('active', b.dataset.lang===LANG));
 
-  // geo center
+  // geo
   const lat = g?.geo?.lat!=null ? parseFloat(g.geo.lat) : NaN;
   const lng = g?.geo?.lng!=null ? parseFloat(g.geo.lng) : NaN;
   const hasGeo = !Number.isNaN(lat) && !Number.isNaN(lng);
@@ -484,13 +582,13 @@ async function boot(){
   // Localisation
   if (hasGeo){
     cards.push({
-      key: LANG==='en'?'Location':'Localisation', icon:'location',
+      key:S('location'), icon:'location',
       onClick: ()=>{
-        openModal(LANG==='en'?'Location':'Localisation', `
+        openModal(S('location'), `
           <div class="mapbox"><div id="map-canvas" style="width:100%;height:100%"></div></div>
           <div class="modal-actions">
-            <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">${LANG==='en'?'Open in Google Maps':'Ouvrir dans Google Maps'}</a>
-            <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">${LANG==='en'?'Directions':'Itinéraire'}</a>
+            <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">${S('open_gmaps')}</a>
+            <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">${S('directions')}</a>
           </div>
         `);
         loadGoogleMapsScript((err)=>{
@@ -500,8 +598,8 @@ async function boot(){
                 <iframe src="https://www.google.com/maps?q=${lat},${lng}&z=15&output=embed" width="100%" height="100%" style="border:0" loading="lazy"></iframe>
               </div>
               <div class="modal-actions">
-                <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">${LANG==='en'?'Open in Google Maps':'Ouvrir dans Google Maps'}</a>
-                <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">${LANG==='en'?'Directions':'Itinéraire'}</a>
+                <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">${S('open_gmaps')}</a>
+                <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">${S('directions')}</a>
               </div>
             `;
           } else {
@@ -512,7 +610,7 @@ async function boot(){
     });
   }
 
-  // Quartier & Recos (groupées + multi-markers)
+  // Quartier & Recos
   const nbh = pick(g.neighborhood) || {};
   const rec = pick(g.recommendations) || {};
   const nbhItems = parseLines(nbh.places || []);
@@ -521,7 +619,7 @@ async function boot(){
   function groupByCat(items){
     const map = new Map();
     items.forEach(it=>{
-      const key = (it.cat||'Autres').trim();
+      const key = (it.cat|| (LANG==='en'?'Others':'Autres')).trim();
       if(!map.has(key)) map.set(key, []);
       map.get(key).push(it);
     });
@@ -530,12 +628,11 @@ async function boot(){
 
   if ((nbh.intro && nbh.intro.trim()) || nbhItems.length){
     cards.push({
-      key: LANG==='en'?'Neighborhood':'Quartier', icon:'neighborhood',
+      key:S('neighborhood'), icon:'neighborhood',
       onClick:()=>{
         const groups = groupByCat(nbhItems);
-        // points carte
         const pts = nbhItems.filter(i=>Number.isFinite(i.lat)&&Number.isFinite(i.lng)).map(i=>({lat:i.lat,lng:i.lng,title:i.text}));
-        openModal(LANG==='en'?'Neighborhood':'Quartier', `
+        openModal(S('neighborhood'), `
           ${nbh.intro ? `<p>${br(nbh.intro)}</p>` : ''}
           ${pts.length ? `<div class="mapbox" style="margin-bottom:12px"><div id="map-canvas" style="width:100%;height:100%"></div></div>`:''}
           ${Array.from(groups.entries()).map(([cat,items])=>`
@@ -546,7 +643,7 @@ async function boot(){
                   <div class="dot"></div>
                   <div class="list-col">
                     <div class="list-txt">${it.text}</div>
-                    ${it.url ? `<a class="pill" href="${it.url}" target="_blank" rel="noreferrer">${LANG==='en'?'Link':'Voir'}</a>`:''}
+                    ${it.url ? `<a class="pill" href="${it.url}" target="_blank" rel="noreferrer">${S('view')}</a>`:''}
                   </div>
                 </div>
               `).join('')}
@@ -555,14 +652,13 @@ async function boot(){
           ${hasGeo ? `
             <div class="modal-actions">
               <a class="btn" target="_blank" rel="noreferrer"
-                 href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">${LANG==='en'?'Explore nearby':'Explorer autour'}</a>
+                 href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">${S('explore_nearby')}</a>
             </div>` : ''
           }
         `);
         if(pts.length){
           loadGoogleMapsScript((err)=>{
             if(err){
-              // fallback iframe centré logement
               const iframe = `<iframe src="https://www.google.com/maps?q=${lat},${lng}&z=14&output=embed" width="100%" height="100%" style="border:0" loading="lazy"></iframe>`;
               $("m-body").querySelector('.mapbox').innerHTML = iframe;
             }else{
@@ -576,11 +672,11 @@ async function boot(){
 
   if ((rec.intro && rec.intro.trim()) || recItems.length){
     cards.push({
-      key: LANG==='en'?'Do & See':'À faire / Recos', icon:'activities',
+      key:S('do_see'), icon:'activities',
       onClick:()=>{
         const groups = groupByCat(recItems);
         const pts = recItems.filter(i=>Number.isFinite(i.lat)&&Number.isFinite(i.lng)).map(i=>({lat:i.lat,lng:i.lng,title:i.text}));
-        openModal(LANG==='en'?'Do & See':'À faire / Recommandations', `
+        openModal(S('do_see'), `
           ${rec.intro ? `<p>${br(rec.intro)}</p>` : ''}
           ${pts.length ? `<div class="mapbox" style="margin-bottom:12px"><div id="map-canvas" style="width:100%;height:100%"></div></div>`:''}
           ${Array.from(groups.entries()).map(([cat,items])=>`
@@ -591,7 +687,7 @@ async function boot(){
                   <div class="dot"></div>
                   <div class="list-col">
                     <div class="list-txt">${it.text}</div>
-                    ${it.url ? `<a class="pill" href="${it.url}" target="_blank" rel="noreferrer">${LANG==='en'?'Link':'Lien'}</a>`:''}
+                    ${it.url ? `<a class="pill" href="${it.url}" target="_blank" rel="noreferrer">${S('link')}</a>`:''}
                   </div>
                 </div>
               `).join('')}
@@ -601,7 +697,8 @@ async function boot(){
         if(pts.length){
           loadGoogleMapsScript((err)=>{
             if(err){
-              const iframe = `<iframe src="https://www.google.com/maps?q=${hasGeo?`${lat},${lng}`:`${pts[0].lat},${pts[0].lng}`}&z=13&output=embed" width="100%" height="100%" style="border:0" loading="lazy"></iframe>`;
+              const center = hasGeo?`${lat},${lng}`:`${pts[0].lat},${pts[0].lng}`;
+              const iframe = `<iframe src="https://www.google.com/maps?q=${center}&z=13&output=embed" width="100%" height="100%" style="border:0" loading="lazy"></iframe>`;
               $("m-body").querySelector('.mapbox').innerHTML = iframe;
             }else{
               renderGoogleMapJS(pts, hasGeo?{lat,lng}:{lat:pts[0].lat,lng:pts[0].lng});
@@ -612,11 +709,11 @@ async function boot(){
     });
   }
 
-  // Appareils & mode d'emploi
+  // Appareils
   const appl = pick(g.appliances);
   if ((Array.isArray(appl) && appl.length) || (typeof appl==='string' && appl.trim())){
     cards.push({
-      key: LANG==='en'?'Appliances':'Appareils', icon:'appliance',
+      key:S('appliances'), icon:'appliance',
       onClick:()=>{
         let html='';
         if(Array.isArray(appl)){
@@ -625,7 +722,6 @@ async function boot(){
             ${x.tips?.length? `<ul>${x.tips.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}
           `).join('');
         }else{
-          // lignes "Nom — tip1; tip2"
           const lines = (appl||'').split('\n').map(s=>s.trim()).filter(Boolean);
           html = lines.map(l=>{
             const [left,rest] = l.split('—').map(s=>s.trim());
@@ -633,7 +729,7 @@ async function boot(){
             return `<div class="k">${left}</div>${tips.length?`<ul>${tips.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}`;
           }).join('');
         }
-        openModal(LANG==='en'?'Appliances':'Appareils & Mode d’emploi', html || `<p>${LANG==='en'?'No data':'Non renseigné.'}</p>`);
+        openModal(S('appliances'), html || `<p>${S('no_data')}</p>`);
       }
     });
   }
@@ -641,7 +737,7 @@ async function boot(){
   // Dépannage + signalement
   const trb = pick(g.troubleshoot);
   cards.push({
-    key: LANG==='en'?'Help & Issues':'Dépannage', icon:'wrench',
+    key:S('help_issues'), icon:'wrench',
     onClick:()=>{
       let html='';
       if(Array.isArray(trb) && trb.length){
@@ -654,12 +750,12 @@ async function boot(){
       }
       html += `
         <div class="modal-actions">
-          <a class="btn" href="mailto:conciergeriezenata@gmail.com?subject=${encodeURIComponent('Support '+slug)}">Email</a>
-          <a class="btn primary" target="_blank" rel="noreferrer" href="https://wa.me/212600000000?text=${encodeURIComponent('Besoin d’aide (guide '+slug+')')}">WhatsApp</a>
-          <button class="btn" id="btn-report">${LANG==='en'?'Report an issue':'Signaler un souci'}</button>
+          <a class="btn" href="mailto:conciergeriezenata@gmail.com?subject=${encodeURIComponent('Support '+slug)}">${S('email')}</a>
+          <a class="btn primary" target="_blank" rel="noreferrer" href="https://wa.me/212600000000?text=${encodeURIComponent('Besoin d’aide (guide '+slug+')')}">${S('whatsapp')}</a>
+          <button class="btn" id="btn-report">${S('report_issue')}</button>
         </div>
       `;
-      openModal(LANG==='en'?'Help & Issues':'Dépannage', html);
+      openModal(S('help_issues'), html);
       const btn=$("btn-report");
       if(btn){
         btn.onclick = async ()=>{
@@ -669,20 +765,20 @@ async function boot(){
             const r = await fetch('/.netlify/functions/report-issue',{ method:'POST', headers:{'Content-Type':'application/json'},
               body: JSON.stringify({ slug, message: msg, ts: Date.now(), lang: LANG })
             });
-            alert(r.ok ? (LANG==='en'?'Thanks, we got it.':'Merci, c’est envoyé.') : (LANG==='en'?'Error':'Erreur'));
-          }catch{ alert('Erreur réseau'); }
+            alert(r.ok ? S('report_thanks') : S('report_error'));
+          }catch{ alert(S('network_error')); }
         };
       }
     }
   });
 
-  // Parking & Accès
+  // Parking
   if (a.parking || g.parking?.imageUrl){
     cards.push({
-      key: LANG==='en'?'Parking':'Parking & Accès', icon:'car',
+      key:S('parking_access'), icon:'car',
       onClick:()=>{
-        openModal(LANG==='en'?'Parking':'Parking & Accès', `
-          ${a.parking? `<p><b>${LANG==='en'?'Spot':'Emplacement'}:</b> ${a.parking}</p>`:''}
+        openModal(S('parking_access'), `
+          ${a.parking? `<p><b>${S('spot')} :</b> ${a.parking}</p>`:''}
           ${g.parking?.imageUrl? `<img src="${g.parking.imageUrl}" alt="Plan Parking" style="width:100%;border-radius:12px;border:1px solid var(--border);margin-top:8px">`:''}
         `);
       }
@@ -692,28 +788,28 @@ async function boot(){
   // Upsells
   if (Array.isArray(g.upsells) && g.upsells.length){
     cards.push({
-      key: LANG==='en'?'Extras':'Services +', icon:'cart',
+      key:S('extras'), icon:'cart',
       onClick:()=>{
         const rows = g.upsells.map(u=>{
-          const txt = encodeURIComponent(u.waText || ('Bonjour, je souhaite '+(u.label||'service')));
+          const txt = encodeURIComponent(u.waText || (LANG==='en'?'Hello, I’d like ':'Bonjour, je souhaite ')+(u.label||''));
           return `<a class="pill" target="_blank" rel="noreferrer" href="https://wa.me/212600000000?text=${txt}">${u.label||'Option'}</a>`;
         }).join(' ');
-        openModal(LANG==='en'?'Extras':'Services additionnels', `<p>${LANG==='en'?'Book an extra:':'Réserver un extra :'}</p>${rows}`);
+        openModal(S('extras'), `<p>${S('book_extra')}</p>${rows}`);
       }
     });
   }
 
   // Éléments existants
   cards.push(
-    { key: LANG==='en'?'Address':'Adresse', icon:'map', onClick:()=>openModal(LANG==='en'?'Address':'Adresse', `<p>${g.address||''}</p>`) },
-    { key: 'Wi-Fi', icon:'wifi', onClick:()=>openModal('Wi-Fi', `<p><b>SSID</b> : ${a.wifi?.ssid||''}<br><b>Mot de passe</b> : ${a.wifi?.password||''}</p>`) },
-    { key: LANG==='en'?'Door code':'Code porte', icon:'door', onClick:()=>openModal(LANG==='en'?'Door code':'Code porte', allow? `<p style="font-size:28px"><b>${a.doorCode||''}</b></p>` : `<p>${LANG==='en'?'Sensitive info hidden. Add your token':'Infos sensibles masquées. Ajoutez votre jeton'} : <code>?token=VOTRE_TOKEN</code></p>`) },
-    { key: 'Check-in', icon:'checkin', onClick:()=>openModal(LANG==='en'?'Arrival & Check-in':'Arrivée & Check-in', `<p>${LANG==='en'?'From':'À partir de'} <b>${a.checkin_from||''}</b></p>${a.parking?`<p><b>Parking :</b> ${a.parking}</p>`:''}${(a.notes||[]).length?`<ul>${a.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}`) },
-    { key: LANG==='en'?'House rules':'Règles', icon:'rules', onClick:()=>openModal(LANG==='en'?'House rules':'Règles', rules.length?`<ul>${rules.map(r=>`<li>${r}</li>`).join('')}</ul>`:`<p>${LANG==='en'?'No rules.':'Aucune règle.'}</p>`) },
-    { key: LANG==='en'?'Amenities':'Équipements', icon:'amenities', onClick:()=>openModal(LANG==='en'?'Amenities':'Équipements', ams.length? ams.map(x=>`<span class="pill" style="margin:4px 6px 0 0;">${x.label}</span>`).join('') : `<p>${LANG==='en'?'Not provided.':'Non renseigné.'}</p>`) },
-    { key: LANG==='en'?'Essentials':'Essentiels', icon:'map', onClick:()=>openModal(LANG==='en'?'Essentials':'Essentiels', `<p>${br((pick(g.essentials) || ''))}</p>`) },
-    { key: LANG==='en'?'Checkout':'Départ', icon:'exit', onClick:()=>openModal(LANG==='en'?'Checkout':'Départ', `<p>${LANG==='en'?'Check-out before':'Check-out avant'} <b>${(dep.checkout_until||'11:00')}</b></p>`) },
-    { key: LANG==='en'?'Support':'Assistance', icon:'help', onClick:()=>openModal(LANG==='en'?'Support':'Assistance & Contact', `<p><b>Email :</b> <a href="mailto:conciergeriezenata@gmail.com">conciergeriezenata@gmail.com</a></p><div class="modal-actions"><a class="btn primary" target="_blank" rel="noreferrer" href="https://wa.me/212600000000?text=${waMsg}">WhatsApp</a><a class="btn" href="tel:+212600000000">Appeler</a></div>`) },
+    { key:S('address'), icon:'map', onClick:()=>openModal(S('address'), `<p>${g.address||''}</p>`) },
+    { key:S('wifi'), icon:'wifi', onClick:()=>openModal('Wi-Fi', `<p><b>SSID</b> : ${a.wifi?.ssid||''}<br><b>Password</b> : ${a.wifi?.password||''}</p>`) },
+    { key:S('door_code'), icon:'door', onClick:()=>openModal(S('door_code'), allow? `<p style="font-size:28px"><b>${a.doorCode||''}</b></p>` : `<p>${S('sensitive_hidden')}: <code>?token=VOTRE_TOKEN</code></p>`) },
+    { key:'Check-in', icon:'checkin', onClick:()=>openModal(S('checkin'), `<p>${S('from')} <b>${a.checkin_from||''}</b></p>${a.parking?`<p><b>${S('parking')} :</b> ${a.parking}</p>`:''}${(a.notes||[]).length?`<ul>${a.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}`) },
+    { key:S('house_rules'), icon:'rules', onClick:()=>openModal(S('house_rules'), rules.length?`<ul>${rules.map(r=>`<li>${r}</li>`).join('')}</ul>`:`<p>${S('no_rules')}</p>`) },
+    { key:S('amenities'), icon:'amenities', onClick:()=>openModal(S('amenities'), ams.length? ams.map(x=>`<span class="pill" style="margin:4px 6px 0 0;">${x.label}</span>`).join('') : `<p>${S('not_provided')}</p>`) },
+    { key:S('essentials'), icon:'map', onClick:()=>openModal(S('essentials'), `<p>${br((pick(g.essentials) || ''))}</p>`) },
+    { key:S('checkout'), icon:'exit', onClick:()=>openModal(S('checkout'), `<p>${S('checkout_before')} <b>${(dep.checkout_until||'11:00')}</b></p>`) },
+    { key:S('support'), icon:'help', onClick:()=>openModal(S('support'), `<p><b>${S('email')} :</b> <a href="mailto:conciergeriezenata@gmail.com">conciergeriezenata@gmail.com</a></p><div class="modal-actions"><a class="btn primary" target="_blank" rel="noreferrer" href="https://wa.me/212600000000?text=${waMsg}">WhatsApp</a><a class="btn" href="tel:+212600000000">${S('call')}</a></div>`) },
   );
 
   for(const c of cards){
