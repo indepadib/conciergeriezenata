@@ -232,24 +232,25 @@ body{
     en:{traveler_guide:"Traveler Guide",call:"Call",pdf:"PDF",download_pdf:"Download PDF",welcome_title:"Welcome to Zenata 🌴",welcome_fallback:"We’re delighted to host you in Zenata. Enjoy your stay.",location:"Location",open_gmaps:"Open in Google Maps",directions:"Directions",explore_nearby:"Explore nearby",neighborhood:"Neighborhood",do_see:"Do & See",link:"Link",view:"View",address:"Address",wifi:"Wi-Fi",door_code:"Door code",sensitive_hidden:"Sensitive info hidden. Add your token",checkin:"Arrival & Check-in",from:"From",parking:"Parking",house_rules:"House rules",no_rules:"No rules.",amenities:"Amenities",not_provided:"Not provided.",essentials:"Essentials",checkout:"Checkout",checkout_before:"Check-out before",support:"Support",email:"Email",whatsapp:"WhatsApp",report_issue:"Report an issue",help_issues:"Help & Issues",report_thanks:"Thanks, received.",report_error:"Error",network_error:"Network error",appliances:"Appliances",no_data:"No data.",parking_access:"Parking & Access",spot:"Spot",extras:"Extras",book_extra:"Book an extra:",detail:"Detail"}
   };
   const S = (k)=> (UI[LANG] && UI[LANG][k]) || UI['fr'][k] || k;
-  // on remplace notre pick par deux helper
-function pickLang(v){
-  if (v == null) return null;
-  if (typeof v === 'string') return v;
-  if (typeof v === 'object'){
-    if (v[LANG] != null) return v[LANG];
-    if (v.fr != null) return v.fr;
-    if (v.en != null) return v.en;
+
+  // Helpers multi-langues
+  function pickLang(v){
+    if (v == null) return null;
+    if (typeof v === 'string') return v;
+    if (typeof v === 'object'){
+      if (v[LANG] != null) return v[LANG];
+      if (v.fr != null) return v.fr;
+      if (v.en != null) return v.en;
+    }
+    return null;
   }
-  return null;
-}
-function pickText(v){
-  const t = pickLang(v);
-  if (t == null) return null;
-  const s = String(t).trim();
-  return s === '' ? null : s;
-}
-const br = s => String(s||'').replace(/\n/g,'<br>');
+  function pickText(v){
+    const t = pickLang(v);
+    if (t == null) return null;
+    const s = String(t).trim();
+    return s === '' ? null : s;
+  }
+  const br = s => String(s||'').replace(/\n/g,'<br>');
 
   function showAlert(msg){
     const box = $("alert"); if(!box) return;
@@ -324,9 +325,10 @@ const br = s => String(s||'').replace(/\n/g,'<br>');
   }
 
   async function boot(){
-    // 🔧 slug robuste: dernier segment non-vide
+    // slug robuste: dernier segment non-vide (sans .html)
     const segments = location.pathname.split('/').filter(Boolean);
-    const slug = segments.pop() || '';
+    let slug = segments.pop() || '';
+    slug = slug.replace(/\.html$/,'');
     const qs=new URLSearchParams(location.search);
     const token=qs.get('token')||'';
     const langParam=(qs.get('lang')||'').toLowerCase();
@@ -359,46 +361,46 @@ const br = s => String(s||'').replace(/\n/g,'<br>');
     let g;
     try{
       hideAlert();
-      if(!slug){ throw new Error("Slug introuvable dans l'URL (chemin)."); }
+      if(!slug){ throw new Error("Slug introuvable dans l'URL."); }
       g = await fetchGuide(slug);
       console.log('[guide]', g);
     }catch(err){
       console.error(err);
       showAlert(err.message||err);
       $("title").textContent="Guide introuvable";
-      // On montre quand même une intro fallback pour éviter une page vide
       $("intro-text").textContent = (LANG==='en'?'The guide could not be loaded.':'Le guide n’a pas pu être chargé.');
       $("intro-card").style.display='';
       return;
     }
 
-   // --- HERO
-const coverUrl =
-  (g.cover && typeof g.cover === 'object' && (g.cover.imageUrl || g.cover.url)) ||
-  (typeof g.cover === 'string' ? g.cover : null);
+    // --- HERO
+    const coverUrl =
+      (g.cover && typeof g.cover === 'object' && (g.cover.imageUrl || g.cover.url)) ||
+      (typeof g.cover === 'string' ? g.cover : null);
 
-if (coverUrl) {
-  $("hero-img").src = coverUrl;
-  $("hero").style.display = ''; // affiche le hero
-}
-$("title").textContent = g.name || '';
+    if (coverUrl) {
+      $("hero-img").src = coverUrl;
+      $("hero").style.display = '';
+    }
+    $("title").textContent = g.name || '';
 
-// --- INTRO (fallback si vide)
-const introText = pickText(g.intro) ?? pickText(g.welcome) ?? S('welcome_fallback');
-$("intro-text").innerHTML = br(introText);
-$("intro-card").style.display = ''; // toujours visible (avec fallback si besoin)
+    // --- INTRO (fallback si vide)
+    const introText = pickText(g.intro) ?? pickText(g.welcome) ?? S('welcome_fallback');
+    $("intro-text").innerHTML = br(introText);
+    $("intro-card").style.display = '';
 
+    // ==== DATA (avec helpers) ====
+    const allow = g.__sensitive?.token ? (token === g.__sensitive.token) : true;
 
-    // data
-    const allow = g.__sensitive?.token ? (token===g.__sensitive.token) : true;
-    const a     = pick(g.arrival)   || {};
-    const dep   = pick(g.departure) || {};
+    const a   = pickLang(g.arrival)   || {};
+    const dep = pickLang(g.departure) || {};
 
     const rulesObj = pickLang(g.rules);
     const rules = Array.isArray(rulesObj) ? rulesObj : (rulesObj?.items || []);
 
-
     const ams = Array.isArray(g.amenities) ? g.amenities : [];
+
+    const essentialsText = pickText(g.essentials) || "";
 
     const grid = $("grid");
     grid.innerHTML = "";
@@ -428,11 +430,11 @@ $("intro-card").style.display = ''; // toujours visible (avec fallback si besoin
       });
     }
 
-    // Quartier & Recos
-    const nbh = pick(g.neighborhood) || {};
-    const rec = pick(g.recommendations) || {};
+    // Neighborhood & Recos
+    const nbh = pickLang(g.neighborhood)   || {};
+    const rec = pickLang(g.recommendations) || {};
     const nbhItems = parseLines(nbh.places || []);
-    const recItems = parseLines(rec.tips || []);
+    const recItems = parseLines(rec.tips   || []);
 
     if ((nbh.intro && nbh.intro.trim()) || nbhItems.length){
       cards.push({
@@ -497,7 +499,7 @@ $("intro-card").style.display = ''; // toujours visible (avec fallback si besoin
     }
 
     // Appareils
-    const appl = pick(g.appliances);
+    const appl = pickLang(g.appliances);
     if ((Array.isArray(appl) && appl.length) || (typeof appl==='string' && appl.trim())){
       cards.push({
         key:S('appliances'), icon:'amenities',
@@ -522,7 +524,7 @@ $("intro-card").style.display = ''; // toujours visible (avec fallback si besoin
     }
 
     // Dépannage & signalement
-    const trb = pick(g.troubleshoot);
+    const trb  = pickLang(g.troubleshoot);
     cards.push({
       key:S('help_issues'), icon:'help',
       onClick:()=>{
@@ -594,7 +596,7 @@ $("intro-card").style.display = ''; // toujours visible (avec fallback si besoin
       { key:'Check-in', icon:'checkin', onClick:()=>openModal(S('checkin'), `<p>${S('from')} <b>${a.checkin_from||''}</b></p>${a.parking?`<p><b>${S('parking')} :</b> ${a.parking}</p>`:''}${(a.notes||[]).length?`<ul>${a.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}`) },
       { key:S('house_rules'), icon:'rules', onClick:()=>openModal(S('house_rules'), rules.length?`<ul>${rules.map(r=>`<li>${r}</li>`).join('')}</ul>`:`<p>${S('no_rules')}</p>`) },
       { key:S('amenities'), icon:'amenities', onClick:()=>openModal(S('amenities'), ams.length? ams.map(x=>`<span class="pill" style="margin:4px 6px 0 0;">${x.label}</span>`).join('') : `<p>${S('not_provided')}</p>`) },
-      { key:S('essentials'), icon:'map', onClick:()=>openModal(S('essentials'), `<p>${br((pick(g.essentials) || ''))}</p>`) },
+      { key:S('essentials'), icon:'map', onClick:()=>openModal(S('essentials'), `<p>${br(essentialsText)}</p>`) },
       { key:S('checkout'), icon:'exit', onClick:()=>openModal(S('checkout'), `<p>${S('checkout_before')} <b>${(dep.checkout_until||'11:00')}</b></p>`) },
       { key:S('support'), icon:'help', onClick:()=>openModal(S('support'), `<p><b>${S('email')} :</b> <a href="mailto:conciergeriezenata@gmail.com">conciergeriezenata@gmail.com</a></p><div class="modal-actions"><a class="btn primary" target="_blank" rel="noreferrer" href="https://wa.me/212600000000?text=${waMsg}">WhatsApp</a><a class="btn" href="tel:+212600000000">${S('call')}</a></div>`) },
     );
@@ -639,7 +641,7 @@ $("intro-card").style.display = ''; // toujours visible (avec fallback si besoin
       try{
         const qs=new URLSearchParams(location.search);
         const segments = location.pathname.split('/').filter(Boolean);
-        const slug = segments.pop() || '';
+        let slug = (segments.pop() || '').replace(/\.html$/,'');
         const token=qs.get('token')||''; const lang=(qs.get('lang')||LANG);
         const r=await fetch('/.netlify/functions/guide-chat',{method:'POST',headers:{'Content-Type':'application/json'},
           body: JSON.stringify({ slug, token, lang, question:q })
@@ -661,7 +663,7 @@ $("intro-card").style.display = ''; // toujours visible (avec fallback si besoin
     form?.addEventListener('submit',(e)=>{e.preventDefault();e.stopPropagation();ask(input.value||'');});
   }
 
-  // GO + garde-fou d’exécution
+  // GO
   function safeStart(){
     try{
       boot();
@@ -669,7 +671,6 @@ $("intro-card").style.display = ''; // toujours visible (avec fallback si besoin
     }catch(err){
       console.error(err);
       showAlert(err.message||err);
-      // au pire, montrer une intro fallback pour éviter "page vide"
       $("intro-text").textContent = (LANG==='en'?'The guide could not be loaded.':'Le guide n’a pas pu être chargé.');
       $("intro-card").style.display='';
     }
