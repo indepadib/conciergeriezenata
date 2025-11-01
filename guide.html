@@ -326,6 +326,12 @@ body{
 .ai-stream::-webkit-scrollbar{height:10px;width:10px}
 .ai-stream::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:999px}
 body.ai-noscroll{overflow:hidden}
+    /* Force le masquage quand hidden est présent, même si un autre style met display:grid */
+.ai-overlay[hidden] { display: none !important; }
+
+/* Empêche la fermeture quand on clique à l'intérieur de la carte */
+.ai-card { pointer-events: auto; }
+.ai-overlay { pointer-events: auto; }
 
 /* print */
 @media print{
@@ -920,57 +926,80 @@ document.addEventListener('DOMContentLoaded', boot);
 <!-- Chat Concierge (JS) -->
 <script>
 (function(){
+  // Petit util
   const $ = (id)=>document.getElementById(id);
 
-  // Ouvrir depuis n'importe quel bouton/lien : <button data-ai-open>
-  function bindOpeners(){
+  // Ouverture/fermeture robustes + rebind après DOMContentLoaded
+  function initAiModalBindings(){
+    const overlay = $('ai-overlay');
+    const closeBtn = $('ai-close');
+    const form = $('ai-form');
+    const input = $('ai-input');
+    const stream = $('ai-stream');
+
+    if (!overlay) return; // pas de modale IA sur cette page
+
+    function openAi(){
+      overlay.hidden = false;
+      overlay.setAttribute('aria-hidden','false');
+      document.body.classList.add('ai-noscroll');
+      // requery pour éviter refs zombies si le DOM a changé
+      setTimeout(()=>{ $('ai-input')?.focus(); }, 50);
+    }
+    function closeAi(){
+      overlay.hidden = true;
+      overlay.setAttribute('aria-hidden','true');
+      document.body.classList.remove('ai-noscroll');
+    }
+
+    // Expose pour debug (optionnel)
+    window.aiOpen = openAi;
+    window.aiClose = closeAi;
+
+    // Boutons/lien qui ouvrent la modale : data-ai-open
     document.querySelectorAll('[data-ai-open]').forEach(el=>{
-      el.addEventListener('click', (e)=>{ e.preventDefault(); openAi(); });
+      el.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); openAi(); });
+    });
+
+    // Croix
+    closeBtn?.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); closeAi(); });
+
+    // Clic sur le fond (mais pas à l'intérieur de la carte)
+    overlay.addEventListener('click', (e)=>{
+      if (e.target === overlay) { closeAi(); }
+    });
+
+    // Empêche le clic à l'intérieur de fermer
+    $('ai-card')?.addEventListener?.('click', (e)=> e.stopPropagation());
+
+    // ESC
+    window.addEventListener('keydown', (e)=>{
+      if (e.key === 'Escape' && !overlay.hidden) closeAi();
+    });
+
+    // Envoi (empêche tout reload)
+    form?.addEventListener('submit', (e)=>{
+      e.preventDefault(); e.stopPropagation();
+      const q = (input?.value || '').trim();
+      if (!q) return;
+      // Ici on laisse ton code existant d’appel à /.netlify/functions/guide-chat
+      // -> si tu veux afficher un message “en cours…”, tu peux le faire ici
+      askAi(q, stream, input);
     });
   }
 
-  const overlay = $('ai-overlay');
-  const closeBtn = $('ai-close');
-  const form = $('ai-form');
-  const input = $('ai-input');
-  const stream = $('ai-stream');
-
-  function openAi(){
-    if(!overlay) return;
-    overlay.hidden = false;
-    overlay.setAttribute('aria-hidden','false');
-    document.body.classList.add('ai-noscroll');
-    setTimeout(()=>input?.focus(), 50);
-  }
-  function closeAi(){
-    if(!overlay) return;
-    overlay.hidden = true;
-    overlay.setAttribute('aria-hidden','true');
-    document.body.classList.remove('ai-noscroll');
-  }
-
-  // Fermetures : croix, clic fond, ESC
-  closeBtn?.addEventListener('click', (e)=>{ e.preventDefault(); closeAi(); });
-  overlay?.addEventListener('click', (e)=>{
-    if(e.target === overlay){ closeAi(); }
-  });
-  window.addEventListener('keydown', (e)=>{
-    if(e.key === 'Escape' && overlay && !overlay.hidden){ closeAi(); }
-  });
-
-  // Chat minimal – appelle ta Netlify Function existante (guide-chat)
-  function push(role, html){
-    const div = document.createElement('div');
-    div.className = 'ai-msg ' + (role==='user'?'user':'bot');
-    div.innerHTML = (html||'').replace(/\n/g,'<br>');
-    stream.appendChild(div);
-    stream.scrollTop = stream.scrollHeight;
-  }
-
-  async function ask(q){
-    if(!q || !q.trim()) return;
+  // Envoi à ta function (réutilise ton implémentation guide-chat)
+  async function askAi(q, stream, input){
+    function push(role, html){
+      const div = document.createElement('div');
+      div.className = 'ai-msg ' + (role==='user'?'user':'bot');
+      div.innerHTML = (html||'').replace(/\n/g,'<br>');
+      stream.appendChild(div);
+      stream.scrollTop = stream.scrollHeight;
+    }
     push('user', q);
-    input.value = '';
+    if (input) input.value = '';
+
     const thinking = document.createElement('div');
     thinking.className='ai-msg bot';
     thinking.textContent='…';
@@ -998,27 +1027,15 @@ document.addEventListener('DOMContentLoaded', boot);
     }
   }
 
-  form?.addEventListener('submit', (e)=>{
-    e.preventDefault(); e.stopPropagation();
-    ask(input.value);
-    return false;
-  });
-
-  // Suggestions
-  document.addEventListener('click', (e)=>{
-    const t = e.target;
-    if(t && t.matches('.ai-chip')){
-      e.preventDefault(); ask(t.getAttribute('data-q')||'');
-    }
-  });
-
-  // Si tu veux que le bouton 💬 ouvre la modale au lieu du petit widget :
- //  document.getElementById('cz-chat-toggle')?.setAttribute('data-ai-open','');
-
-  // Auto-bind
-  document.addEventListener('DOMContentLoaded', bindOpeners);
+  // Bind après DOM chargé
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAiModalBindings);
+  } else {
+    initAiModalBindings();
+  }
 })();
 </script>
+
 
 
 
