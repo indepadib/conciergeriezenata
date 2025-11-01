@@ -13,7 +13,7 @@ export default async (req) => {
 
     // === Build absolute URL to get-guide (no relative URL issues)
     const base =
-      process.env.SITE_URL ||
+      process.env.SITE_URL_GPT ||
       process.env.URL ||
       process.env.DEPLOY_PRIME_URL ||
       new URL('/', req.url).origin;
