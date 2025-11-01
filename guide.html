@@ -179,21 +179,21 @@ Guide public premium – version statique sans build
 <meta name="robots" content="noindex,nofollow"/>
 <link rel="icon" href="/logo/logo_officiel_couleur_picto.png"/>
 
+<!-- PWA -->
+<link rel="manifest" id="dyn-manifest" href="data:application/manifest+json,{}">
+<meta name="theme-color" content="#0d0e11"/>
+
 <style>
 :root{
   --bg1:#0d0e11; --bg2:#1a1b1f;
-  --ink:#f5f5f5; --muted:#a3a3a3;
-  --accent:#c7a059;
-  --card:rgba(255,255,255,.05);
-  --border:rgba(255,255,255,.08);
+  --ink:#f5f5f5; --muted:#a3a3a3; --accent:#c7a059;
+  --card:rgba(255,255,255,.05); --border:rgba(255,255,255,.08);
   --radius:18px; --shadow:0 10px 30px rgba(0,0,0,.5);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:Inter,system-ui,sans-serif;color:var(--ink);
+body{font-family:Inter,system-ui,sans-serif;color:var(--ink);
   background:radial-gradient(1000px 700px at 20% -10%, var(--bg2), var(--bg1) 80%);
-  min-height:100vh; padding:28px;
-}
+  min-height:100vh; padding:28px}
 .wrap{max-width:1200px;margin:0 auto}
 .header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
 .header img{height:34px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}
@@ -211,140 +211,76 @@ body{
 .hero .title .badge{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:12px;border-radius:999px;padding:4px 10px;display:inline-block;margin-bottom:8px}
 .hero .title h1{margin:0;font-size:34px;font-weight:700;letter-spacing:.3px}
 
-.intro-card{
-  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
-  box-shadow:var(--shadow); backdrop-filter:blur(12px);
-  text-align:center; padding:40px 28px; margin-bottom:40px;
-}
+.intro-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);backdrop-filter:blur(12px);text-align:center;padding:28px;margin-bottom:28px}
 .intro-card h2{font-size:22px;margin-bottom:10px;color:var(--accent)}
 .intro-card p{color:var(--muted);max-width:840px;margin:0 auto 8px;line-height:1.65}
-.intro-card a{color:var(--accent);text-decoration:none}
-.intro-card a:hover{text-decoration:underline}
+.intro-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px}
 
-.grid{
-  display:grid; gap:18px;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-  margin-bottom:40px;
-}
-.tile{
-  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
-  box-shadow:var(--shadow); backdrop-filter:blur(10px);
-  padding:28px 20px; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  cursor:pointer; transition:all .25s ease; text-align:center;
-}
-.tile:hover{ transform:translateY(-3px); background:rgba(255,255,255,.08) }
-.tile svg{ width:34px;height:34px;margin-bottom:12px;stroke:var(--accent);stroke-width:1.7 }
-.tile span{ font-size:15px; font-weight:600; letter-spacing:.3px }
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-bottom:32px}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);backdrop-filter:blur(10px);padding:28px 20px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .25s ease;text-align:center}
+.tile:hover{transform:translateY(-3px);background:rgba(255,255,255,.08)}
+.tile svg{width:34px;height:34px;margin-bottom:12px;stroke:var(--accent);stroke-width:1.7}
+.tile span{font-size:15px;font-weight:600;letter-spacing:.3px}
 
-.modal{ position:fixed; inset:0; background:rgba(0,0,0,.55);
-  display:none; align-items:center; justify-content:center; padding:24px; z-index:50 }
-.modal[open]{ display:flex }
-.modal-card{
-  background:linear-gradient(180deg,#121317 0%,#0d0e11 100%);
-  border:1px solid var(--border); border-radius:var(--radius);
-  max-width:860px; width:100%; box-shadow:var(--shadow); color:#f8f8f8
-}
-.modal-head{ display:flex; align-items:center; gap:10px; justify-content:space-between; border-bottom:1px solid var(--border); padding:16px 20px }
-.modal-head strong{ font-size:18px }
-.modal-close{ background:transparent; border:1px solid var(--border); border-radius:999px; color:#ccc; padding:6px 12px; cursor:pointer }
-.modal-body{ padding:22px 20px 24px; font-size:15px; line-height:1.6 }
-.modal-body .mapbox{ height:420px; border-radius:14px; overflow:hidden; border:1px solid var(--border); box-shadow:inset 0 0 0 1px rgba(255,255,255,.02) }
-.modal-actions{ display:flex; gap:10px; margin-top:14px; flex-wrap:wrap }
-.btn{ appearance:none; border:1px solid var(--border); background:rgba(255,255,255,.06); color:#eee; border-radius:12px; padding:10px 14px; cursor:pointer; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:8px }
-.btn.primary{ background:linear-gradient(135deg,#0F172A,#1F2937); border:none }
+.btn{appearance:none;border:1px solid var(--border);background:rgba(255,255,255,.06);
+  color:#eee;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn.primary{background:linear-gradient(135deg,#0F172A,#1F2937);border:none}
+.btn.ghost{background:transparent}
 
-.footer{ text-align:center; color:var(--muted); margin-top:40px; font-size:13px }
+.footer{text-align:center;color:var(--muted);margin-top:24px;font-size:13px}
 .footer .btn{margin-top:10px}
 
-/* listes premium */
+/* list / pills */
 .list{display:flex;flex-direction:column;gap:10px;margin-top:8px}
 .list-row{display:flex;gap:10px;align-items:flex-start}
 .dot{width:8px;height:8px;border-radius:999px;background:#C7A059;position:relative;top:8px;flex-shrink:0}
 .list-col{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .list-txt{font-size:14px;line-height:1.45}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid rgba(255,255,255,.12);
-      border-radius:999px;text-decoration:none;font-size:12px;color:#fff;background:rgba(255,255,255,.06)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid rgba(255,255,255,.12);border-radius:999px;text-decoration:none;font-size:12px;color:#fff;background:rgba(255,255,255,.06)}
 .pill:hover{background:rgba(255,255,255,.12)}
 .k{font-size:12px;color:#bbb;margin-top:6px}
 
-/* ===== Agent IA (Premium Modal) ===== */
-.ai-overlay{
-  position: fixed; inset: 0; z-index: 70; display: grid; place-items: center;
-  background: radial-gradient(80% 100% at 50% 50%, rgba(0,0,0,.55), rgba(0,0,0,.75));
-  backdrop-filter: blur(6px);
-  animation: ai-fade .18s ease-out;
-}
-@keyframes ai-fade{from{opacity:0}to{opacity:1}}
-.ai-card{
-  width: min(880px, 92vw); max-height: min(82vh, 820px);
-  display: flex; flex-direction: column; overflow: hidden;
-  border-radius: 20px; border: 1px solid rgba(255,255,255,.12);
-  background:
-    radial-gradient(120% 160% at -10% -20%, rgba(199,160,89,.10), transparent 40%),
-    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-  box-shadow: 0 30px 80px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.04);
-  color: #f5f5f5;
-}
-.ai-head{
-  display:flex; align-items:center; justify-content:space-between; gap:12px;
-  padding:16px 18px; border-bottom:1px solid rgba(255,255,255,.10);
-  background: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.05));
-}
-.ai-brand{display:flex; gap:10px; align-items:center}
-.ai-brand img{width:32px; height:32px; border-radius:8px; border:1px solid rgba(255,255,255,.12)}
-.ai-brand strong{display:block; font-size:16px; letter-spacing:.2px}
-.ai-brand span{display:block; font-size:12px; color:#bdbdbd}
-.ai-close{
-  border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06);
-  color:#fff; border-radius:12px; padding:8px 10px; cursor:pointer;
-}
-.ai-body{display:flex; flex-direction:column; gap:10px; padding:14px 14px 16px}
-.ai-stream{
-  flex:1; min-height:180px; max-height: 56vh; overflow:auto;
-  display:flex; flex-direction:column; gap:10px; padding:6px;
-}
-.ai-msg{padding:10px 12px; border:1px solid rgba(255,255,255,.10);
-  border-radius:12px; max-width:80%}
-.ai-msg.user{align-self:flex-end; background:rgba(255,255,255,.10)}
-.ai-msg.bot{align-self:flex-start; background:rgba(255,255,255,.06)}
-.ai-suggest{display:flex; gap:8px; flex-wrap:wrap}
-.ai-chip{
-  border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06);
-  color:#fff; border-radius:999px; padding:6px 10px; font-size:12px; cursor:pointer;
-}
-.ai-form{display:flex; gap:8px; border-top:1px dashed rgba(255,255,255,.12); padding-top:10px}
-.ai-form input{
-  flex:1; border:1px solid rgba(255,255,255,.16); border-radius:12px; padding:10px;
-  background:rgba(255,255,255,.06); color:#fff;
-}
-.ai-send{
-  border:1px solid rgba(255,255,255,.16); background:linear-gradient(135deg,#0F172A,#1F2937);
-  color:#fff; border-radius:12px; padding:8px 12px; cursor:pointer;
-}
-/* scroll premium */
-.ai-stream::-webkit-scrollbar{height:10px;width:10px}
-.ai-stream::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:999px}
-body.ai-noscroll{overflow:hidden}
-.ai-overlay[hidden]{display:none!important}
+/* Modal générique */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:24px;z-index:50}
+.modal[open]{display:flex}
+.modal-card{background:linear-gradient(180deg,#121317 0%,#0d0e11 100%);border:1px solid var(--border);border-radius:var(--radius);max-width:860px;width:100%;box-shadow:var(--shadow);color:#f8f8f8}
+.modal-head{display:flex;align-items:center;gap:10px;justify-content:space-between;border-bottom:1px solid var(--border);padding:16px 20px}
+.modal-head strong{font-size:18px}
+.modal-close{background:transparent;border:1px solid var(--border);border-radius:999px;color:#ccc;padding:6px 12px;cursor:pointer}
+.modal-body{padding:22px 20px 24px;font-size:15px;line-height:1.6}
+.modal-body .mapbox{height:420px;border-radius:14px;overflow:hidden;border:1px solid var(--border);box-shadow:inset 0 0 0 1px rgba(255,255,255,.02)}
+.modal-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
 
-/* FAB pour ouvrir la modale IA */
-.ai-fab{
-  position:fixed; right:18px; bottom:18px; z-index: 99;
-  width:56px; height:56px; border-radius:50%;
-  border:1px solid rgba(255,255,255,.16);
-  background:linear-gradient(135deg,#0F172A,#1F2937);
-  color:#fff; font-size:22px; line-height:56px; text-align:center;
-  box-shadow:0 14px 36px rgba(0,0,0,.35); cursor:pointer;
-}
-.ai-fab:hover{ transform:translateY(-2px); }
+/* Agent IA (premium modal) */
+.ai-overlay{position:fixed;inset:0;z-index:70;display:none;place-items:center;background:radial-gradient(80% 100% at 50% 50%, rgba(0,0,0,.55), rgba(0,0,0,.75));backdrop-filter:blur(6px)}
+.ai-overlay[open]{display:grid}
+.ai-card{width:min(880px,92vw);max-height:min(82vh,820px);display:flex;flex-direction:column;overflow:hidden;border-radius:20px;border:1px solid rgba(255,255,255,.12);
+  background:radial-gradient(120% 160% at -10% -20%, rgba(199,160,89,.10), transparent 40%),linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));box-shadow:0 30px 80px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.04);color:#f5f5f5}
+.ai-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.10);background:linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.05))}
+.ai-brand{display:flex;gap:10px;align-items:center}
+.ai-brand img{width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,.12)}
+.ai-stream{flex:1;min-height:180px;max-height:56vh;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:12px}
+.ai-msg{padding:10px 12px;border:1px solid rgba(255,255,255,.10);border-radius:12px;max-width:80%}
+.ai-msg.user{align-self:flex-end;background:rgba(255,255,255,.10)}
+.ai-msg.bot{align-self:flex-start;background:rgba(255,255,255,.06)}
+.ai-suggest{display:flex;gap:8px;flex-wrap:wrap;padding:0 12px 8px}
+.ai-chip{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#fff;border-radius:999px;padding:6px 10px;font-size:12px;cursor:pointer}
+.ai-form{display:flex;gap:8px;border-top:1px dashed rgba(255,255,255,.12);padding:10px 12px}
+.ai-form input{flex:1;border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:10px;background:rgba(255,255,255,.06);color:#fff}
+.ai-send{border:1px solid rgba(255,255,255,.16);background:linear-gradient(135deg,#0F172A,#1F2937);color:#fff;border-radius:12px;padding:8px 12px;cursor:pointer}
+.ai-fab{position:fixed;right:18px;bottom:18px;z-index:60;width:56px;height:56px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:linear-gradient(135deg,#0F172A,#1F2937);color:#fff;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+[hidden]{display:none !important}
 
 /* print */
 @media print{
-  body{ background:#fff; color:#000; padding:0 }
-  .header, .lang-toggle, .modal, .btn, .ai-fab, .ai-overlay{ display:none !important }
-  .hero{ height:300px; border:none; box-shadow:none }
-  .tile, .intro-card{ box-shadow:none }
-  a{ color:#000; text-decoration:none }
+  body{background:#fff;color:#000;padding:0}
+  .header,.lang-toggle,.modal,.btn,.ai-fab,.ai-overlay{display:none !important}
+  .hero{height:300px;border:none;box-shadow:none}
+  .tile,.intro-card{box-shadow:none}
+  a{color:#000;text-decoration:none}
 }
 </style>
 </head>
@@ -377,608 +313,380 @@ body.ai-noscroll{overflow:hidden}
     <div class="title"><div class="badge" data-i18n="traveler_guide">Guide voyageur</div><h1 id="title"></h1></div>
   </div>
 
-  <!-- Bloc Introduction & Accueil -->
+  <!-- Intro -->
   <div id="intro-card" class="intro-card" style="display:none">
     <h2 id="welcome-title">Bienvenue à Zenata 🌴</h2>
     <p id="intro-text"></p>
-    <p><b>Email :</b> <a href="mailto:conciergeriezenata@gmail.com">conciergeriezenata@gmail.com</a></p>
+    <div class="intro-actions">
+      <canvas id="qr" width="120" height="120" aria-label="QR du guide"></canvas>
+      <a class="btn" id="btn-ics-in" download="checkin.ics">+ Calendar Check-in</a>
+      <a class="btn" id="btn-ics-out" download="checkout.ics">+ Calendar Check-out</a>
+    </div>
+    <p class="k" style="margin-top:8px"><b>Email :</b> <a href="mailto:conciergeriezenata@gmail.com">conciergeriezenata@gmail.com</a></p>
   </div>
 
   <div id="grid" class="grid"></div>
 
   <div class="footer">
-    © <span id="year"></span> Conciergerie Zenata — <span id="footer-premium">Séjour Premium</span>
-    <br/>
+    © <span id="year"></span> Conciergerie Zenata — <span id="footer-premium">Séjour Premium</span><br/>
     <button class="btn" onclick="window.print()" data-i18n="download_pdf">Télécharger en PDF</button>
   </div>
 </div>
 
-<!-- Modale “cartes” -->
+<!-- Modale générique -->
 <div id="modal" class="modal" aria-hidden="true">
-  <div class="modal-card">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="m-title">
     <div class="modal-head">
       <strong id="m-title">Détail</strong>
-      <button class="modal-close" id="m-close" data-i18n="close">Fermer</button>
+      <button class="modal-close" id="m-close" data-i18n="close" type="button">Fermer</button>
     </div>
     <div class="modal-body" id="m-body"></div>
   </div>
 </div>
 
-<script>
-/* ===== i18n ===== */
-let LANG='fr';
-const UI = {
-  fr: { traveler_guide:"Guide voyageur", call:"Appeler", pdf:"PDF", download_pdf:"Télécharger en PDF",
-    welcome_title:"Bienvenue à Zenata 🌴", welcome_fallback:"Nous sommes ravis de vous accueillir à Zenata. Profitez de votre séjour.",
-    location:"Localisation", open_gmaps:"Ouvrir dans Google Maps", directions:"Itinéraire", explore_nearby:"Explorer autour",
-    neighborhood:"Quartier", do_see:"À faire / Recos", link:"Lien", view:"Voir", address:"Adresse", wifi:"Wi-Fi",
-    door_code:"Code porte", sensitive_hidden:"Infos sensibles masquées. Ajoutez votre jeton",
-    checkin:"Arrivée & Check-in", from:"À partir de", parking:"Parking",
-    house_rules:"Règles", no_rules:"Aucune règle.", amenities:"Équipements", not_provided:"Non renseigné.",
-    essentials:"Essentiels", checkout:"Départ", checkout_before:"Check-out avant",
-    support:"Assistance & Contact", email:"Email", whatsapp:"WhatsApp",
-    report_issue:"Signaler un souci", help_issues:"Dépannage", report_thanks:"Merci, c’est envoyé.", report_error:"Erreur", network_error:"Erreur réseau",
-    appliances:"Appareils & Mode d’emploi", no_data:"Non renseigné.", parking_access:"Parking & Accès", spot:"Emplacement",
-    extras:"Services additionnels", book_extra:"Réserver un extra :", detail:"Détail" },
-  en: { traveler_guide:"Traveler Guide", call:"Call", pdf:"PDF", download_pdf:"Download PDF",
-    welcome_title:"Welcome to Zenata 🌴", welcome_fallback:"We’re delighted to host you in Zenata. Enjoy your stay.",
-    location:"Location", open_gmaps:"Open in Google Maps", directions:"Directions", explore_nearby:"Explore nearby",
-    neighborhood:"Neighborhood", do_see:"Do & See", link:"Link", view:"View", address:"Address", wifi:"Wi-Fi",
-    door_code:"Door code", sensitive_hidden:"Sensitive info hidden. Add your token",
-    checkin:"Arrival & Check-in", from:"From", parking:"Parking",
-    house_rules:"House rules", no_rules:"No rules.", amenities:"Amenities", not_provided:"Not provided.",
-    essentials:"Essentials", checkout:"Checkout", checkout_before:"Check-out before",
-    support:"Support", email:"Email", whatsapp:"WhatsApp",
-    report_issue:"Report an issue", help_issues:"Help & Issues", report_thanks:"Thanks, we got it.", report_error:"Error", network_error:"Network error",
-    appliances:"Appliances", no_data:"No data.", parking_access:"Parking & Access", spot:"Spot",
-    extras:"Extras", book_extra:"Book an extra:", detail:"Detail" }
-};
-const S = (k)=> (UI[LANG] && UI[LANG][k]) || UI['fr'][k] || k;
-
-/* ===== Helpers ===== */
-const $ = (id)=>document.getElementById(id);
-$("year").textContent = new Date().getFullYear();
-
-function openModal(title, html){ $("m-title").textContent = title; $("m-body").innerHTML = html; $("modal").setAttribute("open",""); }
-function closeModal(){ $("modal").removeAttribute("open"); }
-$("m-close").onclick = (e)=>{ e.preventDefault(); e.stopPropagation(); closeModal(); };
-$("modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(); });
-
-function icon(name){
-  const icons={
-    wifi:`<svg fill="none" viewBox="0 0 24 24"><path d="M5 12a9 9 0 0114 0M2 9a12 12 0 0120 0M8.5 15.5a5 5 0 017 0M12 20h.01"/></svg>`,
-    door:`<svg fill="none" viewBox="0 0 24 24"><path d="M14 12v.01M6 3h12v18H6z"/></svg>`,
-    checkin:`<svg fill="none" viewBox="0 0 24 24"><path d="M3 3h18v18H3zM8 12l2 2 5-5"/></svg>`,
-    map:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 3l6 3 6-3v18l-6 3-6-3-6 3V3l6-3z"/></svg>`,
-    rules:`<svg fill="none" viewBox="0 0 24 24"><path d="M5 5h14M5 9h14M5 13h9M5 17h9"/></svg>`,
-    amenities:`<svg fill="none" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/></svg>`,
-    help:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 9a3 3 0 116 0c0 1.657-3 3-3 3m0 4h.01"/></svg>`,
-    exit:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 4l5 5-5 5m5-5H9"/></svg>`,
-    location:`<svg fill="none" viewBox="0 0 24 24"><path d="M12 21s7-4.35 7-10a7 7 0 10-14 0c0 5.65 7 10 7 10zM12 11a2 2 0 110-4 2 2 0 010 4z"/></svg>`,
-    neighborhood:`<svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.5" d="M12 21s7-4.35 7-10a7 7 0 10-14 0c0 5.65 7 10 7 10z"/><circle cx="12" cy="11" r="2" fill="currentColor"/></svg>`,
-    activities:`<svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.5" d="M4 7h16M4 12h16M4 17h10"/><circle cx="18" cy="17" r="1.5" fill="currentColor"/></svg>`,
-    appliance:`<svg fill="none" viewBox="0 0 24 24"><path d="M4 6h16v12H4zM8 9h.01M12 9h.01M16 9h.01"/></svg>`,
-    wrench:`<svg fill="none" viewBox="0 0 24 24"><path d="M21 3l-6 6M3 21l6-6M3 10a7 7 0 109.9 9.9"/></svg>`,
-    car:`<svg fill="none" viewBox="0 0 24 24"><path d="M3 13l2-5h14l2 5v5h-2a2 2 0 01-4 0H9a2 2 0 01-4 0H3v-5z"/></svg>`,
-    cart:`<svg fill="none" viewBox="0 0 24 24"><path d="M3 4h2l2 12h10l2-8H7"/></svg>`
-  };
-  return icons[name] || icons.map;
-}
-
-/* Google Maps */
-// window.GMAPS_API_KEY = "TA_CLE";
-const darkMapStyle=[{"elementType":"geometry","stylers":[{"color":"#1f2023"}]},{"elementType":"labels.text.fill","stylers":[{"color":"#e0e0e0"}]},{"elementType":"labels.text.stroke","stylers":[{"color":"#1f2023"}]},{"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#c7a059"}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#1a1b1f"}]},{"featureType":"road","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#d6d6d6"}]},{"featureType":"transit","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},{"featureType":"water","elementType":"geometry","stylers":[{"color":"#0e1116"}]}];
-function loadGoogleMapsScript(cb){
-  if (window.google && window.google.maps){ cb(); return; }
-  const key = window.GMAPS_API_KEY;
-  if (!key){ cb(new Error('NO_KEY')); return; }
-  const s=document.createElement('script');
-  s.src=`https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=marker`;
-  s.async=true; s.onload=()=>cb(); s.onerror=()=>cb(new Error('LOAD_FAIL')); document.head.appendChild(s);
-}
-function renderGoogleMapJS(points, center){
-  const el = document.getElementById('map-canvas'); if(!el||!window.google) return;
-  const map = new google.maps.Map(el,{center:center,zoom:points.length>1?13:15,disableDefaultUI:true,styles:darkMapStyle});
-  points.forEach(p=>{
-    new google.maps.Marker({position:{lat:p.lat,lng:p.lng},map,
-      icon:{path:google.maps.SymbolPath.CIRCLE,scale:7,fillColor:'#c7a059',fillOpacity:1,strokeColor:'#fff',strokeWeight:2},
-      title:p.title||''
-    });
-  });
-}
-
-/* Parsing lignes: "[Catégorie] Nom — détail | url | lat,lng" */
-function parseLines(arr){
-  return (arr||[]).map(line=>{
-    const parts = String(line).split('|').map(s=>s.trim());
-    const left = parts[0]||'';
-    const url = parts[1] && /^https?:\/\//i.test(parts[1]) ? parts[1] : null;
-    let lat=null,lng=null;
-    if(parts[2] && /-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?/.test(parts[2])){
-      const [a,b]=parts[2].split(',').map(x=>parseFloat(x.trim())); lat=a; lng=b;
-    }
-    let cat=null, text=left;
-    const m = left.match(/^\s*\[([^\]]+)\]\s*(.*)$/);
-    if(m){ cat = m[1]; text = m[2]||''; }
-    return { text, url, lat, lng, cat };
-  });
-}
-
-/* Text utils & lang picking */
-const br = s => (s||'').replace(/\n/g,'<br>');
-function pick(obj){ if(!obj) return null; return obj[LANG] ?? obj['fr'] ?? obj['en'] ?? null; }
-
-/* ===== Boot ===== */
-async function boot(){
-  const slug=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
-  const qs=new URLSearchParams(location.search);
-  const token=qs.get('token')||'';
-  const langParam=(qs.get('lang')||'').toLowerCase();
-  if(langParam==='en') LANG='en';
-
-  // Apply static i18n on fixed labels
-  document.querySelectorAll('[data-i18n]').forEach(el=>{
-    const k = el.getAttribute('data-i18n');
-    el.textContent = S(k);
-  });
-  document.getElementById('welcome-title').textContent = S('welcome_title');
-  document.querySelector('.badge').textContent = S('traveler_guide');
-  document.getElementById('footer-premium').textContent = (LANG==='en'?'Premium Stay':'Séjour Premium');
-
-  // Analytics soft (optionnel)
-  try{
-    const payload = JSON.stringify({ slug, lang: LANG, ts: Date.now() });
-    if(navigator.sendBeacon){
-      navigator.sendBeacon('/.netlify/functions/guide-view', payload);
-    }else{
-      fetch('/.netlify/functions/guide-view',{ method:'POST', headers:{'Content-Type':'application/json'}, body: payload });
-    }
-  }catch{}
-
-  // via Netlify function pour éviter le cache
-  const api = `/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${Date.now()}`;
-  let g;
-  try{
-    const r = await fetch(api, { cache: 'no-store' });
-    if(!r.ok) throw new Error(`HTTP ${r.status}`);
-    g = await r.json();
-  }catch(err){
-    document.body.innerHTML = `<div style="color:#fff;text-align:center;padding:48px">${LANG==='en'?'Guide not found.':'Guide introuvable.'}</div>`;
-    return;
-  }
-
-  // hero/title
-  if(g.cover?.imageUrl){ $("hero-img").src=g.cover.imageUrl; $("hero").style.display=''; }
-  $("title").textContent=g.name||'';
-
-  // header actions
-  const waMsg = encodeURIComponent(`Bonjour 👋 (guide ${slug})`);
-  $("btn-wa").href = `https://wa.me/212600000000?text=${waMsg}`;
-
-  // intro
-  const intro = pick(g.intro) || pick(g.welcome) || S('welcome_fallback');
-  $("intro-text").innerHTML = br(intro); $("intro-card").style.display='';
-
-  const allow = g.__sensitive?.token ? (token===g.__sensitive.token) : true;
-  const a = pick(g.arrival) || {};
-  const dep = pick(g.departure) || {};
-  const rules = (pick(g.rules)?.items) || [];
-  const ams = g.amenities || [];
-
-  const grid = $("grid");
-  const cards = [];
-
-  // lang toggle
-  const langToggle = $("langToggle");
-  langToggle.querySelectorAll('button').forEach(b=>{
-    b.onclick = (e)=>{
-      e.preventDefault(); e.stopPropagation();
-      const l=b.getAttribute('data-lang');
-      const url = new URL(location.href); url.searchParams.set('lang', l);
-      location.href = url.toString();
-    };
-    b.classList.toggle('active', b.dataset.lang===LANG);
-  });
-
-  // geo
-  const lat = g?.geo?.lat!=null ? parseFloat(g.geo.lat) : NaN;
-  const lng = g?.geo?.lng!=null ? parseFloat(g.geo.lng) : NaN;
-  const hasGeo = !Number.isNaN(lat) && !Number.isNaN(lng);
-
-  // Localisation
-  if (hasGeo){
-    cards.push({
-      key:S('location'), icon:'location',
-      onClick: ()=>{
-        openModal(S('location'), `
-          <div class="mapbox"><div id="map-canvas" style="width:100%;height:100%"></div></div>
-          <div class="modal-actions">
-            <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">${S('open_gmaps')}</a>
-            <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">${S('directions')}</a>
-          </div>
-        `);
-        loadGoogleMapsScript((err)=>{
-          if(err){
-            $("m-body").innerHTML = `
-              <div class="mapbox">
-                <iframe src="https://www.google.com/maps?q=${lat},${lng}&z=15&output=embed" width="100%" height="100%" style="border:0" loading="lazy"></iframe>
-              </div>
-              <div class="modal-actions">
-                <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">${S('open_gmaps')}</a>
-                <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">${S('directions')}</a>
-              </div>
-            `;
-          } else {
-            renderGoogleMapJS([{lat,lng,title:g.name||''}], {lat,lng});
-          }
-        });
-      }
-    });
-  }
-
-  // Quartier & Recos
-  const nbh = pick(g.neighborhood) || {};
-  const rec = pick(g.recommendations) || {};
-  const nbhItems = parseLines(nbh.places || []);
-  const recItems = parseLines(rec.tips || []);
-
-  function groupByCat(items){
-    const map = new Map();
-    items.forEach(it=>{
-      const key = (it.cat|| (LANG==='en'?'Others':'Autres')).trim();
-      if(!map.has(key)) map.set(key, []);
-      map.get(key).push(it);
-    });
-    return map;
-  }
-
-  if ((nbh.intro && nbh.intro.trim()) || nbhItems.length){
-    cards.push({
-      key:S('neighborhood'), icon:'neighborhood',
-      onClick:()=>{
-        const groups = groupByCat(nbhItems);
-        const pts = nbhItems.filter(i=>Number.isFinite(i.lat)&&Number.isFinite(i.lng)).map(i=>({lat:i.lat,lng:i.lng,title:i.text}));
-        openModal(S('neighborhood'), `
-          ${nbh.intro ? `<p>${br(nbh.intro)}</p>` : ''}
-          ${pts.length ? `<div class="mapbox" style="margin-bottom:12px"><div id="map-canvas" style="width:100%;height:100%"></div></div>`:''}
-          ${Array.from(groups.entries()).map(([cat,items])=>`
-            <div class="k">${cat}</div>
-            <div class="list">
-              ${items.map(it=>`
-                <div class="list-row">
-                  <div class="dot"></div>
-                  <div class="list-col">
-                    <div class="list-txt">${it.text}</div>
-                    ${it.url ? `<a class="pill" href="${it.url}" target="_blank" rel="noreferrer">${S('view')}</a>`:''}
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          `).join('')}
-          ${hasGeo ? `
-            <div class="modal-actions">
-              <a class="btn" target="_blank" rel="noreferrer"
-                 href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">${S('explore_nearby')}</a>
-            </div>` : ''
-          }
-        `);
-        if(pts.length){
-          loadGoogleMapsScript((err)=>{
-            if(err){
-              const iframe = `<iframe src="https://www.google.com/maps?q=${lat},${lng}&z=14&output=embed" width="100%" height="100%" style="border:0" loading="lazy"></iframe>`;
-              $("m-body").querySelector('.mapbox').innerHTML = iframe;
-            }else{
-              renderGoogleMapJS(pts, hasGeo?{lat,lng}:{lat:pts[0].lat,lng:pts[0].lng});
-            }
-          });
-        }
-      }
-    });
-  }
-
-  if ((rec.intro && rec.intro.trim()) || recItems.length){
-    cards.push({
-      key:S('do_see'), icon:'activities',
-      onClick:()=>{
-        const groups = groupByCat(recItems);
-        const pts = recItems.filter(i=>Number.isFinite(i.lat)&&Number.isFinite(i.lng)).map(i=>({lat:i.lat,lng:i.lng,title:i.text}));
-        openModal(S('do_see'), `
-          ${rec.intro ? `<p>${br(rec.intro)}</p>` : ''}
-          ${pts.length ? `<div class="mapbox" style="margin-bottom:12px"><div id="map-canvas" style="width:100%;height:100%"></div></div>`:''}
-          ${Array.from(groups.entries()).map(([cat,items])=>`
-            <div class="k">${cat}</div>
-            <div class="list">
-              ${items.map(it=>`
-                <div class="list-row">
-                  <div class="dot"></div>
-                  <div class="list-col">
-                    <div class="list-txt">${it.text}</div>
-                    ${it.url ? `<a class="pill" href="${it.url}" target="_blank" rel="noreferrer">${S('link')}</a>`:''}
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          `).join('')}
-        `);
-        if(pts.length){
-          loadGoogleMapsScript((err)=>{
-            if(err){
-              const center = hasGeo?`${lat},${lng}`:`${pts[0].lat},${pts[0].lng}`;
-              const iframe = `<iframe src="https://www.google.com/maps?q=${center}&z=13&output=embed" width="100%" height="100%" style="border:0" loading="lazy"></iframe>`;
-              $("m-body").querySelector('.mapbox').innerHTML = iframe;
-            }else{
-              renderGoogleMapJS(pts, hasGeo?{lat,lng}:{lat:pts[0].lat,lng:pts[0].lng});
-            }
-          });
-        }
-      }
-    });
-  }
-
-  // Appareils
-  const appl = pick(g.appliances);
-  if ((Array.isArray(appl) && appl.length) || (typeof appl==='string' && appl.trim())){
-    cards.push({
-      key:S('appliances'), icon:'appliance',
-      onClick:()=>{
-        let html='';
-        if(Array.isArray(appl)){
-          html = appl.map(x=>`
-            <div class="k">${x.name||''}</div>
-            ${x.tips?.length? `<ul>${x.tips.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}
-          `).join('');
-        }else{
-          const lines = (appl||'').split('\n').map(s=>s.trim()).filter(Boolean);
-          html = lines.map(l=>{
-            const [left,rest] = l.split('—').map(s=>s.trim());
-            const tips = (rest||'').split(';').map(s=>s.trim()).filter(Boolean);
-            return `<div class="k">${left}</div>${tips.length?`<ul>${tips.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}`;
-          }).join('');
-        }
-        openModal(S('appliances'), html || `<p>${S('no_data')}</p>`);
-      }
-    });
-  }
-
-  // Dépannage + signalement
-  const trb = pick(g.troubleshoot);
-  cards.push({
-    key:S('help_issues'), icon:'wrench',
-    onClick:()=>{
-      let html='';
-      if(Array.isArray(trb) && trb.length){
-        html = trb.map(x=>`
-          <div class="k">${x.title||''}</div>
-          ${x.steps?.length? `<ol>${x.steps.map(t=>`<li>${t}</li>`).join('')}</ol>`:''}
-        `).join('');
-      }else{
-        html = `<p>${LANG==='en'?'Check water heater, main breaker, and router.':'Vérifiez le chauffe-eau, le disjoncteur et la box Wi-Fi.'}</p>`;
-      }
-      html += `
-        <div class="modal-actions">
-          <a class="btn" href="mailto:conciergeriezenata@gmail.com?subject=${encodeURIComponent('Support '+slug)}">${S('email')}</a>
-          <a class="btn primary" target="_blank" rel="noreferrer" href="https://wa.me/212600000000?text=${encodeURIComponent('Besoin d’aide (guide '+slug+')')}">${S('whatsapp')}</a>
-          <button class="btn" id="btn-report">${S('report_issue')}</button>
-        </div>
-      `;
-      openModal(S('help_issues'), html);
-      const btn=$("btn-report");
-      if(btn){
-        btn.onclick = async ()=>{
-          const msg = prompt(LANG==='en'?'Describe the issue:':'Décrivez le souci :');
-          if(!msg) return;
-          try{
-            const r = await fetch('/.netlify/functions/report-issue',{ method:'POST', headers:{'Content-Type':'application/json'},
-              body: JSON.stringify({ slug, message: msg, ts: Date.now(), lang: LANG })
-            });
-            alert(r.ok ? S('report_thanks') : S('report_error'));
-          }catch{ alert(S('network_error')); }
-        };
-      }
-    }
-  });
-
-  // Parking
-  if (a.parking || g.parking?.imageUrl){
-    cards.push({
-      key:S('parking_access'), icon:'car',
-      onClick:()=>{
-        openModal(S('parking_access'), `
-          ${a.parking? `<p><b>${S('spot')} :</b> ${a.parking}</p>`:''}
-          ${g.parking?.imageUrl? `<img src="${g.parking.imageUrl}" alt="Plan Parking" style="width:100%;border-radius:12px;border:1px solid var(--border);margin-top:8px">`:''}
-        `);
-      }
-    });
-  }
-
-  // Upsells
-  if (Array.isArray(g.upsells) && g.upsells.length){
-    cards.push({
-      key:S('extras'), icon:'cart',
-      onClick:()=>{
-        const rows = g.upsells.map(u=>{
-          const txt = encodeURIComponent(u.waText || (LANG==='en'?'Hello, I’d like ':'Bonjour, je souhaite ')+(u.label||''));
-          return `<a class="pill" target="_blank" rel="noreferrer" href="https://wa.me/212600000000?text=${txt}">${u.label||'Option'}</a>`;
-        }).join(' ');
-        openModal(S('extras'), `<p>${S('book_extra')}</p>${rows}`);
-      }
-    });
-  }
-
-  // Éléments existants
-  cards.push(
-    { key:S('address'), icon:'map', onClick:()=>openModal(S('address'), `<p>${g.address||''}</p>`) },
-    { key:S('wifi'), icon:'wifi', onClick:()=>openModal('Wi-Fi', `<p><b>SSID</b> : ${a.wifi?.ssid||''}<br><b>Password</b> : ${a.wifi?.password||''}</p>`) },
-    { key:S('door_code'), icon:'door', onClick:()=>openModal(S('door_code'), allow? `<p style="font-size:28px"><b>${a.doorCode||''}</b></p>` : `<p>${S('sensitive_hidden')}: <code>?token=VOTRE_TOKEN</code></p>`) },
-    { key:'Check-in', icon:'checkin', onClick:()=>openModal(S('checkin'), `<p>${S('from')} <b>${a.checkin_from||''}</b></p>${a.parking?`<p><b>${S('parking')} :</b> ${a.parking}</p>`:''}${(a.notes||[]).length?`<ul>${a.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}`) },
-    { key:S('house_rules'), icon:'rules', onClick:()=>openModal(S('house_rules'), rules.length?`<ul>${rules.map(r=>`<li>${r}</li>`).join('')}</ul>`:`<p>${S('no_rules')}</p>`) },
-    { key:S('amenities'), icon:'amenities', onClick:()=>openModal(S('amenities'), ams.length? ams.map(x=>`<span class="pill" style="margin:4px 6px 0 0;">${x.label}</span>`).join('') : `<p>${S('not_provided')}</p>`) },
-    { key:S('essentials'), icon:'map', onClick:()=>openModal(S('essentials'), `<p>${br((pick(g.essentials) || ''))}</p>`) },
-    { key:S('checkout'), icon:'exit', onClick:()=>openModal(S('checkout'), `<p>${S('checkout_before')} <b>${(dep.checkout_until||'11:00')}</b></p>`) },
-    { key:S('support'), icon:'help', onClick:()=>openModal(S('support'), `<p><b>${S('email')} :</b> <a href="mailto:conciergeriezenata@gmail.com">conciergeriezenata@gmail.com</a></p><div class="modal-actions"><a class="btn primary" target="_blank" rel="noreferrer" href="https://wa.me/212600000000?text=${waMsg}">WhatsApp</a><a class="btn" href="tel:+212600000000">${S('call')}</a></div>`) },
-  );
-
-  for(const c of cards){
-    const d=document.createElement('div');
-    d.className='tile';
-    d.innerHTML=`${icon(c.icon)}<span>${c.key}</span>`;
-    d.onclick=c.onClick;
-    grid.appendChild(d);
-  }
-}
-
-document.addEventListener('DOMContentLoaded', boot);
-</script>
-
-<!-- ====== Agent IA (HTML modale) ====== -->
-<div id="ai-overlay" class="ai-overlay" hidden aria-hidden="true">
+<!-- Agent IA -->
+<button id="ai-fab" class="ai-fab" type="button" aria-label="Ouvrir le concierge IA">💬</button>
+<div id="ai-overlay" class="ai-overlay" aria-hidden="true">
   <div class="ai-card" role="dialog" aria-modal="true" aria-labelledby="ai-title">
     <div class="ai-head">
       <div class="ai-brand">
-        <img src="/logo/logo_officiel_couleur_picto.png" alt="" />
-        <div>
-          <strong id="ai-title">Concierge IA</strong>
-          <span>Réponses instantanées 24/7</span>
-        </div>
+        <img src="/logo/logo_officiel_couleur_picto.png" alt=""/>
+        <div><strong id="ai-title">Concierge IA</strong><span>Réponses instantanées 24/7</span></div>
       </div>
-      <button id="ai-close" class="ai-close" type="button" aria-label="Fermer">✕</button>
+      <button id="ai-close" class="ai-send" type="button" aria-label="Fermer">✕</button>
     </div>
-
     <div class="ai-body">
-      <div id="ai-stream" class="ai-stream"></div>
-
+      <div id="ai-stream" class="ai-stream" aria-live="polite"></div>
       <div class="ai-suggest">
         <button class="ai-chip" type="button" data-q="Heure de check-in ?">Check-in</button>
         <button class="ai-chip" type="button" data-q="Mot de passe Wi-Fi ?">Wi-Fi</button>
         <button class="ai-chip" type="button" data-q="Bons restos à proximité ?">Restos</button>
       </div>
-
       <form id="ai-form" class="ai-form" novalidate>
-        <input id="ai-input" placeholder="Posez votre question…" autocomplete="off" />
+        <input id="ai-input" placeholder="Posez votre question…" autocomplete="off"/>
         <button class="ai-send" type="submit" aria-label="Envoyer">↩︎</button>
       </form>
     </div>
   </div>
 </div>
 
-<!-- ===== FAB pour ouvrir l’agent IA ===== -->
-<button id="ai-fab" class="ai-fab" type="button" data-ai-open title="Concierge IA">💬</button>
-
-<!-- ===== Chat/Agent IA JS ===== -->
 <script>
+/* =======================
+   i18n de base
+======================= */
+let LANG='fr';
+const UI={fr:{traveler_guide:"Guide voyageur",call:"Appeler",pdf:"PDF",download_pdf:"Télécharger en PDF",welcome_title:"Bienvenue à Zenata 🌴",welcome_fallback:"Nous sommes ravis de vous accueillir à Zenata. Profitez de votre séjour.",
+location:"Localisation",open_gmaps:"Ouvrir dans Google Maps",directions:"Itinéraire",explore_nearby:"Explorer autour",neighborhood:"Quartier",do_see:"À faire / Recos",link:"Lien",view:"Voir",address:"Adresse",wifi:"Wi-Fi",door_code:"Code porte",
+sensitive_hidden:"Infos sensibles masquées. Ajoutez votre jeton",checkin:"Arrivée & Check-in",from:"À partir de",parking:"Parking",house_rules:"Règles",no_rules:"Aucune règle.",amenities:"Équipements",not_provided:"Non renseigné.",essentials:"Essentiels",checkout:"Départ",checkout_before:"Check-out avant",support:"Assistance & Contact",email:"Email",whatsapp:"WhatsApp",report_issue:"Signaler un souci",help_issues:"Dépannage",report_thanks:"Merci, c’est envoyé.",report_error:"Erreur",network_error:"Erreur réseau",appliances:"Appareils & Mode d’emploi",no_data:"Non renseigné.",parking_access:"Parking & Accès",spot:"Emplacement",extras:"Services additionnels",book_extra:"Réserver un extra :",detail:"Détail"},
+en:{traveler_guide:"Traveler Guide",call:"Call",pdf:"PDF",download_pdf:"Download PDF",welcome_title:"Welcome to Zenata 🌴",welcome_fallback:"We’re delighted to host you in Zenata. Enjoy your stay.",location:"Location",open_gmaps:"Open in Google Maps",directions:"Directions",explore_nearby:"Explore nearby",neighborhood:"Neighborhood",do_see:"Do & See",link:"Link",view:"View",address:"Address",wifi:"Wi-Fi",door_code:"Door code",sensitive_hidden:"Sensitive info hidden. Add your token",checkin:"Arrival & Check-in",from:"From",parking:"Parking",house_rules:"House rules",no_rules:"No rules.",amenities:"Amenities",not_provided:"Not provided.",essentials:"Essentials",checkout:"Checkout",checkout_before:"Check-out before",support:"Support",email:"Email",whatsapp:"WhatsApp",report_issue:"Report an issue",help_issues:"Help & Issues",report_thanks:"Thanks, we got it.",report_error:"Error",network_error:"Network error",appliances:"Appliances",no_data:"No data.",parking_access:"Parking & Access",spot:"Spot",extras:"Extras",book_extra:"Book an extra:",detail:"Detail"}};
+const S=k=>(UI[LANG]&&UI[LANG][k])||UI['fr'][k]||k;
+
+/* =======================
+   Helpers / icons / maps
+======================= */
+const $=id=>document.getElementById(id);
+$("year").textContent=new Date().getFullYear();
+
+function openModal(title,html){$("m-title").textContent=title;$("m-body").innerHTML=html;$("modal").setAttribute("open","");trapFocus(document.querySelector("#modal .modal-card")); }
+function closeModal(){$("modal").removeAttribute("open");releaseFocus();}
+$("m-close").onclick=closeModal;$("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal();});
+
+function icon(name){const icons={
+wifi:`<svg fill="none" viewBox="0 0 24 24"><path d="M5 12a9 9 0 0114 0M2 9a12 12 0 0120 0M8.5 15.5a5 5 0 017 0M12 20h.01"/></svg>`,
+door:`<svg fill="none" viewBox="0 0 24 24"><path d="M14 12v.01M6 3h12v18H6z"/></svg>`,
+checkin:`<svg fill="none" viewBox="0 0 24 24"><path d="M3 3h18v18H3zM8 12l2 2 5-5"/></svg>`,
+map:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 3l6 3 6-3v18l-6 3-6-3-6 3V3l6-3z"/></svg>`,
+rules:`<svg fill="none" viewBox="0 0 24 24"><path d="M5 5h14M5 9h14M5 13h9M5 17h9"/></svg>`,
+amenities:`<svg fill="none" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/></svg>`,
+help:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 9a3 3 0 116 0c0 1.657-3 3-3 3m0 4h.01"/></svg>`,
+exit:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 4l5 5-5 5m5-5H9"/></svg>`,
+location:`<svg fill="none" viewBox="0 0 24 24"><path d="M12 21s7-4.35 7-10a7 7 0 10-14 0c0 5.65 7 10 7 10zM12 11a2 2 0 110-4 2 2 0 010 4z"/></svg>`,
+neighborhood:`<svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.5" d="M12 21s7-4.35 7-10a7 7 0 10-14 0c0 5.65 7 10 7 10z"/><circle cx="12" cy="11" r="2" fill="currentColor"/></svg>`,
+activities:`<svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.5" d="M4 7h16M4 12h16M4 17h10"/><circle cx="18" cy="17" r="1.5" fill="currentColor"/></svg>`,
+appliance:`<svg fill="none" viewBox="0 0 24 24"><path d="M4 6h16v12H4zM8 9h.01M12 9h.01M16 9h.01"/></svg>`,
+wrench:`<svg fill="none" viewBox="0 0 24 24"><path d="M21 3l-6 6M3 21l6-6M3 10a7 7 0 109.9 9.9"/></svg>`,
+car:`<svg fill="none" viewBox="0 0 24 24"><path d="M3 13l2-5h14l2 5v5h-2a2 2 0 01-4 0H9a2 2 0 01-4 0H3v-5z"/></svg>`,
+cart:`<svg fill="none" viewBox="0 0 24 24"><path d="M3 4h2l2 12h10l2-8H7"/></svg>`};return icons[name]||icons.map;}
+
+const darkMapStyle=[{"elementType":"geometry","stylers":[{"color":"#1f2023"}]},{"elementType":"labels.text.fill","stylers":[{"color":"#e0e0e0"}]},{"elementType":"labels.text.stroke","stylers":[{"color":"#1f2023"}]},{"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#c7a059"}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#1a1b1f"}]},{"featureType":"road","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#d6d6d6"}]},{"featureType":"transit","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},{"featureType":"water","elementType":"geometry","stylers":[{"color":"#0e1116"}]}];
+function loadGoogleMapsScript(cb){if(window.google&&window.google.maps){cb();return}const key=window.GMAPS_API_KEY;if(!key){cb(new Error('NO_KEY'));return}const s=document.createElement('script');s.src=`https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=marker`;s.async=true;s.onload=()=>cb();s.onerror=()=>cb(new Error('LOAD_FAIL'));document.head.appendChild(s);}
+function renderGoogleMapJS(points,center){const el=document.getElementById('map-canvas');if(!el||!window.google)return;const map=new google.maps.Map(el,{center:center,zoom:points.length>1?13:15,disableDefaultUI:true,styles:darkMapStyle});points.forEach(p=>{new google.maps.Marker({position:{lat:p.lat,lng:p.lng},map,icon:{path:google.maps.SymbolPath.CIRCLE,scale:7,fillColor:'#c7a059',fillOpacity:1,strokeColor:'#fff',strokeWeight:2},title:p.title||''});});}
+
+const br=s=>(s||'').replace(/\n/g,'<br>');function pick(obj){if(!obj)return null;return obj[LANG]??obj['fr']??obj['en']??null;}
+function parseLines(arr){return (arr||[]).map(line=>{const parts=String(line).split('|').map(s=>s.trim());const left=parts[0]||'';const url=parts[1]&&/^https?:\/\//i.test(parts[1])?parts[1]:null;let lat=null,lng=null;if(parts[2]&&/-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?/.test(parts[2])){const[a,b]=parts[2].split(',').map(x=>parseFloat(x.trim()));lat=a;lng=b}let cat=null,text=left;const m=left.match(/^\s*\[([^\]]+)\]\s*(.*)$/);if(m){cat=m[1];text=m[2]||''}return {text,url,lat,lng,cat};});}
+
+/* =======================
+   Focus trap (a11y)
+======================= */
+let focusUnbind=null;
+function trapFocus(container){
+  const focusable=container.querySelectorAll('a,button,input,select,textarea,[tabindex]:not([tabindex="-1"])');
+  const first=focusable[0], last=focusable[focusable.length-1];
+  function handler(e){if(e.key!=='Tab')return;if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}
+  container.addEventListener('keydown', handler);
+  focusUnbind=()=>container.removeEventListener('keydown', handler);
+  setTimeout(()=>first?.focus(),50);
+}
+function releaseFocus(){focusUnbind?.();focusUnbind=null}
+
+/* =======================
+   Boot
+======================= */
+async function boot(){
+  const slug=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
+  const qs=new URLSearchParams(location.search);
+  const token=qs.get('token')||'';
+  const preferLang=(qs.get('lang')||'').toLowerCase();
+  const navLang=(navigator.language||'fr').slice(0,2).toLowerCase();
+  LANG=preferLang==='en'?'en':(preferLang==='fr'?'fr':(navLang==='en'?'en':'fr'));
+
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');el.textContent=S(k);});
+  document.getElementById('welcome-title').textContent=S('welcome_title');
+  document.querySelector('.badge').textContent=S('traveler_guide');
+  document.getElementById('footer-premium').textContent=(LANG==='en'?'Premium Stay':'Séjour Premium');
+
+  // Analytics "view"
+  try{
+    const payload=JSON.stringify({slug,lang:LANG,ts:Date.now()});
+    if(navigator.sendBeacon){navigator.sendBeacon('/.netlify/functions/guide-view', payload)}
+    else{fetch('/.netlify/functions/guide-view',{method:'POST',headers:{'Content-Type':'application/json'},body:payload})}
+  }catch{}
+
+  // Récupération guide via Function (anti-cache)
+  const api=`/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${Date.now()}`;
+  let g;
+  try{
+    const r=await fetch(api,{cache:'no-store'});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    g=await r.json();
+  }catch(err){
+    document.body.innerHTML=`<div style="color:#fff;text-align:center;padding:48px">${LANG==='en'?'Guide not found.':'Guide introuvable.'}</div>`;
+    return;
+  }
+
+  // Hero & title
+  if(g.cover?.imageUrl){$("hero-img").setAttribute('loading','eager');$("hero-img").src=g.cover.imageUrl;$("hero").style.display='';}
+  document.title = (g.name||'Guide')+' – Conciergerie Zenata';
+  $("title").textContent=g.name||'';
+
+  // Header actions
+  const waMsg=encodeURIComponent(`Bonjour 👋 (guide ${slug})`);
+  $("btn-wa").href=`https://wa.me/212600000000?text=${waMsg}`;
+
+  // Intro
+  const intro=pick(g.intro)||pick(g.welcome)||S('welcome_fallback');
+  $("intro-text").innerHTML=br(intro);$("intro-card").style.display='';
+
+  // QR guide (Google chart)
+  const guideUrl=location.href;
+  $("qr").outerHTML=`<img alt="QR" width="120" height="120" src="https://chart.googleapis.com/chart?cht=qr&chs=160x160&chl=${encodeURIComponent(guideUrl)}">`;
+
+  // ICS links (check-in / out) – génère à la volée (UTC naïf ok)
+  function makeICS(summary, dt){
+    const pad=n=>String(n).padStart(2,'0');
+    const y=dt.getUTCFullYear(), m=pad(dt.getUTCMonth()+1), d=pad(dt.getUTCDate());
+    const h=pad(dt.getUTCHours()), mi=pad(dt.getUTCMinutes());
+    const stamp=`${y}${m}${d}T${h}${mi}00Z`;
+    const ics=`BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+SUMMARY:${summary}
+DTSTART:${stamp}
+DTEND:${stamp}
+DESCRIPTION:${g.name||'Séjour'}
+END:VEVENT
+END:VCALENDAR`.replace(/\n/g,'%0A');
+    return `data:text/calendar;charset=utf-8,${ics}`;
+  }
+  const a=pick(g.arrival)||{};
+  const dep=pick(g.departure)||{};
+  // Par défaut: aujourd’hui 15:00 / demain 11:00 si pas de date de séjour
+  const now=new Date();
+  const checkinH=(a.checkin_from||'15:00').split(':').map(Number); const inDate=new Date(Date.UTC(now.getFullYear(),now.getMonth(),now.getDate(),checkinH[0]||15,checkinH[1]||0));
+  const checkoutH=(dep.checkout_until||'11:00').split(':').map(Number); const outDate=new Date(Date.UTC(now.getFullYear(),now.getMonth(),now.getDate()+1,checkoutH[0]||11,checkoutH[1]||0));
+  $("btn-ics-in").href=makeICS('Check-in', inDate);
+  $("btn-ics-out").href=makeICS('Check-out', outDate);
+
+  // Sensible
+  const allow=g.__sensitive?.token ? (token===g.__sensitive.token) : true;
+  const rules=(pick(g.rules)?.items)||[];
+  const ams=g.amenities||[];
+
+  // Lang toggle
+  const langToggle=$("langToggle");
+  langToggle.querySelectorAll('button').forEach(b=>{
+    b.onclick=()=>{const l=b.getAttribute('data-lang');const url=new URL(location.href);url.searchParams.set('lang',l);location.href=url.toString();};
+    b.classList.toggle('active', b.dataset.lang===LANG);
+  });
+
+  // GEO
+  const lat=g?.geo?.lat!=null?parseFloat(g.geo.lat):NaN;
+  const lng=g?.geo?.lng!=null?parseFloat(g.geo.lng):NaN;
+  const hasGeo=!Number.isNaN(lat)&&!Number.isNaN(lng);
+
+  // Cartes
+  const grid=$("grid");const cards=[];
+  if(hasGeo){cards.push({key:S('location'),icon:'location',onClick:()=>{openModal(S('location'),`
+    <div class="mapbox"><div id="map-canvas" style="width:100%;height:100%"></div></div>
+    <div class="modal-actions">
+      <a class="btn primary" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">${S('open_gmaps')}</a>
+      <a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">${S('directions')}</a>
+    </div>`);loadGoogleMapsScript(err=>{if(err){$("m-body").innerHTML=`<div class="mapbox"><iframe src="https://www.google.com/maps?q=${lat},${lng}&z=15&output=embed" width="100%" height="100%" style="border:0" loading="lazy"></iframe></div>`}else{renderGoogleMapJS([{lat,lng,title:g.name||''}],{lat,lng})}});}});}
+
+  // Neighborhood / Recos
+  const nbh=pick(g.neighborhood)||{}; const rec=pick(g.recommendations)||{};
+  const nbhItems=parseLines(nbh.places||[]); const recItems=parseLines(rec.tips||[]);
+  function groupByCat(items){const map=new Map();items.forEach(it=>{const key=(it.cat||(LANG==='en'?'Others':'Autres')).trim();if(!map.has(key))map.set(key,[]);map.get(key).push(it)});return map;}
+  if((nbh.intro&&nbh.intro.trim())||nbhItems.length){cards.push({key:S('neighborhood'),icon:'neighborhood',onClick:()=>{const groups=groupByCat(nbhItems);const pts=nbhItems.filter(i=>Number.isFinite(i.lat)&&Number.isFinite(i.lng)).map(i=>({lat:i.lat,lng:i.lng,title:i.text}));openModal(S('neighborhood'),`
+      ${nbh.intro?`<p>${br(nbh.intro)}</p>`:''}
+      ${pts.length?`<div class="mapbox" style="margin-bottom:12px"><div id="map-canvas" style="width:100%;height:100%"></div></div>`:''}
+      ${Array.from(groups.entries()).map(([cat,items])=>`
+        <div class="k">${cat}</div>
+        <div class="list">
+          ${items.map(it=>`
+            <div class="list-row">
+              <div class="dot"></div>
+              <div class="list-col">
+                <div class="list-txt">${it.text}</div>
+                ${it.url?`<a class="pill" href="${it.url}" target="_blank" rel="noreferrer">${S('view')}</a>`:''}
+              </div>
+            </div>`).join('')}
+        </div>`).join('')}
+      ${hasGeo?`<div class="modal-actions"><a class="btn" target="_blank" rel="noreferrer" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">${S('explore_nearby')}</a></div>`:''}
+      `); if(pts.length){loadGoogleMapsScript(err=>{if(err){$("m-body").querySelector('.mapbox').innerHTML=`<iframe src="https://www.google.com/maps?q=${lat},${lng}&z=14&output=embed" width="100%" height="100%" style="border:0" loading="lazy"></iframe>`}else{renderGoogleMapJS(pts,hasGeo?{lat,lng}:{lat:pts[0].lat,lng:pts[0].lng})}})}});}
+  if((rec.intro&&rec.intro.trim())||recItems.length){cards.push({key:S('do_see'),icon:'activities',onClick:()=>{const groups=groupByCat(recItems);const pts=recItems.filter(i=>Number.isFinite(i.lat)&&Number.isFinite(i.lng)).map(i=>({lat:i.lat,lng:i.lng,title:i.text}));openModal(S('do_see'),`
+      ${rec.intro?`<p>${br(rec.intro)}</p>`:''}
+      ${pts.length?`<div class="mapbox" style="margin-bottom:12px"><div id="map-canvas" style="width:100%;height:100%"></div></div>`:''}
+      ${Array.from(groups.entries()).map(([cat,items])=>`
+        <div class="k">${cat}</div>
+        <div class="list">
+          ${items.map(it=>`
+            <div class="list-row">
+              <div class="dot"></div>
+              <div class="list-col">
+                <div class="list-txt">${it.text}</div>
+                ${it.url?`<a class="pill" href="${it.url}" target="_blank" rel="noreferrer">${S('link')}</a>`:''}
+              </div>
+            </div>`).join('')}
+        </div>`).join('')}
+      `); if(pts.length){loadGoogleMapsScript(err=>{if(err){const center=hasGeo?`${lat},${lng}`:`${pts[0].lat},${pts[0].lng}`;$("m-body").querySelector('.mapbox').innerHTML=`<iframe src="https://www.google.com/maps?q=${center}&z=13&output=embed" width="100%" height="100%" style="border:0" loading="lazy"></iframe>`}else{renderGoogleMapJS(pts,hasGeo?{lat,lng}:{lat:pts[0].lat,lng:pts[0].lng})}})}});}
+
+  // Appliances
+  const appl=pick(g.appliances);
+  if((Array.isArray(appl)&&appl.length)||(typeof appl==='string'&&appl.trim())){cards.push({key:S('appliances'),icon:'appliance',onClick:()=>{let html='';if(Array.isArray(appl)){html=appl.map(x=>`<div class="k">${x.name||''}</div>${x.tips?.length?`<ul>${x.tips.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}`).join('')}else{const lines=(appl||'').split('\n').map(s=>s.trim()).filter(Boolean);html=lines.map(l=>{const[left,rest]=l.split('—').map(s=>s.trim());const tips=(rest||'').split(';').map(s=>s.trim()).filter(Boolean);return `<div class="k">${left}</div>${tips.length?`<ul>${tips.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}`}).join('')}openModal(S('appliances'),html||`<p>${S('no_data')}</p>`);}});}
+
+  // Support / Report
+  cards.push({key:S('help_issues'),icon:'wrench',onClick:()=>{let html=`<p>${LANG==='en'?'Check water heater, breaker, and Wi-Fi router.':'Vérifiez le chauffe-eau, le disjoncteur et la box Wi-Fi.'}</p>
+    <div class="modal-actions">
+      <a class="btn" href="mailto:conciergeriezenata@gmail.com?subject=${encodeURIComponent('Support '+slug)}">${S('email')}</a>
+      <a class="btn primary" target="_blank" rel="noreferrer" href="https://wa.me/212600000000?text=${encodeURIComponent('Besoin d’aide (guide '+slug+')')}">${S('whatsapp')}</a>
+      <label class="btn"><input type="file" id="issue-photo" accept="image/*" style="display:none">📷 Photo</label>
+      <button class="btn" id="btn-report">${S('report_issue')}</button>
+    </div>`; openModal(S('help_issues'),html); const btn=$("btn-report"); if(btn){btn.onclick=async()=>{const msg=prompt(LANG==='en'?'Describe the issue:':'Décrivez le souci :'); if(!msg)return; try{const f=$("issue-photo")?.files?.[0];const b64=f?await f.arrayBuffer().then(b=>{let s='';const a=new Uint8Array(b);for(let i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s);}):null;const r=await fetch('/.netlify/functions/report-issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug,message:msg,photoBase64:b64,ts:Date.now(),lang:LANG})});alert(r.ok?S('report_thanks'):S('report_error'))}catch{alert(S('network_error'))}}}});
+
+  // Parking
+  if(a.parking||g.parking?.imageUrl){cards.push({key:S('parking_access'),icon:'car',onClick:()=>{openModal(S('parking_access'),`${a.parking?`<p><b>${S('spot')} :</b> ${a.parking}</p>`:''}${g.parking?.imageUrl?`<img src="${g.parking.imageUrl}" alt="Plan Parking" style="width:100%;border-radius:12px;border:1px solid var(--border);margin-top:8px">`:''}`);}});}
+
+  // Upsells
+  if(Array.isArray(g.upsells)&&g.upsells.length){cards.push({key:S('extras'),icon:'cart',onClick:()=>{const rows=g.upsells.map(u=>{const txt=encodeURIComponent(u.waText||(LANG==='en'?'Hello, I’d like ':'Bonjour, je souhaite ')+(u.label||''));return `<a class="pill" target="_blank" rel="noreferrer" href="https://wa.me/212600000000?text=${txt}">${u.label||'Option'}</a>`}).join(' ');openModal(S('extras'),`<p>${S('book_extra')}</p>${rows}`);}});}
+
+  // Base cards
+  cards.push(
+    {key:S('address'),icon:'map',onClick:()=>openModal(S('address'),`<p>${g.address||''}</p>`)},
+    {key:S('wifi'),icon:'wifi',onClick:()=>openModal('Wi-Fi',`<p><b>SSID</b> : ${a.wifi?.ssid||''}<br><b>Password</b> : ${a.wifi?.password||''}</p>`)},
+    {key:S('door_code'),icon:'door',onClick:()=>openModal(S('door_code'), allow? `<p style="font-size:28px"><b>${a.doorCode||''}</b></p>`:`<p>${S('sensitive_hidden')}: <code>?token=VOTRE_TOKEN</code></p>`)},
+    {key:'Check-in',icon:'checkin',onClick:()=>openModal(S('checkin'), `<p>${S('from')} <b>${a.checkin_from||''}</b></p>${a.parking?`<p><b>${S('parking')} :</b> ${a.parking}</p>`:''}${(a.notes||[]).length?`<ul>${a.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}`)},
+    {key:S('house_rules'),icon:'rules',onClick:()=>openModal(S('house_rules'), rules.length?`<ul>${rules.map(r=>`<li>${r}</li>`).join('')}</ul>`:`<p>${S('no_rules')}</p>`)},
+    {key:S('amenities'),icon:'amenities',onClick:()=>openModal(S('amenities'), ams.length? ams.map(x=>`<span class="pill" style="margin:4px 6px 0 0;">${x.label}</span>`).join(''):`<p>${S('not_provided')}</p>`)},
+    {key:S('essentials'),icon:'map',onClick:()=>openModal(S('essentials'), `<p>${br((pick(g.essentials)||''))}</p>`)},
+    {key:S('checkout'),icon:'exit',onClick:()=>openModal(S('checkout'), `<p>${S('checkout_before')} <b>${(dep.checkout_until||'11:00')}</b></p>`)}
+  );
+
+  for(const c of cards){const d=document.createElement('div');d.className='tile';d.innerHTML=`${icon(c.icon)}<span>${c.key}</span>`;d.onclick=c.onClick;grid.appendChild(d);}
+
+  /* JSON-LD SEO (LodgingBusiness) */
+  const jsonld={ "@context":"https://schema.org","@type":"LodgingBusiness","name":g.name||"Conciergerie Zenata – Logement","address":g.address||"Casablanca","image":g.cover?.imageUrl||undefined,"amenityFeature": (g.amenities||[]).slice(0,12).map(a=>({"@type":"LocationFeatureSpecification","name":a.label}))};
+  const ld=document.createElement('script');ld.type='application/ld+json';ld.textContent=JSON.stringify(jsonld);document.head.appendChild(ld);
+
+  /* Manifest dynamique + SW inline (cache de base) */
+  const manifest={name:"Conciergerie Zenata – Guide",short_name:"CZ Guide",start_url:location.pathname,display:"standalone",background_color:"#0d0e11",theme_color:"#0d0e11",icons:[{src:"/logo/logo_officiel_couleur_picto.png",sizes:"512x512",type:"image/png"}]};
+  const manHref="data:application/manifest+json,"+encodeURIComponent(JSON.stringify(manifest));document.getElementById('dyn-manifest').setAttribute('href',manHref);
+  if('serviceWorker' in navigator){const swCode=`
+    const CACHE='cz-guide-v1';
+    const ASSETS=['/logo/logo_officiel_couleur_picto.png', location.pathname];
+    self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()))});
+    self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim())});
+    self.addEventListener('fetch',e=>{
+      const url=new URL(e.request.url);
+      if(e.request.method!=='GET'){return}
+      e.respondWith(
+        caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{
+          const copy=res.clone();
+          if(res.ok && (url.origin===location.origin)){caches.open(CACHE).then(c=>c.put(e.request,copy))}
+          return res;
+        }).catch(()=>r))
+      );
+    });
+  `;const blob=new Blob([swCode],{type:'text/javascript'});const swURL=URL.createObjectURL(blob);navigator.serviceWorker.register(swURL);}
+  
+  /* Lang buttons state */
+  document.querySelectorAll('#langToggle button').forEach(b=>b.classList.toggle('active', b.dataset.lang===LANG));
+}
+
+/* =======================
+   Agent IA (modal)
+======================= */
 (function(){
-  const $ = (id)=>document.getElementById(id);
+  const $=id=>document.getElementById(id);
+  const overlay=$('ai-overlay'); const fab=$('ai-fab'); const closeBtn=$('ai-close');
+  const form=$('ai-form'); const input=$('ai-input'); const stream=$('ai-stream');
+  const chips=()=>Array.from(document.querySelectorAll('.ai-chip'));
+  const slug=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
+  const qs=new URLSearchParams(location.search);
+  const token=qs.get('token')||''; const langParam=(qs.get('lang')||'').toLowerCase(); const navLang=(navigator.language||'fr').slice(0,2).toLowerCase();
+  const LANG=(langParam==='en'?'en':(langParam==='fr'?'fr':(navLang==='en'?'en':'fr')));
+  const histKey=`czhist:${slug}`;
+  function getHist(){try{return JSON.parse(localStorage.getItem(histKey)||'[]')}catch{return []}}
+  function saveTurn(q,a){const h=getHist();h.push({q,a,ts:Date.now()});localStorage.setItem(histKey, JSON.stringify(h.slice(-6)));}
 
-  function initAiModalBindings(){
-    const overlay = $('ai-overlay');
-    const closeBtn = $('ai-close');
-    const form = $('ai-form');
-    const input = $('ai-input');
-    const stream = $('ai-stream');
+  function push(role,html){const div=document.createElement('div');div.className='ai-msg '+(role==='user'?'user':'bot');div.innerHTML=(html||'').replace(/\n/g,'<br>');stream.appendChild(div);stream.scrollTop=stream.scrollHeight;}
+  function openAi(){overlay.setAttribute('open','');overlay.setAttribute('aria-hidden','false');document.body.classList.add('ai-noscroll'); setTimeout(()=>input?.focus(),50);trapFocus(document.querySelector('.ai-card'));}
+  function closeAi(){overlay.removeAttribute('open');overlay.setAttribute('aria-hidden','true');document.body.classList.remove('ai-noscroll');releaseFocus();}
+  window.aiOpen=openAi; window.aiClose=closeAi;
 
-    if (!overlay) return;
+  fab?.addEventListener('click', e=>{e.preventDefault();e.stopPropagation();openAi();});
+  closeBtn?.addEventListener('click', e=>{e.preventDefault();e.stopPropagation();closeAi();});
+  overlay?.addEventListener('click', e=>{ if(e.target===overlay) closeAi();});
+  window.addEventListener('keydown', e=>{ if(e.key==='Escape'&&overlay.hasAttribute('open')) closeAi();});
 
-    function openAi(){
-      overlay.hidden = false;
-      overlay.setAttribute('aria-hidden','false');
-      document.body.classList.add('ai-noscroll');
-      setTimeout(()=>{ $('ai-input')?.focus(); }, 50);
-    }
-    function closeAi(){
-      overlay.hidden = true;
-      overlay.setAttribute('aria-hidden','true');
-      document.body.classList.remove('ai-noscroll');
-    }
+  chips().forEach(c=>c.addEventListener('click', e=>{e.preventDefault();e.stopPropagation();ask((c.getAttribute('data-q')||''));}));
 
-    // Expose pour debug console
-    window.aiOpen = openAi;
-    window.aiClose = closeAi;
+  form?.addEventListener('submit', e=>{e.preventDefault();e.stopPropagation();ask(input.value);});
 
-    // Tous les triggers
-    document.querySelectorAll('[data-ai-open]').forEach(el=>{
-      el.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); openAi(); });
-    });
-
-    // Croix
-    closeBtn?.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); closeAi(); });
-
-    // Fermer en cliquant en dehors de la carte
-    overlay.addEventListener('click', (e)=>{
-      if (e.target === overlay) closeAi();
-    });
-
-    // Empêcher la propagation à l’intérieur de la carte
-    const card = document.querySelector('.ai-card');
-    card?.addEventListener('click', (e)=> e.stopPropagation());
-
-    // ESC
-    window.addEventListener('keydown', (e)=>{
-      if (e.key === 'Escape' && !overlay.hidden) closeAi();
-    });
-
-    // Soumission (sans reload)
-    form?.addEventListener('submit', (e)=>{
-      e.preventDefault(); e.stopPropagation();
-      const q = (input?.value || '').trim();
-      if (!q) return;
-      askAi(q, stream, input);
-    });
-
-    // Suggestions
-    document.querySelectorAll('.ai-chip').forEach(chip=>{
-      chip.addEventListener('click', (e)=>{
-        e.preventDefault(); e.stopPropagation();
-        const q = chip.getAttribute('data-q') || '';
-        if (q) askAi(q, stream, input);
-      });
-    });
-  }
-
-  async function askAi(q, stream, input){
-    function push(role, html){
-      const div = document.createElement('div');
-      div.className = 'ai-msg ' + (role==='user'?'user':'bot');
-      div.innerHTML = (html||'').replace(/\n/g,'<br>');
-      stream.appendChild(div);
-      stream.scrollTop = stream.scrollHeight;
-    }
-    push('user', q);
-    if (input) input.value = '';
-
-    const thinking = document.createElement('div');
-    thinking.className='ai-msg bot';
-    thinking.textContent='…';
-    stream.appendChild(thinking);
-    stream.scrollTop = stream.scrollHeight;
-
+  async function ask(q){
+    q=(q||'').trim(); if(!q) return;
+    push('user', q); input.value='';
+    const thinking=document.createElement('div');thinking.className='ai-msg bot';thinking.textContent=(LANG==='en'?'Thinking…':'Réflexion…');stream.appendChild(thinking);stream.scrollTop=stream.scrollHeight;
     try{
-      const qs = new URLSearchParams(location.search);
-      const slug = (location.pathname.split('/').pop()||'').replace(/\.html$/,'');
-      const token = qs.get('token') || '';
-      const lang = (qs.get('lang')||'fr').toLowerCase()==='en'?'en':'fr';
-
-      const r = await fetch('/.netlify/functions/guide-chat', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ slug, token, lang, question: q })
-      });
-      const data = await r.json();
-      thinking.remove();
+      const r=await fetch('/.netlify/functions/guide-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug,token,lang:LANG,question:q,history:getHist()})});
+      const data=await r.json(); thinking.remove();
       if(!r.ok) throw new Error(data.error||('HTTP '+r.status));
-      push('bot', data.answer || (lang==='en'?'(No answer)':'(Pas de réponse)'));
-    }catch(e){
-      thinking.remove();
-      push('bot', 'Erreur : '+(e.message||e));
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initAiModalBindings);
-  } else {
-    initAiModalBindings();
+      if(data.handoff){ // bascule vers humain
+        push('bot',(LANG==='en'?'Let me connect you with a human.':'Je vous mets en relation avec un humain.'));
+        const wa=`https://wa.me/212600000000?text=${encodeURIComponent((LANG==='en'?'Need help: ':'Besoin d’aide : ')+q)}`;
+        push('bot', `<a class="pill" target="_blank" rel="noreferrer" href="${wa}">WhatsApp</a>`);
+      }else{
+        push('bot', data.answer || (LANG==='en'?'(No answer)':'(Pas de réponse)'));
+        saveTurn(q, data.answer||'');
+      }
+      // Analytics "chat"
+      try{fetch('/.netlify/functions/guide-analytics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug,ev:'chat',ts:Date.now()})})}catch{}
+    }catch(e){thinking.remove();push('bot','Erreur : '+(e.message||e));}
   }
 })();
-</script>
 
+/* Boot after DOM */
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded', boot);} else {boot();}
+</script>
 </body>
 </html>
