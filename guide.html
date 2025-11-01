@@ -841,7 +841,8 @@ async function boot(){
 document.addEventListener('DOMContentLoaded', boot);
 
 // --- Chat Concierge ---
-(function(){
+<script>
+document.addEventListener('DOMContentLoaded', function(){
   const qs = new URLSearchParams(location.search);
   const slug = (location.pathname.split('/').pop()||'').replace(/\.html$/,'');
   const token = qs.get('token') || '';
@@ -852,18 +853,18 @@ document.addEventListener('DOMContentLoaded', boot);
   const box = $('cz-chat-box'), fab = $('cz-chat-toggle'), closeBtn = $('cz-chat-close');
   const stream = $('cz-chat-stream'), form = $('cz-chat-form'), input = $('cz-chat-input');
   const chips = Array.from(document.querySelectorAll('.cz-chip'));
-  $('cz-chat-lang').textContent = LANG.toUpperCase();
+  const langBadge = $('cz-chat-lang'); if (langBadge) langBadge.textContent = LANG.toUpperCase();
 
   function push(role, text){
     const div = document.createElement('div');
     div.className = 'cz-chat-msg ' + (role==='user'?'user':'bot');
-    div.innerHTML = text.replace(/\n/g,'<br>');
+    div.innerHTML = (text||'').replace(/\n/g,'<br>');
     stream.appendChild(div);
     stream.scrollTop = stream.scrollHeight;
   }
 
   async function ask(q){
-    if(!q.trim()) return;
+    if(!q || !q.trim()) return;
     push('user', q);
     input.value = '';
     const thinking = document.createElement('div');
@@ -873,7 +874,8 @@ document.addEventListener('DOMContentLoaded', boot);
 
     try{
       const r = await fetch('/.netlify/functions/guide-chat', {
-        method:'POST', headers:{'Content-Type':'application/json'},
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ slug, token, lang: LANG, question: q })
       });
       const data = await r.json();
@@ -886,33 +888,51 @@ document.addEventListener('DOMContentLoaded', boot);
     }
   }
 
-  fab.onclick = ()=>{ box.hidden = !box.hidden; if(!box.hidden) input.focus(); };
-  closeBtn.onclick = ()=>{ box.hidden = true; };
-  form.addEventListener('submit', e=>{ e.preventDefault(); ask(input.value); });
-  chips.forEach(c => c.onclick = ()=> ask(c.getAttribute('data-q')||''));
-})();
+  // === Events (zéro reload) ===
+  fab?.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); box.hidden = !box.hidden; if(!box.hidden) input.focus(); });
+  closeBtn?.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); box.hidden = true; });
+
+  form?.addEventListener('submit', (e)=>{
+    e.preventDefault(); e.stopPropagation();
+    ask(input.value);
+  });
+
+  chips.forEach(c => {
+    c.addEventListener('click', (e)=>{
+      e.preventDefault(); e.stopPropagation();
+      ask(c.getAttribute('data-q')||'');
+    });
+  });
+});
+</script>
+
 </script>
 
     <!-- Chat Concierge -->
+<!-- Chat Concierge -->
 <div id="cz-chat" class="cz-chat">
-  <button id="cz-chat-toggle" class="cz-chat-fab">💬</button>
+  <button id="cz-chat-toggle" class="cz-chat-fab" type="button">💬</button>
   <div id="cz-chat-box" class="cz-chat-box" hidden>
     <div class="cz-chat-head">
       <div>Concierge Zenata · <span id="cz-chat-lang">FR</span></div>
-      <button id="cz-chat-close">✕</button>
+      <button id="cz-chat-close" type="button">✕</button>
     </div>
+
     <div id="cz-chat-stream" class="cz-chat-stream"></div>
+
     <div class="cz-chat-suggest">
-      <button class="cz-chip" data-q="Wi-Fi password? / Mot de passe Wi-Fi ?">Wi-Fi ?</button>
-      <button class="cz-chip" data-q="Check-in time / Heure de check-in">Check-in</button>
-      <button class="cz-chip" data-q="Best restaurants nearby / Meilleurs restos">Restos</button>
+      <button class="cz-chip" type="button" data-q="Wi-Fi password? / Mot de passe Wi-Fi ?">Wi-Fi ?</button>
+      <button class="cz-chip" type="button" data-q="Check-in time / Heure de check-in">Check-in</button>
+      <button class="cz-chip" type="button" data-q="Best restaurants nearby / Meilleurs restos">Restos</button>
     </div>
-    <form id="cz-chat-form" class="cz-chat-form">
+
+    <form id="cz-chat-form" class="cz-chat-form" novalidate>
       <input id="cz-chat-input" placeholder="Pose ta question…" autocomplete="off"/>
-      <button class="cz-send" aria-label="Envoyer">↩︎</button>
+      <button class="cz-send" type="submit" aria-label="Envoyer">↩︎</button>
     </form>
   </div>
 </div>
+
 
 </body>
 </html>
