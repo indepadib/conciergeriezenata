@@ -267,7 +267,6 @@ body{
 .pill:hover{background:rgba(255,255,255,.12)}
 .k{font-size:12px;color:#bbb;margin-top:6px}
 
-    /*css chatbot */
 /* ===== Agent IA (Premium Modal) ===== */
 .ai-overlay{
   position: fixed; inset: 0; z-index: 70; display: grid; place-items: center;
@@ -326,17 +325,23 @@ body{
 .ai-stream::-webkit-scrollbar{height:10px;width:10px}
 .ai-stream::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:999px}
 body.ai-noscroll{overflow:hidden}
-    /* Force le masquage quand hidden est présent, même si un autre style met display:grid */
-.ai-overlay[hidden] { display: none !important; }
+.ai-overlay[hidden]{display:none!important}
 
-/* Empêche la fermeture quand on clique à l'intérieur de la carte */
-.ai-card { pointer-events: auto; }
-.ai-overlay { pointer-events: auto; }
+/* FAB pour ouvrir la modale IA */
+.ai-fab{
+  position:fixed; right:18px; bottom:18px; z-index: 99;
+  width:56px; height:56px; border-radius:50%;
+  border:1px solid rgba(255,255,255,.16);
+  background:linear-gradient(135deg,#0F172A,#1F2937);
+  color:#fff; font-size:22px; line-height:56px; text-align:center;
+  box-shadow:0 14px 36px rgba(0,0,0,.35); cursor:pointer;
+}
+.ai-fab:hover{ transform:translateY(-2px); }
 
 /* print */
 @media print{
   body{ background:#fff; color:#000; padding:0 }
-  .header, .lang-toggle, .modal, .btn{ display:none !important }
+  .header, .lang-toggle, .modal, .btn, .ai-fab, .ai-overlay{ display:none !important }
   .hero{ height:300px; border:none; box-shadow:none }
   .tile, .intro-card{ box-shadow:none }
   a{ color:#000; text-decoration:none }
@@ -388,7 +393,7 @@ body.ai-noscroll{overflow:hidden}
   </div>
 </div>
 
-<!-- Modale -->
+<!-- Modale “cartes” -->
 <div id="modal" class="modal" aria-hidden="true">
   <div class="modal-card">
     <div class="modal-head">
@@ -403,96 +408,30 @@ body.ai-noscroll{overflow:hidden}
 /* ===== i18n ===== */
 let LANG='fr';
 const UI = {
-  fr: {
-    traveler_guide: "Guide voyageur",
-    call: "Appeler",
-    pdf: "PDF",
-    download_pdf: "Télécharger en PDF",
-    welcome_title: "Bienvenue à Zenata 🌴",
-    welcome_fallback: "Nous sommes ravis de vous accueillir à Zenata. Profitez de votre séjour.",
-    location: "Localisation",
-    open_gmaps: "Ouvrir dans Google Maps",
-    directions: "Itinéraire",
-    explore_nearby: "Explorer autour",
-    neighborhood: "Quartier",
-    do_see: "À faire / Recos",
-    link: "Lien",
-    view: "Voir",
-    address: "Adresse",
-    wifi: "Wi-Fi",
-    door_code: "Code porte",
-    sensitive_hidden: "Infos sensibles masquées. Ajoutez votre jeton",
-    checkin: "Arrivée & Check-in",
-    from: "À partir de",
-    parking: "Parking",
-    house_rules: "Règles",
-    no_rules: "Aucune règle.",
-    amenities: "Équipements",
-    not_provided: "Non renseigné.",
-    essentials: "Essentiels",
-    checkout: "Départ",
-    checkout_before: "Check-out avant",
-    support: "Assistance & Contact",
-    email: "Email",
-    whatsapp: "WhatsApp",
-    report_issue: "Signaler un souci",
-    help_issues: "Dépannage",
-    report_thanks: "Merci, c’est envoyé.",
-    report_error: "Erreur",
-    network_error: "Erreur réseau",
-    appliances: "Appareils & Mode d’emploi",
-    no_data: "Non renseigné.",
-    parking_access: "Parking & Accès",
-    spot: "Emplacement",
-    extras: "Services additionnels",
-    book_extra: "Réserver un extra :",
-    detail: "Détail"
-  },
-  en: {
-    traveler_guide: "Traveler Guide",
-    call: "Call",
-    pdf: "PDF",
-    download_pdf: "Download PDF",
-    welcome_title: "Welcome to Zenata 🌴",
-    welcome_fallback: "We’re delighted to host you in Zenata. Enjoy your stay.",
-    location: "Location",
-    open_gmaps: "Open in Google Maps",
-    directions: "Directions",
-    explore_nearby: "Explore nearby",
-    neighborhood: "Neighborhood",
-    do_see: "Do & See",
-    link: "Link",
-    view: "View",
-    address: "Address",
-    wifi: "Wi-Fi",
-    door_code: "Door code",
-    sensitive_hidden: "Sensitive info hidden. Add your token",
-    checkin: "Arrival & Check-in",
-    from: "From",
-    parking: "Parking",
-    house_rules: "House rules",
-    no_rules: "No rules.",
-    amenities: "Amenities",
-    not_provided: "Not provided.",
-    essentials: "Essentials",
-    checkout: "Checkout",
-    checkout_before: "Check-out before",
-    support: "Support",
-    email: "Email",
-    whatsapp: "WhatsApp",
-    report_issue: "Report an issue",
-    help_issues: "Help & Issues",
-    report_thanks: "Thanks, we got it.",
-    report_error: "Error",
-    network_error: "Network error",
-    appliances: "Appliances",
-    no_data: "No data.",
-    parking_access: "Parking & Access",
-    spot: "Spot",
-    extras: "Extras",
-    book_extra: "Book an extra:",
-    detail: "Detail"
-  }
+  fr: { traveler_guide:"Guide voyageur", call:"Appeler", pdf:"PDF", download_pdf:"Télécharger en PDF",
+    welcome_title:"Bienvenue à Zenata 🌴", welcome_fallback:"Nous sommes ravis de vous accueillir à Zenata. Profitez de votre séjour.",
+    location:"Localisation", open_gmaps:"Ouvrir dans Google Maps", directions:"Itinéraire", explore_nearby:"Explorer autour",
+    neighborhood:"Quartier", do_see:"À faire / Recos", link:"Lien", view:"Voir", address:"Adresse", wifi:"Wi-Fi",
+    door_code:"Code porte", sensitive_hidden:"Infos sensibles masquées. Ajoutez votre jeton",
+    checkin:"Arrivée & Check-in", from:"À partir de", parking:"Parking",
+    house_rules:"Règles", no_rules:"Aucune règle.", amenities:"Équipements", not_provided:"Non renseigné.",
+    essentials:"Essentiels", checkout:"Départ", checkout_before:"Check-out avant",
+    support:"Assistance & Contact", email:"Email", whatsapp:"WhatsApp",
+    report_issue:"Signaler un souci", help_issues:"Dépannage", report_thanks:"Merci, c’est envoyé.", report_error:"Erreur", network_error:"Erreur réseau",
+    appliances:"Appareils & Mode d’emploi", no_data:"Non renseigné.", parking_access:"Parking & Accès", spot:"Emplacement",
+    extras:"Services additionnels", book_extra:"Réserver un extra :", detail:"Détail" },
+  en: { traveler_guide:"Traveler Guide", call:"Call", pdf:"PDF", download_pdf:"Download PDF",
+    welcome_title:"Welcome to Zenata 🌴", welcome_fallback:"We’re delighted to host you in Zenata. Enjoy your stay.",
+    location:"Location", open_gmaps:"Open in Google Maps", directions:"Directions", explore_nearby:"Explore nearby",
+    neighborhood:"Neighborhood", do_see:"Do & See", link:"Link", view:"View", address:"Address", wifi:"Wi-Fi",
+    door_code:"Door code", sensitive_hidden:"Sensitive info hidden. Add your token",
+    checkin:"Arrival & Check-in", from:"From", parking:"Parking",
+    house_rules:"House rules", no_rules:"No rules.", amenities:"Amenities", not_provided:"Not provided.",
+    essentials:"Essentials", checkout:"Checkout", checkout_before:"Check-out before",
+    support:"Support", email:"Email", whatsapp:"WhatsApp",
+    report_issue:"Report an issue", help_issues:"Help & Issues", report_thanks:"Thanks, we got it.", report_error:"Error", network_error:"Network error",
+    appliances:"Appliances", no_data:"No data.", parking_access:"Parking & Access", spot:"Spot",
+    extras:"Extras", book_extra:"Book an extra:", detail:"Detail" }
 };
 const S = (k)=> (UI[LANG] && UI[LANG][k]) || UI['fr'][k] || k;
 
@@ -502,7 +441,7 @@ $("year").textContent = new Date().getFullYear();
 
 function openModal(title, html){ $("m-title").textContent = title; $("m-body").innerHTML = html; $("modal").setAttribute("open",""); }
 function closeModal(){ $("modal").removeAttribute("open"); }
-$("m-close").onclick = closeModal;
+$("m-close").onclick = (e)=>{ e.preventDefault(); e.stopPropagation(); closeModal(); };
 $("modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(); });
 
 function icon(name){
@@ -586,7 +525,7 @@ async function boot(){
   document.querySelector('.badge').textContent = S('traveler_guide');
   document.getElementById('footer-premium').textContent = (LANG==='en'?'Premium Stay':'Séjour Premium');
 
-  // Analytics soft
+  // Analytics soft (optionnel)
   try{
     const payload = JSON.stringify({ slug, lang: LANG, ts: Date.now() });
     if(navigator.sendBeacon){
@@ -632,7 +571,8 @@ async function boot(){
   // lang toggle
   const langToggle = $("langToggle");
   langToggle.querySelectorAll('button').forEach(b=>{
-    b.onclick = ()=>{
+    b.onclick = (e)=>{
+      e.preventDefault(); e.stopPropagation();
       const l=b.getAttribute('data-lang');
       const url = new URL(location.href); url.searchParams.set('lang', l);
       location.href = url.toString();
@@ -890,8 +830,7 @@ async function boot(){
 document.addEventListener('DOMContentLoaded', boot);
 </script>
 
-<!-- Chat Concierge (HTML) -->
-<!-- Agent IA (Modal) -->
+<!-- ====== Agent IA (HTML modale) ====== -->
 <div id="ai-overlay" class="ai-overlay" hidden aria-hidden="true">
   <div class="ai-card" role="dialog" aria-modal="true" aria-labelledby="ai-title">
     <div class="ai-head">
@@ -922,14 +861,14 @@ document.addEventListener('DOMContentLoaded', boot);
   </div>
 </div>
 
+<!-- ===== FAB pour ouvrir l’agent IA ===== -->
+<button id="ai-fab" class="ai-fab" type="button" data-ai-open title="Concierge IA">💬</button>
 
-<!-- Chat Concierge (JS) -->
+<!-- ===== Chat/Agent IA JS ===== -->
 <script>
 (function(){
-  // Petit util
   const $ = (id)=>document.getElementById(id);
 
-  // Ouverture/fermeture robustes + rebind après DOMContentLoaded
   function initAiModalBindings(){
     const overlay = $('ai-overlay');
     const closeBtn = $('ai-close');
@@ -937,13 +876,12 @@ document.addEventListener('DOMContentLoaded', boot);
     const input = $('ai-input');
     const stream = $('ai-stream');
 
-    if (!overlay) return; // pas de modale IA sur cette page
+    if (!overlay) return;
 
     function openAi(){
       overlay.hidden = false;
       overlay.setAttribute('aria-hidden','false');
       document.body.classList.add('ai-noscroll');
-      // requery pour éviter refs zombies si le DOM a changé
       setTimeout(()=>{ $('ai-input')?.focus(); }, 50);
     }
     function closeAi(){
@@ -952,11 +890,11 @@ document.addEventListener('DOMContentLoaded', boot);
       document.body.classList.remove('ai-noscroll');
     }
 
-    // Expose pour debug (optionnel)
+    // Expose pour debug console
     window.aiOpen = openAi;
     window.aiClose = closeAi;
 
-    // Boutons/lien qui ouvrent la modale : data-ai-open
+    // Tous les triggers
     document.querySelectorAll('[data-ai-open]').forEach(el=>{
       el.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); openAi(); });
     });
@@ -964,31 +902,38 @@ document.addEventListener('DOMContentLoaded', boot);
     // Croix
     closeBtn?.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); closeAi(); });
 
-    // Clic sur le fond (mais pas à l'intérieur de la carte)
+    // Fermer en cliquant en dehors de la carte
     overlay.addEventListener('click', (e)=>{
-      if (e.target === overlay) { closeAi(); }
+      if (e.target === overlay) closeAi();
     });
 
-    // Empêche le clic à l'intérieur de fermer
-    $('ai-card')?.addEventListener?.('click', (e)=> e.stopPropagation());
+    // Empêcher la propagation à l’intérieur de la carte
+    const card = document.querySelector('.ai-card');
+    card?.addEventListener('click', (e)=> e.stopPropagation());
 
     // ESC
     window.addEventListener('keydown', (e)=>{
       if (e.key === 'Escape' && !overlay.hidden) closeAi();
     });
 
-    // Envoi (empêche tout reload)
+    // Soumission (sans reload)
     form?.addEventListener('submit', (e)=>{
       e.preventDefault(); e.stopPropagation();
       const q = (input?.value || '').trim();
       if (!q) return;
-      // Ici on laisse ton code existant d’appel à /.netlify/functions/guide-chat
-      // -> si tu veux afficher un message “en cours…”, tu peux le faire ici
       askAi(q, stream, input);
+    });
+
+    // Suggestions
+    document.querySelectorAll('.ai-chip').forEach(chip=>{
+      chip.addEventListener('click', (e)=>{
+        e.preventDefault(); e.stopPropagation();
+        const q = chip.getAttribute('data-q') || '';
+        if (q) askAi(q, stream, input);
+      });
     });
   }
 
-  // Envoi à ta function (réutilise ton implémentation guide-chat)
   async function askAi(q, stream, input){
     function push(role, html){
       const div = document.createElement('div');
@@ -1027,7 +972,6 @@ document.addEventListener('DOMContentLoaded', boot);
     }
   }
 
-  // Bind après DOM chargé
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initAiModalBindings);
   } else {
@@ -1035,9 +979,6 @@ document.addEventListener('DOMContentLoaded', boot);
   }
 })();
 </script>
-
-
-
 
 </body>
 </html>
