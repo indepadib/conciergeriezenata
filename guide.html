@@ -268,21 +268,64 @@ body{
 .k{font-size:12px;color:#bbb;margin-top:6px}
 
     /*css chatbot */
-.cz-chat{position:fixed;right:18px;bottom:18px;z-index:60}
-.cz-chat-fab{width:56px;height:56px;border-radius:50%;border:1px solid rgba(255,255,255,.12);
-  background:linear-gradient(135deg,#0F172A,#1F2937);color:#fff;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-.cz-chat-box{position:absolute;right:0;bottom:70px;width:340px;max-height:70vh;display:flex;flex-direction:column;
-  background:rgba(0,0,0,.6);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden}
-.cz-chat-head{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.12);color:#eee}
-.cz-chat-stream{padding:10px;display:flex;flex-direction:column;gap:8px;overflow:auto}
-.cz-chat-msg{padding:10px 12px;border:1px solid rgba(255,255,255,.1);border-radius:12px;max-width:85%}
-.cz-chat-msg.user{align-self:flex-end;background:rgba(255,255,255,.08)}
-.cz-chat-msg.bot{align-self:flex-start;background:rgba(255,255,255,.04)}
-.cz-chat-form{display:flex;gap:8px;padding:10px;border-top:1px solid rgba(255,255,255,.12)}
-.cz-chat-form input{flex:1;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px;background:rgba(255,255,255,.06);color:#fff}
-.cz-send{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
-.cz-chat-suggest{display:flex;gap:8px;padding:8px 10px;flex-wrap:wrap}
-.cz-chip{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;border-radius:999px;padding:6px 10px;font-size:12px;cursor:pointer}
+/* ===== Agent IA (Premium Modal) ===== */
+.ai-overlay{
+  position: fixed; inset: 0; z-index: 70; display: grid; place-items: center;
+  background: radial-gradient(80% 100% at 50% 50%, rgba(0,0,0,.55), rgba(0,0,0,.75));
+  backdrop-filter: blur(6px);
+  animation: ai-fade .18s ease-out;
+}
+@keyframes ai-fade{from{opacity:0}to{opacity:1}}
+.ai-card{
+  width: min(880px, 92vw); max-height: min(82vh, 820px);
+  display: flex; flex-direction: column; overflow: hidden;
+  border-radius: 20px; border: 1px solid rgba(255,255,255,.12);
+  background:
+    radial-gradient(120% 160% at -10% -20%, rgba(199,160,89,.10), transparent 40%),
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  box-shadow: 0 30px 80px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.04);
+  color: #f5f5f5;
+}
+.ai-head{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:16px 18px; border-bottom:1px solid rgba(255,255,255,.10);
+  background: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.05));
+}
+.ai-brand{display:flex; gap:10px; align-items:center}
+.ai-brand img{width:32px; height:32px; border-radius:8px; border:1px solid rgba(255,255,255,.12)}
+.ai-brand strong{display:block; font-size:16px; letter-spacing:.2px}
+.ai-brand span{display:block; font-size:12px; color:#bdbdbd}
+.ai-close{
+  border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06);
+  color:#fff; border-radius:12px; padding:8px 10px; cursor:pointer;
+}
+.ai-body{display:flex; flex-direction:column; gap:10px; padding:14px 14px 16px}
+.ai-stream{
+  flex:1; min-height:180px; max-height: 56vh; overflow:auto;
+  display:flex; flex-direction:column; gap:10px; padding:6px;
+}
+.ai-msg{padding:10px 12px; border:1px solid rgba(255,255,255,.10);
+  border-radius:12px; max-width:80%}
+.ai-msg.user{align-self:flex-end; background:rgba(255,255,255,.10)}
+.ai-msg.bot{align-self:flex-start; background:rgba(255,255,255,.06)}
+.ai-suggest{display:flex; gap:8px; flex-wrap:wrap}
+.ai-chip{
+  border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06);
+  color:#fff; border-radius:999px; padding:6px 10px; font-size:12px; cursor:pointer;
+}
+.ai-form{display:flex; gap:8px; border-top:1px dashed rgba(255,255,255,.12); padding-top:10px}
+.ai-form input{
+  flex:1; border:1px solid rgba(255,255,255,.16); border-radius:12px; padding:10px;
+  background:rgba(255,255,255,.06); color:#fff;
+}
+.ai-send{
+  border:1px solid rgba(255,255,255,.16); background:linear-gradient(135deg,#0F172A,#1F2937);
+  color:#fff; border-radius:12px; padding:8px 12px; cursor:pointer;
+}
+/* scroll premium */
+.ai-stream::-webkit-scrollbar{height:10px;width:10px}
+.ai-stream::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:999px}
+body.ai-noscroll{overflow:hidden}
 
 /* print */
 @media print{
@@ -842,48 +885,84 @@ document.addEventListener('DOMContentLoaded', boot);
 </script>
 
 <!-- Chat Concierge (HTML) -->
-<div id="cz-chat" class="cz-chat">
-  <button id="cz-chat-toggle" class="cz-chat-fab" type="button">💬</button>
-  <div id="cz-chat-box" class="cz-chat-box" hidden>
-    <div class="cz-chat-head">
-      <div>Concierge Zenata · <span id="cz-chat-lang">FR</span></div>
-      <button id="cz-chat-close" type="button">✕</button>
+<!-- Agent IA (Modal) -->
+<div id="ai-overlay" class="ai-overlay" hidden aria-hidden="true">
+  <div class="ai-card" role="dialog" aria-modal="true" aria-labelledby="ai-title">
+    <div class="ai-head">
+      <div class="ai-brand">
+        <img src="/logo/logo_officiel_couleur_picto.png" alt="" />
+        <div>
+          <strong id="ai-title">Concierge IA</strong>
+          <span>Réponses instantanées 24/7</span>
+        </div>
+      </div>
+      <button id="ai-close" class="ai-close" type="button" aria-label="Fermer">✕</button>
     </div>
 
-    <div id="cz-chat-stream" class="cz-chat-stream"></div>
+    <div class="ai-body">
+      <div id="ai-stream" class="ai-stream"></div>
 
-    <div class="cz-chat-suggest">
-      <button class="cz-chip" type="button" data-q="Wi-Fi password? / Mot de passe Wi-Fi ?">Wi-Fi ?</button>
-      <button class="cz-chip" type="button" data-q="Check-in time / Heure de check-in">Check-in</button>
-      <button class="cz-chip" type="button" data-q="Best restaurants nearby / Meilleurs restos">Restos</button>
+      <div class="ai-suggest">
+        <button class="ai-chip" type="button" data-q="Heure de check-in ?">Check-in</button>
+        <button class="ai-chip" type="button" data-q="Mot de passe Wi-Fi ?">Wi-Fi</button>
+        <button class="ai-chip" type="button" data-q="Bons restos à proximité ?">Restos</button>
+      </div>
+
+      <form id="ai-form" class="ai-form" novalidate>
+        <input id="ai-input" placeholder="Posez votre question…" autocomplete="off" />
+        <button class="ai-send" type="submit" aria-label="Envoyer">↩︎</button>
+      </form>
     </div>
-
-    <form id="cz-chat-form" class="cz-chat-form" novalidate>
-      <input id="cz-chat-input" placeholder="Pose ta question…" autocomplete="off"/>
-      <button class="cz-send" type="submit" aria-label="Envoyer">↩︎</button>
-    </form>
   </div>
 </div>
 
+
 <!-- Chat Concierge (JS) -->
 <script>
-document.addEventListener('DOMContentLoaded', function(){
-  const qs = new URLSearchParams(location.search);
-  const slug = (location.pathname.split('/').pop()||'').replace(/\.html$/,'');
-  const token = qs.get('token') || '';
-  const langParam = (qs.get('lang')||'').toLowerCase();
-  const LANG = (langParam==='en') ? 'en' : 'fr';
+(function(){
+  const $ = (id)=>document.getElementById(id);
 
-  const $ = id => document.getElementById(id);
-  const box = $('cz-chat-box'), fab = $('cz-chat-toggle'), closeBtn = $('cz-chat-close');
-  const stream = $('cz-chat-stream'), form = $('cz-chat-form'), input = $('cz-chat-input');
-  const chips = Array.from(document.querySelectorAll('.cz-chip'));
-  const langBadge = $('cz-chat-lang'); if (langBadge) langBadge.textContent = LANG.toUpperCase();
+  // Ouvrir depuis n'importe quel bouton/lien : <button data-ai-open>
+  function bindOpeners(){
+    document.querySelectorAll('[data-ai-open]').forEach(el=>{
+      el.addEventListener('click', (e)=>{ e.preventDefault(); openAi(); });
+    });
+  }
 
-  function push(role, text){
+  const overlay = $('ai-overlay');
+  const closeBtn = $('ai-close');
+  const form = $('ai-form');
+  const input = $('ai-input');
+  const stream = $('ai-stream');
+
+  function openAi(){
+    if(!overlay) return;
+    overlay.hidden = false;
+    overlay.setAttribute('aria-hidden','false');
+    document.body.classList.add('ai-noscroll');
+    setTimeout(()=>input?.focus(), 50);
+  }
+  function closeAi(){
+    if(!overlay) return;
+    overlay.hidden = true;
+    overlay.setAttribute('aria-hidden','true');
+    document.body.classList.remove('ai-noscroll');
+  }
+
+  // Fermetures : croix, clic fond, ESC
+  closeBtn?.addEventListener('click', (e)=>{ e.preventDefault(); closeAi(); });
+  overlay?.addEventListener('click', (e)=>{
+    if(e.target === overlay){ closeAi(); }
+  });
+  window.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && overlay && !overlay.hidden){ closeAi(); }
+  });
+
+  // Chat minimal – appelle ta Netlify Function existante (guide-chat)
+  function push(role, html){
     const div = document.createElement('div');
-    div.className = 'cz-chat-msg ' + (role==='user'?'user':'bot');
-    div.innerHTML = (text||'').replace(/\n/g,'<br>');
+    div.className = 'ai-msg ' + (role==='user'?'user':'bot');
+    div.innerHTML = (html||'').replace(/\n/g,'<br>');
     stream.appendChild(div);
     stream.scrollTop = stream.scrollHeight;
   }
@@ -893,46 +972,54 @@ document.addEventListener('DOMContentLoaded', function(){
     push('user', q);
     input.value = '';
     const thinking = document.createElement('div');
-    thinking.className='cz-chat-msg bot';
-    thinking.textContent = (LANG==='en'?'Thinking…':'Réflexion…');
-    stream.appendChild(thinking); stream.scrollTop = stream.scrollHeight;
+    thinking.className='ai-msg bot';
+    thinking.textContent='…';
+    stream.appendChild(thinking);
+    stream.scrollTop = stream.scrollHeight;
 
     try{
+      const qs = new URLSearchParams(location.search);
+      const slug = (location.pathname.split('/').pop()||'').replace(/\.html$/,'');
+      const token = qs.get('token') || '';
+      const lang = (qs.get('lang')||'fr').toLowerCase()==='en'?'en':'fr';
+
       const r = await fetch('/.netlify/functions/guide-chat', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ slug, token, lang: LANG, question: q })
+        body: JSON.stringify({ slug, token, lang, question: q })
       });
       const data = await r.json();
       thinking.remove();
       if(!r.ok) throw new Error(data.error||('HTTP '+r.status));
-      push('bot', data.answer || (LANG==='en'?'(No answer)':'(Pas de réponse)'));
+      push('bot', data.answer || (lang==='en'?'(No answer)':'(Pas de réponse)'));
     }catch(e){
       thinking.remove();
-      push('bot', (LANG==='en'?'Error: ':'Erreur : ')+(e.message||e));
+      push('bot', 'Erreur : '+(e.message||e));
     }
   }
 
-  // Zéro reload
-  fab?.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); box.hidden = !box.hidden; if(!box.hidden) input.focus(); });
-  closeBtn?.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); box.hidden = true; });
-
-  // Ce form n’a jamais d’action réseau classique
-  form?.setAttribute('action','javascript:void(0)');
   form?.addEventListener('submit', (e)=>{
     e.preventDefault(); e.stopPropagation();
     ask(input.value);
     return false;
   });
 
-  chips.forEach(c => {
-    c.addEventListener('click', (e)=>{
-      e.preventDefault(); e.stopPropagation();
-      ask(c.getAttribute('data-q')||'');
-    });
+  // Suggestions
+  document.addEventListener('click', (e)=>{
+    const t = e.target;
+    if(t && t.matches('.ai-chip')){
+      e.preventDefault(); ask(t.getAttribute('data-q')||'');
+    }
   });
-});
+
+  // Si tu veux que le bouton 💬 ouvre la modale au lieu du petit widget :
+   document.getElementById('cz-chat-toggle')?.setAttribute('data-ai-open','');
+
+  // Auto-bind
+  document.addEventListener('DOMContentLoaded', bindOpeners);
+})();
 </script>
+
 
 
 </body>
