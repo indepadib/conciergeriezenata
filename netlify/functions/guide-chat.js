@@ -11,11 +11,14 @@ export default async (req, context) => {
     }
 
     // 1) Récupère le JSON du guide (via ton endpoint sans cache)
-    const guideRes = await fetch(`${process.env.SITE_URL || ''}/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${Date.now()}`);
-    if (!guideRes.ok) {
-      return Response.json({ error: 'Guide fetch failed' }, { status: 500 });
-    }
-    const guide = await guideRes.json();
+const guideFnUrl = new URL(
+  `/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${Date.now()}`,
+  // base absolue dérivée de la requête entrante
+  req.url
+).toString();
+
+const guideRes = await fetch(guideFnUrl, { headers: { 'cache-control': 'no-store' } });
+
 
     // 2) Garde-fous (ne jamais divulguer code porte si token invalide)
     const hasToken = guide?.__sensitive?.token ? (token === guide.__sensitive.token) : true;
