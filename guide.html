@@ -271,7 +271,19 @@ body{
   }
 
   const br = s => (s||'').replace(/\n/g,'<br>');
-  function pick(obj){ if(!obj) return null; return obj[LANG] ?? obj['fr'] ?? obj['en'] ?? null; }
+  function pick(v){
+  if (v == null) return null;
+  // si déjà une string, on la prend telle quelle
+  if (typeof v === 'string') return v;
+  // si objet { fr: "...", en: "..." }
+  if (typeof v === 'object'){
+    if (v[LANG]) return v[LANG];
+    if (v.fr) return v.fr;
+    if (v.en) return v.en;
+  }
+  // fallback: toString()
+  try { return String(v); } catch { return null; }
+}
 
   // Parsing lignes: "[Catégorie] Nom — détail | url | lat,lng"
   function parseLines(arr){
@@ -362,13 +374,25 @@ body{
       return;
     }
 
-    // hero
-    if(g.cover?.imageUrl){ $("hero-img").src=g.cover.imageUrl; $("hero").style.display=''; }
-    $("title").textContent=g.name||'';
+   // HERO (accepte cover sous plusieurs formats)
+let coverUrl = null;
+if (typeof g.cover === 'string') coverUrl = g.cover;
+else if (g.cover && typeof g.cover === 'object') {
+  coverUrl = g.cover.imageUrl || g.cover.url || null;
+}
+if (coverUrl) {
+  $("hero-img").src = coverUrl;
+  $("hero").style.display = ''; // affiche le hero
+}
+$("title").textContent = g.name || '';
 
-    // intro
-    const intro = pick(g.intro) || pick(g.welcome) || S('welcome_fallback');
-    $("intro-text").innerHTML = br(intro); $("intro-card").style.display='';
+// INTRO (accepte string ou {fr/en})
+const introText = pick(g.intro) ?? pick(g.welcome) ?? S('welcome_fallback');
+if (introText && String(introText).trim()) {
+  $("intro-text").innerHTML = br(introText);
+  $("intro-card").style.display = ''; // affiche le bloc bienvenue
+}
+
 
     // data
     const allow = g.__sensitive?.token ? (token===g.__sensitive.token) : true;
@@ -376,6 +400,9 @@ body{
     const dep = pick(g.departure) || {};
     const rules = (pick(g.rules)?.items) || [];
     const ams = g.amenities || [];
+    let rulesObj = pick(g.rules);
+    const rules = Array.isArray(rulesObj) ? rulesObj : (rulesObj?.items || []);
+
 
     const grid = $("grid");
     grid.innerHTML = "";
