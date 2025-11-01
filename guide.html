@@ -839,8 +839,33 @@ async function boot(){
 }
 
 document.addEventListener('DOMContentLoaded', boot);
+</script>
 
-// --- Chat Concierge ---
+<!-- Chat Concierge (HTML) -->
+<div id="cz-chat" class="cz-chat">
+  <button id="cz-chat-toggle" class="cz-chat-fab" type="button">💬</button>
+  <div id="cz-chat-box" class="cz-chat-box" hidden>
+    <div class="cz-chat-head">
+      <div>Concierge Zenata · <span id="cz-chat-lang">FR</span></div>
+      <button id="cz-chat-close" type="button">✕</button>
+    </div>
+
+    <div id="cz-chat-stream" class="cz-chat-stream"></div>
+
+    <div class="cz-chat-suggest">
+      <button class="cz-chip" type="button" data-q="Wi-Fi password? / Mot de passe Wi-Fi ?">Wi-Fi ?</button>
+      <button class="cz-chip" type="button" data-q="Check-in time / Heure de check-in">Check-in</button>
+      <button class="cz-chip" type="button" data-q="Best restaurants nearby / Meilleurs restos">Restos</button>
+    </div>
+
+    <form id="cz-chat-form" class="cz-chat-form" novalidate>
+      <input id="cz-chat-input" placeholder="Pose ta question…" autocomplete="off"/>
+      <button class="cz-send" type="submit" aria-label="Envoyer">↩︎</button>
+    </form>
+  </div>
+</div>
+
+<!-- Chat Concierge (JS) -->
 <script>
 document.addEventListener('DOMContentLoaded', function(){
   const qs = new URLSearchParams(location.search);
@@ -888,13 +913,16 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   }
 
-  // === Events (zéro reload) ===
+  // Zéro reload
   fab?.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); box.hidden = !box.hidden; if(!box.hidden) input.focus(); });
   closeBtn?.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); box.hidden = true; });
 
+  // Ce form n’a jamais d’action réseau classique
+  form?.setAttribute('action','javascript:void(0)');
   form?.addEventListener('submit', (e)=>{
     e.preventDefault(); e.stopPropagation();
     ask(input.value);
+    return false;
   });
 
   chips.forEach(c => {
@@ -905,33 +933,6 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 });
 </script>
-
-</script>
-
-    <!-- Chat Concierge -->
-<!-- Chat Concierge -->
-<div id="cz-chat" class="cz-chat">
-  <button id="cz-chat-toggle" class="cz-chat-fab" type="button">💬</button>
-  <div id="cz-chat-box" class="cz-chat-box" hidden>
-    <div class="cz-chat-head">
-      <div>Concierge Zenata · <span id="cz-chat-lang">FR</span></div>
-      <button id="cz-chat-close" type="button">✕</button>
-    </div>
-
-    <div id="cz-chat-stream" class="cz-chat-stream"></div>
-
-    <div class="cz-chat-suggest">
-      <button class="cz-chip" type="button" data-q="Wi-Fi password? / Mot de passe Wi-Fi ?">Wi-Fi ?</button>
-      <button class="cz-chip" type="button" data-q="Check-in time / Heure de check-in">Check-in</button>
-      <button class="cz-chip" type="button" data-q="Best restaurants nearby / Meilleurs restos">Restos</button>
-    </div>
-
-    <form id="cz-chat-form" class="cz-chat-form" novalidate>
-      <input id="cz-chat-input" placeholder="Pose ta question…" autocomplete="off"/>
-      <button class="cz-send" type="submit" aria-label="Envoyer">↩︎</button>
-    </form>
-  </div>
-</div>
 
 
 </body>
