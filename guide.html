@@ -393,15 +393,16 @@ if (introText && String(introText).trim()) {
   $("intro-card").style.display = ''; // affiche le bloc bienvenue
 }
 
+   // data
+const allow = g.__sensitive?.token ? (token===g.__sensitive.token) : true;
+const a     = pick(g.arrival)   || {};
+const dep   = pick(g.departure) || {};
 
-    // data
-    const allow = g.__sensitive?.token ? (token===g.__sensitive.token) : true;
-    const a = pick(g.arrival) || {};
-    const dep = pick(g.departure) || {};
-    const rules = (pick(g.rules)?.items) || [];
-    const ams = g.amenities || [];
-    let rulesObj = pick(g.rules);
-    const rules = Array.isArray(rulesObj) ? rulesObj : (rulesObj?.items || []);
+const rulesSource = pick(g.rules);
+const rules = Array.isArray(rulesSource) ? rulesSource : (rulesSource?.items || []);
+
+const ams = Array.isArray(g.amenities) ? g.amenities : [];
+
 
 
     const grid = $("grid");
