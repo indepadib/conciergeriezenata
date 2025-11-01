@@ -127,7 +127,7 @@ body{
 .error-box{background:rgba(255,0,0,.08);border:1px solid rgba(255,0,0,.25);color:#ffdddd;padding:14px;border-radius:12px;margin:10px 0;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
 
 /* footer/print */
-.footer{ text-align:center; color:var(--muted); margin-top:40px; font-size:13px }
+.footer{ text-align:center; color:#b9b9b9; margin-top:40px; font-size:13px }
 .footer .btn{margin-top:10px}
 @media print{
   body{ background:#fff; color:#000; padding:0 }
@@ -219,21 +219,31 @@ body{
 
 <script>
 (() => {
-  /* ==================
-     CONFIG & HELPERS
-  ===================*/
-  const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co"; // adapte si besoin
+  /* CONFIG */
+  const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";
   const GUIDES_BUCKET = "guides";
-
   const $ = (id)=>document.getElementById(id);
   $("year").textContent = new Date().getFullYear();
 
+  /* i18n */
   let LANG='fr';
   const UI = {
     fr:{traveler_guide:"Guide voyageur",call:"Appeler",pdf:"PDF",download_pdf:"Télécharger en PDF",welcome_title:"Bienvenue à Zenata 🌴",welcome_fallback:"Nous sommes ravis de vous accueillir à Zenata. Profitez de votre séjour.",location:"Localisation",open_gmaps:"Ouvrir dans Google Maps",directions:"Itinéraire",explore_nearby:"Explorer autour",neighborhood:"Quartier",do_see:"À faire / Recos",link:"Lien",view:"Voir",address:"Adresse",wifi:"Wi-Fi",door_code:"Code porte",sensitive_hidden:"Infos sensibles masquées. Ajoutez votre jeton",checkin:"Arrivée & Check-in",from:"À partir de",parking:"Parking",house_rules:"Règles",no_rules:"Aucune règle.",amenities:"Équipements",not_provided:"Non renseigné.",essentials:"Essentiels",checkout:"Départ",checkout_before:"Check-out avant",support:"Assistance & Contact",email:"Email",whatsapp:"WhatsApp",report_issue:"Signaler un souci",help_issues:"Dépannage",report_thanks:"Merci, c’est envoyé.",report_error:"Erreur",network_error:"Erreur réseau",appliances:"Appareils & Mode d’emploi",no_data:"Non renseigné.",parking_access:"Parking & Accès",spot:"Emplacement",extras:"Services additionnels",book_extra:"Réserver un extra :",detail:"Détail"},
     en:{traveler_guide:"Traveler Guide",call:"Call",pdf:"PDF",download_pdf:"Download PDF",welcome_title:"Welcome to Zenata 🌴",welcome_fallback:"We’re delighted to host you in Zenata. Enjoy your stay.",location:"Location",open_gmaps:"Open in Google Maps",directions:"Directions",explore_nearby:"Explore nearby",neighborhood:"Neighborhood",do_see:"Do & See",link:"Link",view:"View",address:"Address",wifi:"Wi-Fi",door_code:"Door code",sensitive_hidden:"Sensitive info hidden. Add your token",checkin:"Arrival & Check-in",from:"From",parking:"Parking",house_rules:"House rules",no_rules:"No rules.",amenities:"Amenities",not_provided:"Not provided.",essentials:"Essentials",checkout:"Checkout",checkout_before:"Check-out before",support:"Support",email:"Email",whatsapp:"WhatsApp",report_issue:"Report an issue",help_issues:"Help & Issues",report_thanks:"Thanks, received.",report_error:"Error",network_error:"Network error",appliances:"Appliances",no_data:"No data.",parking_access:"Parking & Access",spot:"Spot",extras:"Extras",book_extra:"Book an extra:",detail:"Detail"}
   };
   const S = (k)=> (UI[LANG] && UI[LANG][k]) || UI['fr'][k] || k;
+
+  const br = s => (s||'').replace(/\n/g,'<br>');
+  function pick(v){
+    if (v == null) return null;
+    if (typeof v === 'string') return v;
+    if (typeof v === 'object'){
+      if (v[LANG]) return v[LANG];
+      if (v.fr)    return v.fr;
+      if (v.en)    return v.en;
+    }
+    try { return String(v); } catch { return null; }
+  }
 
   function showAlert(msg){
     const box = $("alert"); if(!box) return;
@@ -270,22 +280,6 @@ body{
     return icons[name] || icons.map;
   }
 
-  const br = s => (s||'').replace(/\n/g,'<br>');
-  function pick(v){
-  if (v == null) return null;
-  // si déjà une string, on la prend telle quelle
-  if (typeof v === 'string') return v;
-  // si objet { fr: "...", en: "..." }
-  if (typeof v === 'object'){
-    if (v[LANG]) return v[LANG];
-    if (v.fr) return v.fr;
-    if (v.en) return v.en;
-  }
-  // fallback: toString()
-  try { return String(v); } catch { return null; }
-}
-
-  // Parsing lignes: "[Catégorie] Nom — détail | url | lat,lng"
   function parseLines(arr){
     return (arr||[]).map(line=>{
       const parts = String(line).split('|').map(s=>s.trim());
@@ -311,34 +305,28 @@ body{
     return map;
   }
 
-  /* ================
-     DATA LOADING
-  =================*/
   async function fetchGuide(slug){
     const ts = Date.now();
-    // 1) Netlify function
     try{
       const r = await fetch(`/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${ts}`, { cache:'no-store' });
       if(r.ok) return await r.json();
     }catch(e){ console.warn('get-guide failed', e); }
-    // 2) Supabase public
     const url = `${SUPABASE_URL}/storage/v1/object/public/${GUIDES_BUCKET}/${encodeURIComponent(slug)}.json?ts=${ts}`;
     const r2 = await fetch(url, { cache:'no-store' });
     if(!r2.ok) throw new Error('Guide introuvable.');
     return await r2.json();
   }
 
-  /* ================
-     RENDER GUIDE
-  =================*/
   async function boot(){
-    const slug=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
+    // 🔧 slug robuste: dernier segment non-vide
+    const segments = location.pathname.split('/').filter(Boolean);
+    const slug = segments.pop() || '';
     const qs=new URLSearchParams(location.search);
     const token=qs.get('token')||'';
     const langParam=(qs.get('lang')||'').toLowerCase();
     if(langParam==='en') LANG='en';
 
-    // appliquer i18n statique
+    // i18n statique
     document.querySelectorAll('[data-i18n]').forEach(el=>{
       const k = el.getAttribute('data-i18n'); el.textContent = S(k);
     });
@@ -347,7 +335,7 @@ body{
     document.getElementById('footer-premium').textContent = (LANG==='en'?'Premium Stay':'Séjour Premium');
 
     // header actions
-    const waMsg = encodeURIComponent(`${LANG==='en'?'Hello':'Bonjour'} 👋 (guide ${slug})`);
+    const waMsg = encodeURIComponent(`${LANG==='en'?'Hello':'Bonjour'} 👋 (guide ${slug||'—'})`);
     $("btn-wa").href = `https://wa.me/212600000000?text=${waMsg}`;
 
     // toggle langue
@@ -361,51 +349,49 @@ body{
       b.classList.toggle('active', b.dataset.lang===LANG);
     });
 
-    // charge
+    // charge guide
     let g;
     try{
       hideAlert();
+      if(!slug){ throw new Error("Slug introuvable dans l'URL (chemin)."); }
       g = await fetchGuide(slug);
+      console.log('[guide]', g);
     }catch(err){
+      console.error(err);
       showAlert(err.message||err);
       $("title").textContent="Guide introuvable";
+      // On montre quand même une intro fallback pour éviter une page vide
       $("intro-text").textContent = (LANG==='en'?'The guide could not be loaded.':'Le guide n’a pas pu être chargé.');
       $("intro-card").style.display='';
       return;
     }
 
-   // HERO (accepte cover sous plusieurs formats)
-// HERO
-let coverUrl = null;
-if (typeof g.cover === 'string') coverUrl = g.cover;
-else if (g.cover && typeof g.cover === 'object') {
-  coverUrl = g.cover.imageUrl || g.cover.url || null;
-}
-if (coverUrl) {
-  $("hero-img").src = coverUrl;
-  $("hero").style.display = '';
-}
-$("title").textContent = g.name || '';
+    // HERO (string ou { imageUrl / url })
+    let coverUrl = null;
+    if (typeof g.cover === 'string') coverUrl = g.cover;
+    else if (g.cover && typeof g.cover === 'object') {
+      coverUrl = g.cover.imageUrl || g.cover.url || null;
+    }
+    if (coverUrl) {
+      $("hero-img").src = coverUrl;
+      $("hero").style.display = '';
+    }
+    $("title").textContent = g.name || '';
 
-// INTRO
-const introText = pick(g.intro) ?? pick(g.welcome) ?? S('welcome_fallback');
-if (introText && String(introText).trim()) {
-  $("intro-text").innerHTML = br(introText);
-  $("intro-card").style.display = '';
-}
+    // INTRO (string ou { fr/en }, fallback garanti)
+    const introText = pick(g.intro) ?? pick(g.welcome) ?? S('welcome_fallback');
+    $("intro-text").innerHTML = br(introText);
+    $("intro-card").style.display = '';
 
+    // data
+    const allow = g.__sensitive?.token ? (token===g.__sensitive.token) : true;
+    const a     = pick(g.arrival)   || {};
+    const dep   = pick(g.departure) || {};
 
-   // data
-const allow = g.__sensitive?.token ? (token===g.__sensitive.token) : true;
-const a     = pick(g.arrival)   || {};
-const dep   = pick(g.departure) || {};
+    const rulesSource = pick(g.rules);
+    const rules = Array.isArray(rulesSource) ? rulesSource : (rulesSource?.items || []);
 
-const rulesSource = pick(g.rules);
-const rules = Array.isArray(rulesSource) ? rulesSource : (rulesSource?.items || []);
-
-const ams = Array.isArray(g.amenities) ? g.amenities : [];
-
-
+    const ams = Array.isArray(g.amenities) ? g.amenities : [];
 
     const grid = $("grid");
     grid.innerHTML = "";
@@ -435,7 +421,7 @@ const ams = Array.isArray(g.amenities) ? g.amenities : [];
       });
     }
 
-    // Quartier & Recos (avec grouping + liens + points)
+    // Quartier & Recos
     const nbh = pick(g.neighborhood) || {};
     const rec = pick(g.recommendations) || {};
     const nbhItems = parseLines(nbh.places || []);
@@ -593,7 +579,7 @@ const ams = Array.isArray(g.amenities) ? g.amenities : [];
       });
     }
 
-    // Éléments “classiques”
+    // Éléments classiques
     cards.push(
       { key:S('address'), icon:'map', onClick:()=>openModal(S('address'), `<p>${g.address||''}</p>`) },
       { key:S('wifi'), icon:'wifi', onClick:()=>openModal('Wi-Fi', `<p><b>SSID</b> : ${a.wifi?.ssid||''}<br><b>${LANG==='en'?'Password':'Mot de passe'}</b> : ${a.wifi?.password||''}</p>`) },
@@ -616,9 +602,6 @@ const ams = Array.isArray(g.amenities) ? g.amenities : [];
     }
   }
 
-  /* ================
-     CHATBOT IA
-  =================*/
   function initAi(){
     const fab = $("ai-fab");
     const overlay = $("ai-overlay");
@@ -648,7 +631,8 @@ const ams = Array.isArray(g.amenities) ? g.amenities : [];
       stream.appendChild(thinking); stream.scrollTop=stream.scrollHeight;
       try{
         const qs=new URLSearchParams(location.search);
-        const slug=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
+        const segments = location.pathname.split('/').filter(Boolean);
+        const slug = segments.pop() || '';
         const token=qs.get('token')||''; const lang=(qs.get('lang')||LANG);
         const r=await fetch('/.netlify/functions/guide-chat',{method:'POST',headers:{'Content-Type':'application/json'},
           body: JSON.stringify({ slug, token, lang, question:q })
@@ -670,11 +654,23 @@ const ams = Array.isArray(g.amenities) ? g.amenities : [];
     form?.addEventListener('submit',(e)=>{e.preventDefault();e.stopPropagation();ask(input.value||'');});
   }
 
-  // GO
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', ()=>{ boot(); initAi(); });
-  }else{
-    boot(); initAi();
+  // GO + garde-fou d’exécution
+  function safeStart(){
+    try{
+      boot();
+      initAi();
+    }catch(err){
+      console.error(err);
+      showAlert(err.message||err);
+      // au pire, montrer une intro fallback pour éviter "page vide"
+      $("intro-text").textContent = (LANG==='en'?'The guide could not be loaded.':'Le guide n’a pas pu être chargé.');
+      $("intro-card").style.display='';
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', safeStart);
+  } else {
+    safeStart();
   }
 })();
 </script>
