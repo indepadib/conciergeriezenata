@@ -158,12 +158,17 @@ body{
     <button class="btn" onclick="window.print()" data-i18n="pdf">PDF</button>
   </div>
 
-  <!-- HERO -->
+  <!-- HERO 
   <div id="hero" class="hero">
     <img id="hero-img" alt="">
     <div class="overlay"></div>
     <div class="title"><div class="badge" data-i18n="traveler_guide">Guide voyageur</div><h1 id="title"></h1></div>
-  </div>
+  </div> 
+  -->
+  <div class="title">
+  <div id="travGuideBadge" class="badge">Guide voyageur</div>
+  <h1 id="title"></h1>
+</div>
 
   <!-- INTRO -->
   <div id="intro-card" class="intro-card">
@@ -334,13 +339,17 @@ body{
     const langParam=(qs.get('lang')||'').toLowerCase();
     if(langParam==='en') LANG='en';
 
-    // i18n statique
-    document.querySelectorAll('[data-i18n]').forEach(el=>{
-      const k = el.getAttribute('data-i18n'); el.textContent = S(k);
-    });
-    document.getElementById('welcome-title').textContent = S('welcome_title');
-    document.querySelector('.badge').textContent = S('traveler_guide');
-    document.getElementById('footer-premium').textContent = (LANG==='en'?'Premium Stay':'Séjour Premium');
+  // i18n statique (robuste)
+document.querySelectorAll('[data-i18n]').forEach(el=>{
+  const k = el.getAttribute('data-i18n');
+  if (k && UI[LANG] && UI[LANG][k]) el.textContent = UI[LANG][k];
+});
+const badgeEl = document.getElementById('travGuideBadge');
+if (badgeEl) badgeEl.textContent = S('traveler_guide');
+const wt = document.getElementById('welcome-title');
+if (wt) wt.textContent = S('welcome_title');
+const fp = document.getElementById('footer-premium');
+if (fp) fp.textContent = (LANG==='en'?'Premium Stay':'Séjour Premium');
 
     // header actions
     const waMsg = encodeURIComponent(`${LANG==='en'?'Hello':'Bonjour'} 👋 (guide ${slug||'—'})`);
@@ -373,21 +382,41 @@ body{
       return;
     }
 
-    // --- HERO
-    const coverUrl =
-      (g.cover && typeof g.cover === 'object' && (g.cover.imageUrl || g.cover.url)) ||
-      (typeof g.cover === 'string' ? g.cover : null);
+    // --- HERO (affichage conditionné au onload de l'image, fallback si erreur)
+const hero = document.getElementById('hero');
+const heroImg = document.getElementById('hero-img');
 
-    if (coverUrl) {
-      $("hero-img").src = coverUrl;
-      $("hero").style.display = '';
-    }
-    $("title").textContent = g.name || '';
+const coverUrl =
+  (g.cover && typeof g.cover === 'object' && (g.cover.imageUrl || g.cover.url)) ||
+  (typeof g.cover === 'string' ? g.cover : null);
 
-    // --- INTRO (fallback si vide)
-    const introText = pickText(g.intro) ?? pickText(g.welcome) ?? S('welcome_fallback');
-    $("intro-text").innerHTML = br(introText);
-    $("intro-card").style.display = '';
+if (coverUrl && hero && heroImg) {
+  heroImg.onload = () => { hero.style.display = ''; };
+  heroImg.onerror = () => {
+    console.warn('Cover failed to load:', coverUrl);
+    hero.style.display = 'none'; // on cache le hero si l'image est KO
+  };
+  heroImg.src = coverUrl;
+} else {
+  if (hero) hero.style.display = 'none';
+}
+
+document.getElementById('title').textContent = g.name || '';
+
+// --- INTRO (toujours visible avec fallback)
+const introText = (()=>{
+  const t = (typeof g.intro !== 'undefined' ? ( (typeof g.intro==='string') ? g.intro : (g.intro?.[LANG] || g.intro?.fr || g.intro?.en) ) : null);
+  const w = (typeof g.welcome !== 'undefined' ? ( (typeof g.welcome==='string') ? g.welcome : (g.welcome?.[LANG] || g.welcome?.fr || g.welcome?.en) ) : null);
+  return (t && String(t).trim()) || (w && String(w).trim()) || S('welcome_fallback');
+})();
+
+const introCard = document.getElementById('intro-card');
+const introP = document.getElementById('intro-text');
+if (introCard && introP) {
+  introP.innerHTML = String(introText).replace(/\n/g,'<br>');
+  introCard.style.display = '';
+}
+
 
     // ==== DATA (avec helpers) ====
     const allow = g.__sensitive?.token ? (token === g.__sensitive.token) : true;
@@ -400,7 +429,12 @@ body{
 
     const ams = Array.isArray(g.amenities) ? g.amenities : [];
 
-    const essentialsText = pickText(g.essentials) || "";
+  const essentialsText = (()=>{
+  const e = g.essentials;
+  if (e == null) return '';
+  if (typeof e === 'string') return e;
+  return e[LANG] || e.fr || e.en || '';
+})();
 
     const grid = $("grid");
     grid.innerHTML = "";
