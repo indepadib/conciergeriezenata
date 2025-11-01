@@ -375,6 +375,7 @@ body{
     }
 
    // HERO (accepte cover sous plusieurs formats)
+// HERO
 let coverUrl = null;
 if (typeof g.cover === 'string') coverUrl = g.cover;
 else if (g.cover && typeof g.cover === 'object') {
@@ -382,16 +383,17 @@ else if (g.cover && typeof g.cover === 'object') {
 }
 if (coverUrl) {
   $("hero-img").src = coverUrl;
-  $("hero").style.display = ''; // affiche le hero
+  $("hero").style.display = '';
 }
 $("title").textContent = g.name || '';
 
-// INTRO (accepte string ou {fr/en})
+// INTRO
 const introText = pick(g.intro) ?? pick(g.welcome) ?? S('welcome_fallback');
 if (introText && String(introText).trim()) {
   $("intro-text").innerHTML = br(introText);
-  $("intro-card").style.display = ''; // affiche le bloc bienvenue
+  $("intro-card").style.display = '';
 }
+
 
    // data
 const allow = g.__sensitive?.token ? (token===g.__sensitive.token) : true;
