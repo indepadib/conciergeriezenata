@@ -246,6 +246,16 @@ body{
 .btn.primary{ background:linear-gradient(135deg,#0F172A,#1F2937); border:none }
 
 .footer{ text-align:center; color:var(--muted); margin-top:60px; font-size:13px }
+
+/* === listes premium dans les modales === */
+.list{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.list-row{display:flex;gap:10px;align-items:flex-start}
+.dot{width:8px;height:8px;border-radius:999px;background:#C7A059;position:relative;top:8px;flex-shrink:0}
+.list-col{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.list-txt{font-size:14px;line-height:1.45}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid rgba(255,255,255,.12);
+      border-radius:999px;text-decoration:none;font-size:12px;color:#fff;background:rgba(255,255,255,.06)}
+.pill:hover{background:rgba(255,255,255,.12)}
 </style>
 </head>
 
@@ -305,13 +315,14 @@ function icon(name){
     amenities:`<svg fill="none" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/></svg>`,
     help:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 9a3 3 0 116 0c0 1.657-3 3-3 3m0 4h.01"/></svg>`,
     exit:`<svg fill="none" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 4l5 5-5 5m5-5H9"/></svg>`,
-    location:`<svg fill="none" viewBox="0 0 24 24"><path d="M12 21s7-4.35 7-10a7 7 0 10-14 0c0 5.65 7 10 7 10zM12 11a2 2 0 110-4 2 2 0 010 4z"/></svg>`
+    location:`<svg fill="none" viewBox="0 0 24 24"><path d="M12 21s7-4.35 7-10a7 7 0 10-14 0c0 5.65 7 10 7 10zM12 11a2 2 0 110-4 2 2 0 010 4z"/></svg>`,
+    neighborhood:`<svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.5" d="M12 21s7-4.35 7-10a7 7 0 10-14 0c0 5.65 7 10 7 10z"/><circle cx="12" cy="11" r="2" fill="currentColor"/></svg>`,
+    activities:`<svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.5" d="M4 7h16M4 12h16M4 17h10"/><circle cx="18" cy="17" r="1.5" fill="currentColor"/></svg>`,
   };
   return icons[name] || icons.map;
 }
 
 /* ===== Google Maps helpers (dark luxe) ===== */
-// Optionnel : mets ta clé pour la version JS stylée
 // window.GMAPS_API_KEY = "TA_CLE";
 const darkMapStyle=[{"elementType":"geometry","stylers":[{"color":"#1f2023"}]},{"elementType":"labels.text.fill","stylers":[{"color":"#e0e0e0"}]},{"elementType":"labels.text.stroke","stylers":[{"color":"#1f2023"}]},{"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#c7a059"}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#1a1b1f"}]},{"featureType":"road","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#d6d6d6"}]},{"featureType":"transit","elementType":"geometry","stylers":[{"color":"#2a2c31"}]},{"featureType":"water","elementType":"geometry","stylers":[{"color":"#0e1116"}]}];
 function loadGoogleMapsScript(cb){
@@ -328,12 +339,20 @@ function renderGoogleMapJS(lat,lng){
   new google.maps.Marker({position:{lat,lng},map,icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:'#c7a059',fillOpacity:1,strokeColor:'#fff',strokeWeight:2}});
 }
 
+/* Parse lignes "Nom — détail | url" ou juste "Nom" */
+function parseLines(arr){
+  return (arr||[]).map(line=>{
+    const [left, maybeUrl] = String(line).split('|').map(s=>s.trim());
+    return { text: left, url: (maybeUrl && /^https?:\/\//i.test(maybeUrl)) ? maybeUrl : null };
+  });
+}
+
 /* ===== Boot ===== */
 async function boot(){
   const slug=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
   const token=new URLSearchParams(location.search).get('token')||'';
 
-  // 👉 On passe par la fonction Netlify pour éviter le cache Storage
+  // via Netlify function pour éviter le cache
   const api = `/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${Date.now()}`;
 
   let g;
@@ -363,7 +382,7 @@ async function boot(){
   const grid = $("grid");
   const cards = [];
 
-  // lat/lng robustes même si strings
+  // lat/lng
   const lat = g?.geo?.lat!=null ? parseFloat(g.geo.lat) : NaN;
   const lng = g?.geo?.lng!=null ? parseFloat(g.geo.lng) : NaN;
   const hasGeo = !Number.isNaN(lat) && !Number.isNaN(lng);
@@ -398,7 +417,68 @@ async function boot(){
     });
   }
 
-  // Cartes "picto + libellé"
+  // === Nouvelles cartes Quartier & Recos ===
+  const nbh = g.neighborhood?.fr || {};
+  const rec = g.recommendations?.fr || {};
+  const nbhItems = parseLines(nbh.places || []);
+  const recItems = parseLines(rec.tips || []);
+
+  if ((nbh.intro && nbh.intro.trim()) || nbhItems.length){
+    cards.push({
+      key:'Quartier', icon:'neighborhood',
+      onClick:()=>{
+        openModal('Quartier', `
+          ${nbh.intro ? `<p>${nbh.intro.replace(/\n/g,'<br>')}</p>` : ''}
+          ${nbhItems.length ? `
+            <div class="list">
+              ${nbhItems.map(it=>`
+                <div class="list-row">
+                  <div class="dot"></div>
+                  <div class="list-col">
+                    <div class="list-txt">${it.text}</div>
+                    ${it.url ? `<a class="pill" href="${it.url}" target="_blank" rel="noreferrer">Voir</a>`:''}
+                  </div>
+                </div>
+              `).join('')}
+            </div>` : ''
+          }
+          ${hasGeo ? `
+            <div class="modal-actions">
+              <a class="btn" target="_blank" rel="noreferrer"
+                 href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">Explorer autour</a>
+            </div>` : ''
+          }
+        `);
+      }
+    });
+  }
+
+  if ((rec.intro && rec.intro.trim()) || recItems.length){
+    cards.push({
+      key:'À faire / Recos', icon:'activities',
+      onClick:()=>{
+        openModal('À faire / Recommandations', `
+          ${rec.intro ? `<p>${rec.intro.replace(/\n/g,'<br>')}</p>` : ''}
+          ${recItems.length ? `
+            <div class="list">
+              ${recItems.map(it=>`
+                <div class="list-row">
+                  <div class="dot"></div>
+                  <div class="list-col">
+                    <div class="list-txt">${it.text}</div>
+                    ${it.url ? `<a class="pill" href="${it.url}" target="_blank" rel="noreferrer">Lien</a>`:''}
+                  </div>
+                </div>
+              `).join('')}
+            </div>` : ''
+          }
+        `);
+      }
+    });
+  }
+  // === fin ajouts ===
+
+  // Cartes "picto + libellé" existantes
   cards.push(
     { key:'Adresse', icon:'map', onClick:()=>openModal('Adresse', `<p>${g.address||''}</p>`) },
     { key:'Wi-Fi', icon:'wifi', onClick:()=>openModal('Wi-Fi', `<p><b>SSID</b> : ${a.wifi?.ssid||''}<br><b>Mot de passe</b> : ${a.wifi?.password||''}</p>`) },
