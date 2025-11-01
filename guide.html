@@ -234,16 +234,24 @@ body{
   const S = (k)=> (UI[LANG] && UI[LANG][k]) || UI['fr'][k] || k;
 
   const br = s => (s||'').replace(/\n/g,'<br>');
-  function pick(v){
-    if (v == null) return null;
-    if (typeof v === 'string') return v;
-    if (typeof v === 'object'){
-      if (v[LANG]) return v[LANG];
-      if (v.fr)    return v.fr;
-      if (v.en)    return v.en;
-    }
-    try { return String(v); } catch { return null; }
+  // on remplace notre pick par deux helper
+function pickLang(v){
+  if (v == null) return null;
+  if (typeof v === 'string') return v;
+  if (typeof v === 'object'){
+    if (v[LANG] != null) return v[LANG];
+    if (v.fr != null) return v.fr;
+    if (v.en != null) return v.en;
   }
+  return null;
+}
+function pickText(v){
+  const t = pickLang(v);
+  if (t == null) return null;
+  const s = String(t).trim();
+  return s === '' ? null : s;
+}
+const br = s => String(s||'').replace(/\n/g,'<br>');
 
   function showAlert(msg){
     const box = $("alert"); if(!box) return;
@@ -366,30 +374,31 @@ body{
       return;
     }
 
-    // HERO (string ou { imageUrl / url })
-    let coverUrl = null;
-    if (typeof g.cover === 'string') coverUrl = g.cover;
-    else if (g.cover && typeof g.cover === 'object') {
-      coverUrl = g.cover.imageUrl || g.cover.url || null;
-    }
-    if (coverUrl) {
-      $("hero-img").src = coverUrl;
-      $("hero").style.display = '';
-    }
-    $("title").textContent = g.name || '';
+   // --- HERO
+const coverUrl =
+  (g.cover && typeof g.cover === 'object' && (g.cover.imageUrl || g.cover.url)) ||
+  (typeof g.cover === 'string' ? g.cover : null);
 
-    // INTRO (string ou { fr/en }, fallback garanti)
-    const introText = pick(g.intro) ?? pick(g.welcome) ?? S('welcome_fallback');
-    $("intro-text").innerHTML = br(introText);
-    $("intro-card").style.display = '';
+if (coverUrl) {
+  $("hero-img").src = coverUrl;
+  $("hero").style.display = ''; // affiche le hero
+}
+$("title").textContent = g.name || '';
+
+// --- INTRO (fallback si vide)
+const introText = pickText(g.intro) ?? pickText(g.welcome) ?? S('welcome_fallback');
+$("intro-text").innerHTML = br(introText);
+$("intro-card").style.display = ''; // toujours visible (avec fallback si besoin)
+
 
     // data
     const allow = g.__sensitive?.token ? (token===g.__sensitive.token) : true;
     const a     = pick(g.arrival)   || {};
     const dep   = pick(g.departure) || {};
 
-    const rulesSource = pick(g.rules);
-    const rules = Array.isArray(rulesSource) ? rulesSource : (rulesSource?.items || []);
+    const rulesObj = pickLang(g.rules);
+    const rules = Array.isArray(rulesObj) ? rulesObj : (rulesObj?.items || []);
+
 
     const ams = Array.isArray(g.amenities) ? g.amenities : [];
 
