@@ -177,14 +177,23 @@ export default async (req) => {
   	const recommendations = pick(guide.recommendations) || {};
   	const amenities = (Array.isArray(guide.amenities) ? guide.amenities : []).map(a => a?.label).filter(Boolean).join(', ');
 
+  	// --- NOUVELLE LOGIQUE D'EXTRACTION DE CONTEXTE AMÉLIORÉE ---
   	const contextBlob = {
   	  name: guide.name || '',
   	  address: guide.address || '',
   	  city: guide.city || '',
-  	  wifi: arrival?.wifi || {},
+  	  
+        // Détails de l'arrivée
   	  checkin_from: arrival?.checkin_from || '',
-  	  departure_details: departure, // Garder l'objet complet pour plus de clarté
+  	  wifi: arrival?.wifi || {},
   	  parking: arrival?.parking || '',
+        arrival_instructions: br(arrival?.instructions), // Ajout des instructions d'arrivée
+        
+        // Détails du départ
+        checkout_before: departure?.checkout_before || '', // Heure de check-out
+  	  departure_details: departure, // Garder l'objet complet pour d'autres détails de départ
+        
+        // Autres informations du guide
   	  rules,
   	  essentials: br(essentials),
   	  neighborhood_intro: neighborhood?.intro || '',
