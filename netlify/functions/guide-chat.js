@@ -131,7 +131,7 @@ export default async (req) => {
     const { slug, token, lang = 'fr', question = '', history = [] } = await req.json();
 
     if (!slug || !question) {
-      return Response.json({ error: 'Missing slug/question' }, { status: 400 });
+  	  return Response.json({ error: 'Missing slug/question' }, { status: 400 });
   	}
 
   	// === Build absolute URL to get-guide (no relative URL issues)
@@ -221,20 +221,41 @@ Answer in 2–6 short lines, clear and friendly. Use bullets when helpful.
   	];
 
   	// --- CONFIGURATION OPENROUTER POUR LA RECHERCHE (GROUNDING) ---
-    // Note: OpenRouter supporte le 'tools' (Google Search) pour les modèles qui le permettent.
-    // Nous définissons la requête pour la recherche.
+    // Nous changeons de modèle pour un modèle qui supporte le tool calling de manière fiable.
+    // GPT-3.5 Turbo est un choix compatible et économique.
     const city = guide.city || 'local attractions'; // Utiliser la ville du guide comme fallback
-    const tools = [{ type: "google_search", queries: [`${city} ${question}`, question] }];
+    
+    // Définition de la fonction de recherche que le modèle peut appeler
+    const searchTool = {
+      type: "function",
+      function: {
+        name: "google_search",
+        description: "Search Google for real-time information, especially for questions about local attractions, activities, and general knowledge outside of the guide context.",
+        parameters: {
+          type: "object",
+          properties: {
+            query: {
+              type: "string",
+              description: "The search query, ideally including the city name if relevant, e.g., 'best restaurants in Paris'."
+            }
+          },
+          required: ["query"]
+        }
+      }
+    };
+    
+    // Pour OpenRouter/OpenAI, les outils sont dans un tableau distinct.
+    const tools = [searchTool];
+    const modelName = 'openai/gpt-3.5-turbo';
 
   	const llmRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
   	  method: 'POST',
   	  headers: { 
           'Content-Type': 'application/json', 
-          // Utiliser la clé OpenRouter
           Authorization: `Bearer ${OPENROUTER_API_KEY}` 
       },
   	  body: JSON.stringify({ 
-          model: 'mistralai/mistral-7b-instruct:free', 
+          model: modelName, // Nouveau modèle GPT-3.5 Turbo
           temperature: 0.2, 
           messages,
           tools: tools // Ajout de l'outil de recherche
@@ -248,6 +269,10 @@ Answer in 2–6 short lines, clear and friendly. Use bullets when helpful.
 
   	const json = await llmRes.json();
   	let answer = json?.choices?.[0]?.message?.content?.trim() || '';
+
+    // Si le modèle décide d'utiliser l'outil (tool call), OpenRouter va automatiquement exécuter la recherche
+    // et renvoyer la réponse comme si c'était le texte de la réponse (Grounding).
+    // Nous n'avons pas besoin d'implémenter une boucle de tool calling explicite ici.
 
   	// Post-filter: avoid accidental code leakage if token missing
   	if (!hasToken && /(\b\d{4,6}\b)/.test(answer)) {
