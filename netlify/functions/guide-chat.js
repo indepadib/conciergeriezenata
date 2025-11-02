@@ -183,10 +183,10 @@ export default async (req) => {
   	  city: guide.city || '',
   	  wifi: arrival?.wifi || {},
   	  checkin_from: arrival?.checkin_from || '',
+  	  departure_details: departure, // Garder l'objet complet pour plus de clarté
   	  parking: arrival?.parking || '',
   	  rules,
   	  essentials: br(essentials),
-  	  departure,
   	  neighborhood_intro: neighborhood?.intro || '',
   	  neighborhood_places: Array.isArray(neighborhood?.places) ? neighborhood.places : [],
   	  recommendations_intro: recommendations?.intro || '',
@@ -196,13 +196,13 @@ export default async (req) => {
   	  hasToken
   	};
 
-  	// --- MISE À JOUR DU SYSTEM PROMPT pour autoriser la connaissance générale ---
+  	// --- MISE À JOUR DU SYSTEM PROMPT: Renforcement de la priorité au GUIDE CONTEXT ---
   	const system = `
 You are "Concierge Zenata", a concise 5★ hotel-style concierge.
 Language: ${lang}.
-Use the GUIDE CONTEXT (JSON) to answer questions about the property, rules, and amenities.
-For questions about the local area, activities, or general knowledge (not covered in the JSON), use your general knowledge and the provided search results.
-If a detail about the property is missing in the JSON, say you'll check with the team; do not invent.
+PRIORITÉ ABSOLUE : Utilise le GUIDE CONTEXT (JSON) pour répondre à TOUTES les questions concernant le bien (check-in, check-out, règles, adresse, équipements, wifi).
+Pour les questions sur la zone locale, les activités, ou les informations non couvertes dans le JSON, utilise tes connaissances générales et les résultats de recherche.
+Si un détail sur le bien (comme l'heure de check-in/out) est manquant dans le JSON (valeur vide ''), indique clairement que l'information n'est pas fournie dans le guide et que tu vas vérifier auprès de l'équipe. Ne rien inventer.
 Never reveal door codes unless "hasToken" is true.
 Answer in 2–6 short lines, clear and friendly. Use bullets when helpful.
 `.trim();
@@ -221,8 +221,7 @@ Answer in 2–6 short lines, clear and friendly. Use bullets when helpful.
   	];
 
   	// --- CONFIGURATION OPENROUTER POUR LA RECHERCHE (GROUNDING) ---
-    // Nous changeons de modèle pour un modèle qui supporte le tool calling de manière fiable.
-    // GPT-3.5 Turbo est un choix compatible et économique.
+    // Utilisation de GPT-3.5 Turbo pour sa fiabilité avec le tool calling.
     const city = guide.city || 'local attractions'; // Utiliser la ville du guide comme fallback
     
     // Définition de la fonction de recherche que le modèle peut appeler
@@ -272,7 +271,6 @@ Answer in 2–6 short lines, clear and friendly. Use bullets when helpful.
 
     // Si le modèle décide d'utiliser l'outil (tool call), OpenRouter va automatiquement exécuter la recherche
     // et renvoyer la réponse comme si c'était le texte de la réponse (Grounding).
-    // Nous n'avons pas besoin d'implémenter une boucle de tool calling explicite ici.
 
   	// Post-filter: avoid accidental code leakage if token missing
   	if (!hasToken && /(\b\d{4,6}\b)/.test(answer)) {
