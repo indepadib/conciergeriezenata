@@ -99,7 +99,7 @@ body{
 .btn{ appearance:none; border:1px solid var(--border); background:rgba(255,255,255,.06); color:#eee; border-radius:12px; padding:10px 14px; cursor:pointer; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:8px }
 .btn.primary{ background:linear-gradient(135deg,#0F172A,#1F2937); border:none }
 
-/* chatbot IA (fab + modale premium) */
+/* chatbot IA */
 .ai-fab{position:fixed;right:18px;bottom:18px;z-index:60;width:56px;height:56px;border-radius:50%;
   border:1px solid rgba(255,255,255,.12); background:linear-gradient(135deg,#0F172A,#1F2937); color:#fff; cursor:pointer; box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .ai-overlay{ position:fixed; inset:0; z-index:70; display:none; place-items:center; background:radial-gradient(70% 100% at 50% 50%, rgba(0,0,0,.55), rgba(0,0,0,.75)); backdrop-filter: blur(6px) }
@@ -124,7 +124,7 @@ body{
 .ai-send{border:1px solid rgba(255,255,255,.12);background:linear-gradient(135deg,#0F172A,#1F2937);color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
 
 /* erreurs visibles */
-.error-box{background:rgba(255,0,0,.08);border:1px solid rgba(255,0,0,.25);color:#ffdddd;padding:14px;border-radius:12px;margin:10px 0;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+.error-box{background:rgba(255,0,0,.08);border:1px solid rgba(255,255,255,.25);color:#ffdddd;padding:14px;border-radius:12px;margin:10px 0;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
 
 /* footer/print */
 .footer{ text-align:center; color:#b9b9b9; margin-top:40px; font-size:13px }
@@ -158,16 +158,15 @@ body{
     <button class="btn" onclick="window.print()" data-i18n="pdf">PDF</button>
   </div>
 
-<!-- HERO -->
-<div id="hero" class="hero">
-  <img id="hero-img" alt="">
-  <div class="overlay"></div>
-  <div class="title">
-    <div class="badge" data-i18n="traveler_guide">Guide voyageur</div>
-    <h1 id="title"></h1>
+  <!-- HERO -->
+  <div id="hero" class="hero">
+    <img id="hero-img" alt="">
+    <div class="overlay"></div>
+    <div class="title">
+      <div class="badge" data-i18n="traveler_guide">Guide voyageur</div>
+      <h1 id="title"></h1>
+    </div>
   </div>
-</div>
-
 
   <!-- INTRO -->
   <div id="intro-card" class="intro-card">
@@ -220,30 +219,33 @@ body{
     </form>
   </div>
 </div>
-  
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (() => {
-  /* CONFIG */
+  /* ====== CONFIG ====== */
   const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";
   const GUIDES_BUCKET = "guides";
+  // ⚠️ remplace par ta clé anonyme si besoin
   const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qZ2NocnF0dmt3emhqdnd3ZnRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2OTMxODEsImV4cCI6MjA3NTI2OTE4MX0.Ok7fj3QUs28Q8dOiNy6caSBmjcUmjFrZgmIvAnzJZ00";
-// Client Supabase (v2) — accessible dans tout le fichier
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
   const $ = (id)=>document.getElementById(id);
   $("year").textContent = new Date().getFullYear();
 
-  /* i18n */
+  /* ====== i18n ====== */
   let LANG='fr';
   const UI = {
     fr:{traveler_guide:"Guide voyageur",call:"Appeler",pdf:"PDF",download_pdf:"Télécharger en PDF",welcome_title:"Bienvenue à Zenata 🌴",welcome_fallback:"Nous sommes ravis de vous accueillir à Zenata. Profitez de votre séjour.",location:"Localisation",open_gmaps:"Ouvrir dans Google Maps",directions:"Itinéraire",explore_nearby:"Explorer autour",neighborhood:"Quartier",do_see:"À faire / Recos",link:"Lien",view:"Voir",address:"Adresse",wifi:"Wi-Fi",door_code:"Code porte",sensitive_hidden:"Infos sensibles masquées. Ajoutez votre jeton",checkin:"Arrivée & Check-in",from:"À partir de",parking:"Parking",house_rules:"Règles",no_rules:"Aucune règle.",amenities:"Équipements",not_provided:"Non renseigné.",essentials:"Essentiels",checkout:"Départ",checkout_before:"Check-out avant",support:"Assistance & Contact",email:"Email",whatsapp:"WhatsApp",report_issue:"Signaler un souci",help_issues:"Dépannage",report_thanks:"Merci, c’est envoyé.",report_error:"Erreur",network_error:"Erreur réseau",appliances:"Appareils & Mode d’emploi",no_data:"Non renseigné.",parking_access:"Parking & Accès",spot:"Emplacement",extras:"Services additionnels",book_extra:"Réserver un extra :",detail:"Détail"},
     en:{traveler_guide:"Traveler Guide",call:"Call",pdf:"PDF",download_pdf:"Download PDF",welcome_title:"Welcome to Zenata 🌴",welcome_fallback:"We’re delighted to host you in Zenata. Enjoy your stay.",location:"Location",open_gmaps:"Open in Google Maps",directions:"Directions",explore_nearby:"Explore nearby",neighborhood:"Neighborhood",do_see:"Do & See",link:"Link",view:"View",address:"Address",wifi:"Wi-Fi",door_code:"Door code",sensitive_hidden:"Sensitive info hidden. Add your token",checkin:"Arrival & Check-in",from:"From",parking:"Parking",house_rules:"House rules",no_rules:"No rules.",amenities:"Amenities",not_provided:"Not provided.",essentials:"Essentials",checkout:"Checkout",checkout_before:"Check-out before",support:"Support",email:"Email",whatsapp:"WhatsApp",report_issue:"Report an issue",help_issues:"Help & Issues",report_thanks:"Thanks, received.",report_error:"Error",network_error:"Network error",appliances:"Appliances",no_data:"No data.",parking_access:"Parking & Access",spot:"Spot",extras:"Extras",book_extra:"Book an extra:",detail:"Detail"}
   };
   const S = (k)=> (UI[LANG] && UI[LANG][k]) || UI['fr'][k] || k;
+  const br = s => String(s||'').replace(/\n/g,'<br>');
 
+  function showAlert(msg){ const box = $("alert"); if(!box) return; box.style.display="block"; box.textContent=String(msg||"Erreur inconnue"); }
+  function hideAlert(){ const box = $("alert"); if(box) box.style.display="none"; }
 
-  
-  // Helpers multi-langues
+  /* ====== Helpers multi-langues ====== */
   function pickLang(v){
     if (v == null) return null;
     if (typeof v === 'string') return v;
@@ -260,72 +262,44 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
     const s = String(t).trim();
     return s === '' ? null : s;
   }
-  const br = s => String(s||'').replace(/\n/g,'<br>');
+  function isHttpUrl(s){ return typeof s === 'string' && /^https?:\/\//i.test(s); }
+  function resolveCoverCandidates(g){
+    const cand = [];
+    const c = g?.cover;
+    const direct =
+      (c && typeof c === 'object' && (c.imageUrl || c.url || c.src)) ||
+      (typeof c === 'string' ? c : null);
+    if (direct) cand.push(direct);
+    if (typeof g?.coverPath === 'string') cand.push(g.coverPath);
+    if (typeof g?.coverKey  === 'string') cand.push(g.coverKey);
+    if (typeof g?.image     === 'string') cand.push(g.image);
 
-  function showAlert(msg){
-    const box = $("alert"); if(!box) return;
-    box.style.display = "block";
-    box.textContent = String(msg || "Erreur inconnue");
+    const expanded = [];
+    const ts = Date.now();
+    for (const v of cand){
+      if (!v) continue;
+      if (isHttpUrl(v)) { expanded.push(`${v}${v.includes('?') ? '' : `?ts=${ts}`}`); continue; }
+      const maybeKey = v.replace(/^\/+/, '');
+      expanded.push(`${SUPABASE_URL}/storage/v1/object/public/${GUIDES_BUCKET}/${encodeURIComponent(maybeKey)}?ts=${ts}`);
+      expanded.push(`${SUPABASE_URL}/storage/v1/object/public/${maybeKey}?ts=${ts}`);
+    }
+    return [...new Set(expanded)];
   }
-  function hideAlert(){
-    const box = $("alert"); if(box) box.style.display="none";
-  }
-
-// ---- HERO helpers (résolution d'URL + essai multi-candidats)
-function isHttpUrl(s){ return typeof s === 'string' && /^https?:\/\//i.test(s); }
-
-function resolveCoverCandidates(g, SUPABASE_URL, GUIDES_BUCKET){
-  const cand = [];
-
-  // 1) champs possibles
-  const c = g?.cover;
-  const direct =
-    (c && typeof c === 'object' && (c.imageUrl || c.url || c.src)) ||
-    (typeof c === 'string' ? c : null);
-  if (direct) cand.push(direct);
-
-  // 2) autres variantes que j'ai vues dans tes guides
-  if (typeof g?.coverPath === 'string') cand.push(g.coverPath);
-  if (typeof g?.coverKey  === 'string') cand.push(g.coverKey);
-  if (typeof g?.image     === 'string') cand.push(g.image);
-
-  // 3) si le champ est un chemin Supabase (pas d’http), on génère l’URL publique
-  const expanded = [];
-  const ts = Date.now();
-  for (const v of cand){
-    if (!v) continue;
-    if (isHttpUrl(v)) { expanded.push(`${v}${v.includes('?') ? '' : `?ts=${ts}`}`); continue; }
-
-    // Si la valeur ressemble à "guides/palm-zenata-001/cover.jpg" (clé interne)
-    // -> faire pointer vers l’URL publique
-    const maybeKey = v.replace(/^\/+/, ''); // strip leading /
-    // 2 options: a) le JSON donne déjà "guides/..." b) il donne "cover.jpg"
-    expanded.push(`${SUPABASE_URL}/storage/v1/object/public/${GUIDES_BUCKET}/${encodeURIComponent(maybeKey)}?ts=${ts}`);
-
-    // au cas où la valeur contient déjà le bucket (ex: "guides/cover.jpg"), on teste brut aussi
-    expanded.push(`${SUPABASE_URL}/storage/v1/object/public/${maybeKey}?ts=${ts}`);
+  function loadFirstWorkingImage(urls, imgEl, onOk, onFail){
+    if (!urls || !urls.length) { onFail?.('Aucun candidat'); return; }
+    let i = 0;
+    const tryNext = () => {
+      if (i >= urls.length) { onFail?.('Aucune URL valide'); return; }
+      const url = urls[i++];
+      const tmp = new Image();
+      tmp.onload = () => { imgEl.src = url; onOk?.(url); };
+      tmp.onerror = () => { tryNext(); };
+      tmp.referrerPolicy = 'no-referrer';
+      tmp.src = url;
+    };
+    tryNext();
   }
 
-  // 4) Nettoyage doublons
-  return [...new Set(expanded)];
-}
-
-function loadFirstWorkingImage(urls, imgEl, onOk, onFail){
-  if (!urls || !urls.length) { onFail?.('Aucun candidat'); return; }
-  let i = 0;
-  const tryNext = () => {
-    if (i >= urls.length) { onFail?.('Aucune URL valide'); return; }
-    const url = urls[i++];
-    const tmp = new Image();
-    tmp.onload = () => { imgEl.src = url; onOk?.(url); };
-    tmp.onerror = () => { tryNext(); };
-    tmp.referrerPolicy = 'no-referrer'; // évite quelques blocages
-    tmp.src = url;
-  };
-  tryNext();
-}
-
-  
   function openModal(title, html){
     $("m-title").textContent = title || S('detail');
     $("m-body").innerHTML = html || "";
@@ -362,7 +336,7 @@ function loadFirstWorkingImage(urls, imgEl, onOk, onFail){
         const [a,b]=parts[2].split(',').map(x=>parseFloat(x.trim())); lat=a; lng=b;
       }
       let cat=null, text=left;
-      const m = left.match(/^\s*\[([^\]]+)\]\s*(.*)$/);
+      const m = left.match(/^\[([^\]]+)\]\s*(.*)$/);
       if(m){ cat = m[1]; text = m[2]||''; }
       return { text, url, lat, lng, cat };
     });
@@ -390,7 +364,7 @@ function loadFirstWorkingImage(urls, imgEl, onOk, onFail){
   }
 
   async function boot(){
-    // slug robuste: dernier segment non-vide (sans .html)
+    // slug depuis l’URL
     const segments = location.pathname.split('/').filter(Boolean);
     let slug = segments.pop() || '';
     slug = slug.replace(/\.html$/,'');
@@ -399,17 +373,14 @@ function loadFirstWorkingImage(urls, imgEl, onOk, onFail){
     const langParam=(qs.get('lang')||'').toLowerCase();
     if(langParam==='en') LANG='en';
 
-  // i18n statique (robuste)
-document.querySelectorAll('[data-i18n]').forEach(el=>{
-  const k = el.getAttribute('data-i18n');
-  if (k && UI[LANG] && UI[LANG][k]) el.textContent = UI[LANG][k];
-});
-const badgeEl = document.getElementById('travGuideBadge');
-if (badgeEl) badgeEl.textContent = S('traveler_guide');
-const wt = document.getElementById('welcome-title');
-if (wt) wt.textContent = S('welcome_title');
-const fp = document.getElementById('footer-premium');
-if (fp) fp.textContent = (LANG==='en'?'Premium Stay':'Séjour Premium');
+    // i18n statique
+    document.querySelectorAll('[data-i18n]').forEach(el=>{
+      const k = el.getAttribute('data-i18n');
+      if (k && UI[LANG] && UI[LANG][k]) el.textContent = UI[LANG][k];
+    });
+    const badgeEl = document.querySelector('.badge'); if (badgeEl) badgeEl.textContent = S('traveler_guide');
+    const wt = document.getElementById('welcome-title'); if (wt) wt.textContent = S('welcome_title');
+    const fp = document.getElementById('footer-premium'); if (fp) fp.textContent = (LANG==='en'?'Premium Stay':'Séjour Premium');
 
     // header actions
     const waMsg = encodeURIComponent(`${LANG==='en'?'Hello':'Bonjour'} 👋 (guide ${slug||'—'})`);
@@ -436,179 +407,41 @@ if (fp) fp.textContent = (LANG==='en'?'Premium Stay':'Séjour Premium');
     }catch(err){
       console.error(err);
       showAlert(err.message||err);
-      $("title").textContent="Guide introuvable";
+      document.title="Guide introuvable";
       $("intro-text").textContent = (LANG==='en'?'The guide could not be loaded.':'Le guide n’a pas pu être chargé.');
       $("intro-card").style.display='';
       return;
     }
 
-    // === Carte Tarifs (quote + daily) ===
-cards.push({
-  key: (LANG === 'en' ? 'Pricing' : 'Tarifs'),
-  icon: 'amenities',
-  onClick: () => {
-    // Modale avec formulaire
-    const today = new Date().toISOString().slice(0,10);
-    const next  = new Date(Date.now()+ 3*86400000).toISOString().slice(0,10); // +3 jours
+    /* ---------- HERO ---------- */
+    (function setupHero(){
+      const hero = document.getElementById('hero');
+      const heroImg = document.getElementById('hero-img');
+      if (!hero || !heroImg) return;
+      const candidates = resolveCoverCandidates(g);
+      if (!candidates.length){ hero.style.display='none'; return; }
+      loadFirstWorkingImage(
+        candidates,
+        heroImg,
+        (okUrl)=>{ hero.style.display='block'; document.getElementById('title').textContent = g.name || ''; },
+        ()=>{ hero.style.display='none'; }
+      );
+    })();
 
-    openModal((LANG==='en'?'Pricing':'Tarifs'), `
-      <form id="price-form" class="modal-actions" style="gap:8px;align-items:flex-end">
-        <div>
-          <div style="font-size:12px;color:#bbb">${LANG==='en'?'From':'Du'}</div>
-          <input id="pf-from" type="date" value="${today}" style="padding:8px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:#fff"/>
-        </div>
-        <div>
-          <div style="font-size:12px;color:#bbb">${LANG==='en'?'To':'Au'}</div>
-          <input id="pf-to" type="date" value="${next}" style="padding:8px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:#fff"/>
-        </div>
-        <div>
-          <div style="font-size:12px;color:#bbb">${LANG==='en'?'Guests':'Voyageurs'}</div>
-          <input id="pf-guests" type="number" min="1" value="2" style="width:90px;padding:8px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:#fff"/>
-        </div>
-        <button class="btn primary" type="submit">${LANG==='en'?'Calculate':'Calculer'}</button>
-      </form>
-
-      <div id="price-result" style="margin-top:12px"></div>
-      <div id="price-daily"  style="margin-top:10px"></div>
-    `);
-
-    const $res  = document.getElementById('price-result');
-    const $list = document.getElementById('price-daily');
-
-    async function runQuote() {
-      const from   = document.getElementById('pf-from').value;
-      const to     = document.getElementById('pf-to').value;
-      const guests = parseInt(document.getElementById('pf-guests').value || '1', 10);
-
-      $res.innerHTML  = `<div class="k">${LANG==='en'?'Loading…':'Chargement…'}</div>`;
-      $list.innerHTML = '';
-
-      // 1) Quote global
-      const { data: quote, error: qErr } = await sb.rpc('pricing_quote_by_slug', {
-        p_slug: slug,
-        p_from: from,
-        p_to: to,
-        p_guests: guests,
-        p_apply_length_discounts: true,
-        p_weekend_iso_days: [6,7]
-      });
-
-      if (qErr) {
-        $res.innerHTML = `<div class="error-box">${qErr.message || qErr}</div>`;
-        return;
-      }
-
-      // quote est un tableau (RETURNS TABLE). On prend la première ligne.
-      const row = Array.isArray(quote) ? quote[0] : quote;
-      const nights   = row?.nights ?? 0;
-      const subtotal = row?.subtotal ?? 0;
-      const clean    = row?.cleaning_fee ?? 0;
-      const extra    = row?.extra_guest_fee_total ?? 0;
-      const total    = row?.total ?? 0;
-
-      $res.innerHTML = `
-        <div class="tile" style="align-items:flex-start;min-height:auto">
-          <div style="font-size:14px;margin-bottom:6px"><b>${nights}</b> ${LANG==='en'?'nights':'nuits'}</div>
-          <div class="list">
-            <div class="list-row"><div class="dot"></div><div class="list-txt">${LANG==='en'?'Subtotal':'Sous-total'}: <b>${subtotal.toFixed(0)}</b></div></div>
-            <div class="list-row"><div class="dot"></div><div class="list-txt">${LANG==='en'?'Cleaning fee':'Frais ménage'}: <b>${clean.toFixed(0)}</b></div></div>
-            <div class="list-row"><div class="dot"></div><div class="list-txt">${LANG==='en'?'Extra guests':'Supplément voyageurs'}: <b>${extra.toFixed(0)}</b></div></div>
-            <div class="list-row"><div class="dot"></div><div class="list-txt">Total: <b>${total.toFixed(0)}</b></div></div>
-          </div>
-        </div>
-      `;
-
-      // 2) Détail par jour
-      const { data: daily, error: dErr } = await sb.rpc('pricing_daily_by_slug', {
-        p_slug: slug,
-        p_from: from,
-        p_to: to,
-        p_weekend_iso_days: [6,7]
-      });
-      if (dErr) {
-        $list.innerHTML = `<div class="error-box">${dErr.message || dErr}</div>`;
-        return;
-      }
-
-      if (!daily || !daily.length) {
-        $list.innerHTML = `<div class="k">${LANG==='en'?'No days returned':'Aucun jour retourné'}</div>`;
-        return;
-      }
-
-      $list.innerHTML = `
-        <div class="k" style="margin-bottom:6px">${LANG==='en'?'Daily rates':'Tarifs par jour'}</div>
-        <div style="display:grid;grid-template-columns:120px 1fr 1fr;gap:6px;border:1px solid var(--border);border-radius:12px;overflow:hidden">
-          <div style="padding:8px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.04)"><b>${LANG==='en'?'Date':'Date'}</b></div>
-          <div style="padding:8px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.04)"><b>${LANG==='en'?'Rate':'Tarif'}</b></div>
-          <div style="padding:8px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.04)"><b>${LANG==='en'?'Source':'Source'}</b></div>
-          ${daily.map(d => `
-            <div style="padding:8px;border-top:1px solid var(--border)">${d.day}</div>
-            <div style="padding:8px;border-top:1px solid var(--border)">${d.rate === null ? (LANG==='en'?'— (blackout)':'— (indispo)') : d.rate}</div>
-            <div style="padding:8px;border-top:1px solid var(--border)">${d.source||''}</div>
-          `).join('')}
-        </div>
-      `;
+    /* ---------- INTRO (toujours visible) ---------- */
+    const introText = (()=>{
+      const t = pickText(g.intro);
+      const w = pickText(g.welcome);
+      return t || w || S('welcome_fallback');
+    })();
+    const introCard = document.getElementById('intro-card');
+    const introP = document.getElementById('intro-text');
+    if (introCard && introP) {
+      introP.innerHTML = br(introText);
+      introCard.style.display = 'block';
     }
 
-    // on lance une première fois
-    const form = document.getElementById('price-form');
-    form.addEventListener('submit', (e)=>{ e.preventDefault(); runQuote(); });
-    runQuote();
-  }
-});
-
-
-    // --- HERO (affichage conditionné au onload de l'image, fallback si erreur)
-// --- HERO (robuste multi-formats & Supabase)
-(function setupHero(){
-  const hero = document.getElementById('hero');
-  const heroImg = document.getElementById('hero-img');
-  if (!hero || !heroImg) return;
-
-  const candidates = resolveCoverCandidates(g, SUPABASE_URL, GUIDES_BUCKET);
-  console.log('[cover candidates]', candidates, 'raw cover:', g?.cover);
-
-  if (!candidates.length){
-    // pas d’image fournie -> ne rien afficher
-    hero.style.display = 'none';
-    return;
-  }
-
-  loadFirstWorkingImage(
-    candidates,
-    heroImg,
-    (okUrl)=>{ 
-      // succès
-      hero.style.display = 'block';
-      // titre (si fourni)
-      document.getElementById('title').textContent = g.name || '';
-    },
-    (reason)=>{
-      console.warn('Cover failed:', reason, candidates);
-      // on cache le hero si aucune URL ne marche
-      hero.style.display = 'none';
-    }
-  );
-})();
-
-
-// --- INTRO (toujours visible avec fallback)
-const introText = (()=>{
-  const t = (typeof g.intro !== 'undefined' ? ( (typeof g.intro==='string') ? g.intro : (g.intro?.[LANG] || g.intro?.fr || g.intro?.en) ) : null);
-  const w = (typeof g.welcome !== 'undefined' ? ( (typeof g.welcome==='string') ? g.welcome : (g.welcome?.[LANG] || g.welcome?.fr || g.welcome?.en) ) : null);
-  return (t && String(t).trim()) || (w && String(w).trim()) || S('welcome_fallback');
-})();
-
-const introCard = document.getElementById('intro-card');
-const introP = document.getElementById('intro-text');
-if (introCard && introP) {
-  introP.innerHTML = String(introText).replace(/\n/g,'<br>');
-  introCard.style.display = 'block';
-}
-
-
-
-    // ==== DATA (avec helpers) ====
+    /* ---------- DATA & CARTES ---------- */
     const allow = g.__sensitive?.token ? (token === g.__sensitive.token) : true;
 
     const a   = pickLang(g.arrival)   || {};
@@ -619,12 +452,12 @@ if (introCard && introP) {
 
     const ams = Array.isArray(g.amenities) ? g.amenities : [];
 
-  const essentialsText = (()=>{
-  const e = g.essentials;
-  if (e == null) return '';
-  if (typeof e === 'string') return e;
-  return e[LANG] || e.fr || e.en || '';
-})();
+    const essentialsText = (()=>{
+      const e = g.essentials;
+      if (e == null) return '';
+      if (typeof e === 'string') return e;
+      return e[LANG] || e.fr || e.en || '';
+    })();
 
     const grid = $("grid");
     grid.innerHTML = "";
@@ -634,9 +467,10 @@ if (introCard && introP) {
     const lng = g?.geo?.lng!=null ? parseFloat(g.geo.lng) : NaN;
     const hasGeo = !Number.isNaN(lat) && !Number.isNaN(lng);
 
-    // cartes
+    // ✅ Déclaration des cartes AVANT tout cards.push
     const cards = [];
 
+    // Localisation
     if (hasGeo){
       cards.push({
         key:S('location'), icon:'location',
@@ -654,7 +488,7 @@ if (introCard && introP) {
       });
     }
 
-    // Neighborhood & Recos
+    // Quartier & Recos
     const nbh = pickLang(g.neighborhood)   || {};
     const rec = pickLang(g.recommendations) || {};
     const nbhItems = parseLines(nbh.places || []);
@@ -665,7 +499,7 @@ if (introCard && introP) {
         key:S('neighborhood'), icon:'map',
         onClick:()=>{
           const groups = groupByCat(nbhItems);
-          const pts = nbhItems.filter(i=>Number.isFinite(i.lat)&&Number.isFinite(i.lng)).map(i=>({lat:i.lat,lng:i.lng,title:i.text}));
+          const pts = nbhItems.filter(i=>Number.isFinite(i.lat)&&Number.isFinite(i.lng));
           openModal(S('neighborhood'), `
             ${nbh.intro ? `<p>${br(nbh.intro)}</p>` : ''}
             ${pts.length ? `<div class="mapbox"><iframe src="https://www.google.com/maps?q=${hasGeo?`${lat},${lng}`:`${pts[0].lat},${pts[0].lng}`}&z=14&output=embed" width="100%" height="100%" style="border:0" loading="lazy"></iframe></div>`:''}
@@ -699,7 +533,7 @@ if (introCard && introP) {
         key:S('do_see'), icon:'map',
         onClick:()=>{
           const groups = groupByCat(recItems);
-          const pts = recItems.filter(i=>Number.isFinite(i.lat)&&Number.isFinite(i.lng)).map(i=>({lat:i.lat,lng:i.lng,title:i.text}));
+          const pts = recItems.filter(i=>Number.isFinite(i.lat)&&Number.isFinite(i.lng));
           openModal(S('do_see'), `
             ${rec.intro ? `<p>${br(rec.intro)}</p>` : ''}
             ${pts.length ? `<div class="mapbox"><iframe src="https://www.google.com/maps?q=${hasGeo?`${lat},${lng}`:`${pts[0].lat},${pts[0].lng}`}&z=13&output=embed" width="100%" height="100%" style="border:0" loading="lazy"></iframe></div>`:''}
@@ -825,7 +659,119 @@ if (introCard && introP) {
       { key:S('support'), icon:'help', onClick:()=>openModal(S('support'), `<p><b>${S('email')} :</b> <a href="mailto:conciergeriezenata@gmail.com">conciergeriezenata@gmail.com</a></p><div class="modal-actions"><a class="btn primary" target="_blank" rel="noreferrer" href="https://wa.me/212600000000?text=${waMsg}">WhatsApp</a><a class="btn" href="tel:+212600000000">${S('call')}</a></div>`) },
     );
 
-    // render
+    /* ---------- Carte TARIFS (quote + daily) ---------- */
+    cards.push({
+      key: (LANG === 'en' ? 'Pricing' : 'Tarifs'),
+      icon: 'amenities',
+      onClick: () => {
+        const today = new Date().toISOString().slice(0,10);
+        const next  = new Date(Date.now()+ 3*86400000).toISOString().slice(0,10);
+
+        openModal((LANG==='en'?'Pricing':'Tarifs'), `
+          <form id="price-form" class="modal-actions" style="gap:8px;align-items:flex-end">
+            <div>
+              <div style="font-size:12px;color:#bbb">${LANG==='en'?'From':'Du'}</div>
+              <input id="pf-from" type="date" value="${today}" style="padding:8px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:#fff"/>
+            </div>
+            <div>
+              <div style="font-size:12px;color:#bbb">${LANG==='en'?'To':'Au'}</div>
+              <input id="pf-to" type="date" value="${next}" style="padding:8px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:#fff"/>
+            </div>
+            <div>
+              <div style="font-size:12px;color:#bbb">${LANG==='en'?'Guests':'Voyageurs'}</div>
+              <input id="pf-guests" type="number" min="1" value="2" style="width:90px;padding:8px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:#fff"/>
+            </div>
+            <button class="btn primary" type="submit">${LANG==='en'?'Calculate':'Calculer'}</button>
+          </form>
+
+          <div id="price-result" style="margin-top:12px"></div>
+          <div id="price-daily"  style="margin-top:10px"></div>
+        `);
+
+        const $res  = document.getElementById('price-result');
+        const $list = document.getElementById('price-daily');
+
+        async function runQuote() {
+          const from   = document.getElementById('pf-from').value;
+          const to     = document.getElementById('pf-to').value;
+          const guests = parseInt(document.getElementById('pf-guests').value || '1', 10);
+
+          $res.innerHTML  = `<div class="k">${LANG==='en'?'Loading…':'Chargement…'}</div>`;
+          $list.innerHTML = '';
+
+          // 1) Devis global
+          const { data: quote, error: qErr } = await sb.rpc('pricing_quote_by_slug', {
+            p_slug: slug,
+            p_from: from,
+            p_to: to,
+            p_guests: guests,
+            p_apply_length_discounts: true,
+            p_weekend_iso_days: [6,7]
+          });
+
+          if (qErr) {
+            $res.innerHTML = `<div class="error-box">${qErr.message || qErr}</div>`;
+            return;
+          }
+
+          const row = Array.isArray(quote) ? quote[0] : quote;
+          const nights   = row?.nights ?? 0;
+          const subtotal = Number(row?.subtotal ?? 0);
+          const clean    = Number(row?.cleaning_fee ?? 0);
+          const extra    = Number(row?.extra_guest_fee_total ?? 0);
+          const total    = Number(row?.total ?? 0);
+
+          $res.innerHTML = `
+            <div class="tile" style="align-items:flex-start;min-height:auto">
+              <div style="font-size:14px;margin-bottom:6px"><b>${nights}</b> ${LANG==='en'?'nights':'nuits'}</div>
+              <div class="list">
+                <div class="list-row"><div class="dot"></div><div class="list-txt">${LANG==='en'?'Subtotal':'Sous-total'}: <b>${subtotal.toFixed(0)}</b></div></div>
+                <div class="list-row"><div class="dot"></div><div class="list-txt">${LANG==='en'?'Cleaning fee':'Frais ménage'}: <b>${clean.toFixed(0)}</b></div></div>
+                <div class="list-row"><div class="dot"></div><div class="list-txt">${LANG==='en'?'Extra guests':'Supplément voyageurs'}: <b>${extra.toFixed(0)}</b></div></div>
+                <div class="list-row"><div class="dot"></div><div class="list-txt">Total: <b>${total.toFixed(0)}</b></div></div>
+              </div>
+            </div>
+          `;
+
+          // 2) Détail par jour
+          const { data: daily, error: dErr } = await sb.rpc('pricing_daily_by_slug', {
+            p_slug: slug,
+            p_from: from,
+            p_to: to,
+            p_weekend_iso_days: [6,7]
+          });
+          if (dErr) {
+            $list.innerHTML = `<div class="error-box">${dErr.message || dErr}</div>`;
+            return;
+          }
+
+          if (!daily || !daily.length) {
+            $list.innerHTML = `<div class="k">${LANG==='en'?'No days returned':'Aucun jour retourné'}</div>`;
+            return;
+          }
+
+          $list.innerHTML = `
+            <div class="k" style="margin-bottom:6px">${LANG==='en'?'Daily rates':'Tarifs par jour'}</div>
+            <div style="display:grid;grid-template-columns:120px 1fr 1fr;gap:6px;border:1px solid var(--border);border-radius:12px;overflow:hidden">
+              <div style="padding:8px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.04)"><b>${LANG==='en'?'Date':'Date'}</b></div>
+              <div style="padding:8px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.04)"><b>${LANG==='en'?'Rate':'Tarif'}</b></div>
+              <div style="padding:8px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.04)"><b>${LANG==='en'?'Source':'Source'}</b></div>
+              ${daily.map(d => `
+                <div style="padding:8px;border-top:1px solid var(--border)">${d.day}</div>
+                <div style="padding:8px;border-top:1px solid var(--border)">${d.rate === null ? (LANG==='en'?'— (blackout)':'— (indispo)') : d.rate}</div>
+                <div style="padding:8px;border-top:1px solid var(--border)">${d.source||''}</div>
+              `).join('')}
+            </div>
+          `;
+        }
+
+        const form = document.getElementById('price-form');
+        form.addEventListener('submit', (e)=>{ e.preventDefault(); runQuote(); });
+        runQuote();
+      }
+    });
+
+    // rendu des cartes
     for(const c of cards){
       const d=document.createElement('div');
       d.className='tile';
@@ -835,6 +781,7 @@ if (introCard && introP) {
     }
   }
 
+  // Chat IA (optionnel, inchangé)
   function initAi(){
     const fab = $("ai-fab");
     const overlay = $("ai-overlay");
@@ -887,7 +834,6 @@ if (introCard && introP) {
     form?.addEventListener('submit',(e)=>{e.preventDefault();e.stopPropagation();ask(input.value||'');});
   }
 
-  // GO
   function safeStart(){
     try{
       boot();
