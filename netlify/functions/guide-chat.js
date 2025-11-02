@@ -122,7 +122,6 @@ Answer in 2–6 short lines, clear and friendly. Use bullets when helpful.
   }
 };
 */
-
 export default async (req) => {
   if (req.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405 });
@@ -133,36 +132,36 @@ export default async (req) => {
 
     if (!slug || !question) {
       return Response.json({ error: 'Missing slug/question' }, { status: 400 });
-    }
+  	}
 
-    // === Build absolute URL to get-guide (no relative URL issues)
-    const base =
-      process.env.SITE_URL_GPT ||
-      process.env.URL ||
-      process.env.DEPLOY_PRIME_URL ||
-      new URL('/', req.url).origin;
+  	// === Build absolute URL to get-guide (no relative URL issues)
+  	const base =
+  	  process.env.SITE_URL_GPT ||
+  	  process.env.URL ||
+  	  process.env.DEPLOY_PRIME_URL ||
+  	  new URL('/', req.url).origin;
 
-    const guideUrl = `${base}/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${Date.now()}`;
-    const guideRes = await fetch(guideUrl, { headers: { 'cache-control': 'no-store' } });
+  	const guideUrl = `${base}/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${Date.now()}`;
+  	const guideRes = await fetch(guideUrl, { headers: { 'cache-control': 'no-store' } });
 
-    if (!guideRes.ok) {
-      return Response.json({ error: `Guide fetch failed (${guideRes.status})` }, { status: 500 });
-    }
+  	if (!guideRes.ok) {
+  	  return Response.json({ error: `Guide fetch failed (${guideRes.status})` }, { status: 500 });
+  	}
 
-    /** @type {any} */
-    const guide = await guideRes.json();
-    if (!guide || typeof guide !== 'object') {
-      return Response.json({ error: 'Guide empty or invalid' }, { status: 500 });
-    }
+  	/** @type {any} */
+  	const guide = await guideRes.json();
+  	if (!guide || typeof guide !== 'object') {
+  	  return Response.json({ error: 'Guide empty or invalid' }, { status: 500 });
+  	}
 
-    // === Security: never reveal door code if token invalid
-    const hasToken = guide?.__sensitive?.token ? (token === guide.__sensitive.token) : true;
-    const risky = /code.*porte|door.*code|bo[iî]te.*cl[eé]|lockbox|digicode/i.test(question);
-    if (risky && !hasToken) {
-      const msg = (lang === 'en')
-        ? "For security, I can’t share the door code here. Add your token in the URL (?token=YOUR_TOKEN) or contact us."
-        : "Par sécurité, je ne peux pas partager le code porte ici. Ajoutez votre jeton dans l’URL (?token=VOTRE_TOKEN) ou contactez-nous.";
-      return Response.json({ answer: msg }, { status: 200 });
+  	// === Security: never reveal door code if token invalid
+  	const hasToken = guide?.__sensitive?.token ? (token === guide.__sensitive.token) : true;
+  	const risky = /code.*porte|door.*code|bo[iî]te.*cl[eé]|lockbox|digicode/i.test(question);
+  	if (risky && !hasToken) {
+  	  const msg = (lang === 'en')
+  	    ? "For security, I can’t share the door code here. Add your token in the URL (?token=YOUR_TOKEN) or contact us."
+  	    : "Par sécurité, je ne peux pas partager le code porte ici. Ajoutez votre jeton dans l’URL (?token=VOTRE_TOKEN) ou contactez-nous.";
+  	  return Response.json({ answer: msg }, { status: 200 });
   	}
 
   	// === Language helpers
@@ -197,11 +196,13 @@ export default async (req) => {
   	  hasToken
   	};
 
+  	// --- MISE À JOUR DU SYSTEM PROMPT pour autoriser la connaissance générale ---
   	const system = `
 You are "Concierge Zenata", a concise 5★ hotel-style concierge.
 Language: ${lang}.
-Use ONLY the JSON context to answer (address, wifi, check-in/out, rules, essentials, neighborhood, recommendations, amenities).
-If a detail is missing, say you'll check with the team; do not invent.
+Use the GUIDE CONTEXT (JSON) to answer questions about the property, rules, and amenities.
+For questions about the local area, activities, or general knowledge (not covered in the JSON), use your general knowledge and the provided search results.
+If a detail about the property is missing in the JSON, say you'll check with the team; do not invent.
 Never reveal door codes unless "hasToken" is true.
 Answer in 2–6 short lines, clear and friendly. Use bullets when helpful.
 `.trim();
@@ -219,9 +220,12 @@ Answer in 2–6 short lines, clear and friendly. Use bullets when helpful.
   	  { role: 'user', content: question }
   	];
 
-  	// --- CHANGEMENT DE L'ENDPOINT ET DU MODÈLE ---
-  	// 1. URL OpenRouter
-  	// 2. Modèle : Mistral 7B est un modèle performant et très économique.
+  	// --- CONFIGURATION OPENROUTER POUR LA RECHERCHE (GROUNDING) ---
+    // Note: OpenRouter supporte le 'tools' (Google Search) pour les modèles qui le permettent.
+    // Nous définissons la requête pour la recherche.
+    const city = guide.city || 'local attractions'; // Utiliser la ville du guide comme fallback
+    const tools = [{ type: "google_search", queries: [`${city} ${question}`, question] }];
+
   	const llmRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
   	  method: 'POST',
   	  headers: { 
@@ -232,7 +236,8 @@ Answer in 2–6 short lines, clear and friendly. Use bullets when helpful.
   	  body: JSON.stringify({ 
           model: 'mistralai/mistral-7b-instruct:free', 
           temperature: 0.2, 
-          messages 
+          messages,
+          tools: tools // Ajout de l'outil de recherche
       })
   	});
 
