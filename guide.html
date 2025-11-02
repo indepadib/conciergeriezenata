@@ -220,12 +220,16 @@ body{
     </form>
   </div>
 </div>
-
+  
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (() => {
   /* CONFIG */
   const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";
   const GUIDES_BUCKET = "guides";
+  const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qZ2NocnF0dmt3emhqdnd3ZnRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2OTMxODEsImV4cCI6MjA3NTI2OTE4MX0.Ok7fj3QUs28Q8dOiNy6caSBmjcUmjFrZgmIvAnzJZ00";
+// Client Supabase (v2) — accessible dans tout le fichier
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
   const $ = (id)=>document.getElementById(id);
   $("year").textContent = new Date().getFullYear();
 
@@ -437,6 +441,122 @@ if (fp) fp.textContent = (LANG==='en'?'Premium Stay':'Séjour Premium');
       $("intro-card").style.display='';
       return;
     }
+
+    // === Carte Tarifs (quote + daily) ===
+cards.push({
+  key: (LANG === 'en' ? 'Pricing' : 'Tarifs'),
+  icon: 'amenities',
+  onClick: () => {
+    // Modale avec formulaire
+    const today = new Date().toISOString().slice(0,10);
+    const next  = new Date(Date.now()+ 3*86400000).toISOString().slice(0,10); // +3 jours
+
+    openModal((LANG==='en'?'Pricing':'Tarifs'), `
+      <form id="price-form" class="modal-actions" style="gap:8px;align-items:flex-end">
+        <div>
+          <div style="font-size:12px;color:#bbb">${LANG==='en'?'From':'Du'}</div>
+          <input id="pf-from" type="date" value="${today}" style="padding:8px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:#fff"/>
+        </div>
+        <div>
+          <div style="font-size:12px;color:#bbb">${LANG==='en'?'To':'Au'}</div>
+          <input id="pf-to" type="date" value="${next}" style="padding:8px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:#fff"/>
+        </div>
+        <div>
+          <div style="font-size:12px;color:#bbb">${LANG==='en'?'Guests':'Voyageurs'}</div>
+          <input id="pf-guests" type="number" min="1" value="2" style="width:90px;padding:8px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:#fff"/>
+        </div>
+        <button class="btn primary" type="submit">${LANG==='en'?'Calculate':'Calculer'}</button>
+      </form>
+
+      <div id="price-result" style="margin-top:12px"></div>
+      <div id="price-daily"  style="margin-top:10px"></div>
+    `);
+
+    const $res  = document.getElementById('price-result');
+    const $list = document.getElementById('price-daily');
+
+    async function runQuote() {
+      const from   = document.getElementById('pf-from').value;
+      const to     = document.getElementById('pf-to').value;
+      const guests = parseInt(document.getElementById('pf-guests').value || '1', 10);
+
+      $res.innerHTML  = `<div class="k">${LANG==='en'?'Loading…':'Chargement…'}</div>`;
+      $list.innerHTML = '';
+
+      // 1) Quote global
+      const { data: quote, error: qErr } = await sb.rpc('pricing_quote_by_slug', {
+        p_slug: slug,
+        p_from: from,
+        p_to: to,
+        p_guests: guests,
+        p_apply_length_discounts: true,
+        p_weekend_iso_days: [6,7]
+      });
+
+      if (qErr) {
+        $res.innerHTML = `<div class="error-box">${qErr.message || qErr}</div>`;
+        return;
+      }
+
+      // quote est un tableau (RETURNS TABLE). On prend la première ligne.
+      const row = Array.isArray(quote) ? quote[0] : quote;
+      const nights   = row?.nights ?? 0;
+      const subtotal = row?.subtotal ?? 0;
+      const clean    = row?.cleaning_fee ?? 0;
+      const extra    = row?.extra_guest_fee_total ?? 0;
+      const total    = row?.total ?? 0;
+
+      $res.innerHTML = `
+        <div class="tile" style="align-items:flex-start;min-height:auto">
+          <div style="font-size:14px;margin-bottom:6px"><b>${nights}</b> ${LANG==='en'?'nights':'nuits'}</div>
+          <div class="list">
+            <div class="list-row"><div class="dot"></div><div class="list-txt">${LANG==='en'?'Subtotal':'Sous-total'}: <b>${subtotal.toFixed(0)}</b></div></div>
+            <div class="list-row"><div class="dot"></div><div class="list-txt">${LANG==='en'?'Cleaning fee':'Frais ménage'}: <b>${clean.toFixed(0)}</b></div></div>
+            <div class="list-row"><div class="dot"></div><div class="list-txt">${LANG==='en'?'Extra guests':'Supplément voyageurs'}: <b>${extra.toFixed(0)}</b></div></div>
+            <div class="list-row"><div class="dot"></div><div class="list-txt">Total: <b>${total.toFixed(0)}</b></div></div>
+          </div>
+        </div>
+      `;
+
+      // 2) Détail par jour
+      const { data: daily, error: dErr } = await sb.rpc('pricing_daily_by_slug', {
+        p_slug: slug,
+        p_from: from,
+        p_to: to,
+        p_weekend_iso_days: [6,7]
+      });
+      if (dErr) {
+        $list.innerHTML = `<div class="error-box">${dErr.message || dErr}</div>`;
+        return;
+      }
+
+      if (!daily || !daily.length) {
+        $list.innerHTML = `<div class="k">${LANG==='en'?'No days returned':'Aucun jour retourné'}</div>`;
+        return;
+      }
+
+      $list.innerHTML = `
+        <div class="k" style="margin-bottom:6px">${LANG==='en'?'Daily rates':'Tarifs par jour'}</div>
+        <div style="display:grid;grid-template-columns:120px 1fr 1fr;gap:6px;border:1px solid var(--border);border-radius:12px;overflow:hidden">
+          <div style="padding:8px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.04)"><b>${LANG==='en'?'Date':'Date'}</b></div>
+          <div style="padding:8px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.04)"><b>${LANG==='en'?'Rate':'Tarif'}</b></div>
+          <div style="padding:8px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.04)"><b>${LANG==='en'?'Source':'Source'}</b></div>
+          ${daily.map(d => `
+            <div style="padding:8px;border-top:1px solid var(--border)">${d.day}</div>
+            <div style="padding:8px;border-top:1px solid var(--border)">${d.rate === null ? (LANG==='en'?'— (blackout)':'— (indispo)') : d.rate}</div>
+            <div style="padding:8px;border-top:1px solid var(--border)">${d.source||''}</div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // on lance une première fois
+    const form = document.getElementById('price-form');
+    form.addEventListener('submit', (e)=>{ e.preventDefault(); runQuote(); });
+    runQuote();
+  }
+});
+
 
     // --- HERO (affichage conditionné au onload de l'image, fallback si erreur)
 // --- HERO (robuste multi-formats & Supabase)
