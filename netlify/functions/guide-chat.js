@@ -184,13 +184,13 @@ export default async (req) => {
   	  city: guide.city || '',
   	  
         // Détails de l'arrivée
-  	  checkin_from: arrival?.checkin_from || '',
-  	  wifi: arrival?.wifi || {},
+  	  checkin_from: arrival?.checkin_from || 'Information de check-in manquante',
+  	  wifi: arrival?.wifi?.password || 'Mot de passe WiFi manquant', // Extraction directe pour plus de clarté
   	  parking: arrival?.parking || '',
         arrival_instructions: br(arrival?.instructions), // Ajout des instructions d'arrivée
         
         // Détails du départ
-        checkout_before: departure?.checkout_before || '', // Heure de check-out
+        checkout_before: departure?.checkout_before || 'Information de check-out manquante', // Heure de check-out
   	  departure_details: departure, // Garder l'objet complet pour d'autres détails de départ
         
         // Autres informations du guide
@@ -204,16 +204,21 @@ export default async (req) => {
   	  geo: guide.geo || null,
   	  hasToken
   	};
+    
+    // Si l'information est manquante, insérer un message explicite au lieu d'une chaîne vide
+    if (contextBlob.checkin_from === '') contextBlob.checkin_from = 'Information de check-in manquante';
+    if (contextBlob.checkout_before === '') contextBlob.checkout_before = 'Information de check-out manquante';
+    if (contextBlob.wifi === '') contextBlob.wifi = 'Mot de passe WiFi manquant';
 
-  	// --- MISE À JOUR DU SYSTEM PROMPT: Renforcement de la priorité au GUIDE CONTEXT ---
+
+  	// --- MISE À JOUR DU SYSTEM PROMPT: Renforcement de la priorité au GUIDE CONTEXT et OBLIGATION de recherche ---
   	const system = `
 You are "Concierge Zenata", a concise 5★ hotel-style concierge.
 Language: ${lang}.
-PRIORITÉ ABSOLUE : Utilise le GUIDE CONTEXT (JSON) pour répondre à TOUTES les questions concernant le bien (check-in, check-out, règles, adresse, équipements, wifi).
-Pour les questions sur la zone locale, les activités, ou les informations non couvertes dans le JSON, utilise tes connaissances générales et les résultats de recherche.
-Si un détail sur le bien (comme l'heure de check-in/out) est manquant dans le JSON (valeur vide ''), indique clairement que l'information n'est pas fournie dans le guide et que tu vas vérifier auprès de l'équipe. Ne rien inventer.
+RÈGLES DU BIEN (Priorité Absolue) : Utilise le GUIDE CONTEXT (JSON) pour répondre à TOUTES les questions concernant le bien (check-in, check-out, règles, adresse, équipements, wifi). Si l'information dans le JSON est marquée comme "manquante" ou est vide, utilise la phrase du JSON (e.g., "Information de check-in manquante") au lieu d'inventer.
+RÈGLES DE RECHERCHE (Obligation) : Si la question concerne la ville, les activités, les transports ou les recommandations locales ("que faire", "recommandations", "activités"), tu DOIS utiliser l'outil google_search.
+Réponse : Réponds en 2–6 lignes courtes, clair et amical. Utilise des listes à puces si nécessaire.
 Never reveal door codes unless "hasToken" is true.
-Answer in 2–6 short lines, clear and friendly. Use bullets when helpful.
 `.trim();
 
   	// --- CHANGEMENT CRUCIAL ICI ---
@@ -238,13 +243,13 @@ Answer in 2–6 short lines, clear and friendly. Use bullets when helpful.
       type: "function",
       function: {
         name: "google_search",
-        description: "Search Google for real-time information, especially for questions about local attractions, activities, and general knowledge outside of the guide context.",
+        description: "Search Google for real-time information, especially for questions about local attractions, activities, and general knowledge outside of the guide context. MUST be used for local recommendations.",
         parameters: {
           type: "object",
           properties: {
             query: {
               type: "string",
-              description: "The search query, ideally including the city name if relevant, e.g., 'best restaurants in Paris'."
+              description: "The search query, ideally including the city name if relevant, e.g., 'best restaurants in Paris' or 'activities near Zenata'."
             }
           },
           required: ["query"]
