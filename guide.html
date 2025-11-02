@@ -352,16 +352,44 @@ body{
   }
 
   async function fetchGuide(slug){
-    const ts = Date.now();
-    try{
-      const r = await fetch(`/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${ts}`, { cache:'no-store' });
-      if(r.ok) return await r.json();
-    }catch(e){ console.warn('get-guide failed', e); }
-    const url = `${SUPABASE_URL}/storage/v1/object/public/${GUIDES_BUCKET}/${encodeURIComponent(slug)}.json?ts=${ts}`;
-    const r2 = await fetch(url, { cache:'no-store' });
-    if(!r2.ok) throw new Error('Guide introuvable.');
-    return await r2.json();
+  const ts = Date.now();
+  const bucketUrl = `${SUPABASE_URL}/storage/v1/object/public/${GUIDES_BUCKET}/${encodeURIComponent(slug)}.json?ts=${ts}`;
+
+  // 1) Bucket d'abord (source de vérité)
+  try {
+    const r = await fetch(bucketUrl, { cache:'no-store' });
+    if (r.ok) return await r.json();
+  } catch (e) {
+    console.warn('bucket fetch failed (will try lambda):', e);
   }
+
+  // 2) Fallback: lambda (peut renvoyer un enregistrement DB)
+  try {
+    const r2 = await fetch(`/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${ts}`, { cache:'no-store' });
+    if (r2.ok) {
+      const obj = await r2.json();
+      // Si la lambda renvoie un “enregistrement” sans vraies sections,
+      // on re-tente le bucket (au cas où il soit juste lent)
+      const looksThin = !obj || (
+        obj.cover == null &&
+        obj.arrival == null &&
+        obj.neighborhood == null &&
+        obj.recommendations == null &&
+        obj.appliances == null
+      );
+      if (looksThin) {
+        const r3 = await fetch(bucketUrl, { cache:'no-store' });
+        if (r3.ok) return await r3.json();
+      }
+      return obj;
+    }
+  } catch (e) {
+    console.warn('lambda fetch failed:', e);
+  }
+
+  throw new Error('Guide introuvable (ni bucket ni lambda).');
+}
+
 
   async function boot(){
     // slug depuis l’URL
