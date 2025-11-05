@@ -742,24 +742,31 @@ body{
             return;
           }
 
+        
+
           const row = Array.isArray(quote) ? quote[0] : quote;
           const nights   = row?.nights ?? 0;
           const subtotal = Number(row?.subtotal ?? 0);
           const clean    = Number(row?.cleaning_fee ?? 0);
-          const extra    = Number(row?.extra_guest_fee_total ?? 0);
-          const total    = Number(row?.total ?? 0);
+          // fallback si le nom diffère dans ta fonction SQL
+          const extraRaw = row?.extra_guest_fee_total ?? row?.extra_guests_fee_total ?? 0;
+          const extra    = Number(extraRaw);
+          const total    = Number(row?.total ?? subtotal + clean + extra);
+          const fmt = (n)=> new Intl.NumberFormat('fr-MA', { maximumFractionDigits: 0 }).format(Number(n||0));
+
 
           $res.innerHTML = `
             <div class="tile" style="align-items:flex-start;min-height:auto">
               <div style="font-size:14px;margin-bottom:6px"><b>${nights}</b> ${LANG==='en'?'nights':'nuits'}</div>
               <div class="list">
-                <div class="list-row"><div class="dot"></div><div class="list-txt">${LANG==='en'?'Subtotal':'Sous-total'}: <b>${subtotal.toFixed(0)}</b></div></div>
-                <div class="list-row"><div class="dot"></div><div class="list-txt">${LANG==='en'?'Cleaning fee':'Frais ménage'}: <b>${clean.toFixed(0)}</b></div></div>
-                <div class="list-row"><div class="dot"></div><div class="list-txt">${LANG==='en'?'Extra guests':'Supplément voyageurs'}: <b>${extra.toFixed(0)}</b></div></div>
-                <div class="list-row"><div class="dot"></div><div class="list-txt">Total: <b>${total.toFixed(0)}</b></div></div>
+                <div class="list-row"><div class="dot"></div><div class="list-txt">${LANG==='en'?'Subtotal':'Sous-total'}: <b>${fmt(subtotal)}</b></div></div>
+                <div class="list-row"><div class="dot"></div><div class="list-txt">${LANG==='en'?'Cleaning fee':'Frais ménage'}: <b>${fmt(clean)}</b></div></div>
+                <div class="list-row"><div class="dot"></div><div class="list-txt">${LANG==='en'?'Extra guests':'Supplément voyageurs'}: <b>${fmt(extra)}</b></div></div>
+                <div class="list-row"><div class="dot"></div><div class="list-txt">Total: <b>${fmt(total)}</b></div></div>
               </div>
             </div>
           `;
+
 
           // 2) Détail par jour
           const { data: daily, error: dErr } = await sb.rpc('pricing_daily_by_slug', {
@@ -784,14 +791,17 @@ body{
               <div style="padding:8px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.04)"><b>${LANG==='en'?'Date':'Date'}</b></div>
               <div style="padding:8px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.04)"><b>${LANG==='en'?'Rate':'Tarif'}</b></div>
               <div style="padding:8px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.04)"><b>${LANG==='en'?'Source':'Source'}</b></div>
-              ${daily.map(d => `
-                <div style="padding:8px;border-top:1px solid var(--border)">${d.day}</div>
-                <div style="padding:8px;border-top:1px solid var(--border)">${d.rate === null ? (LANG==='en'?'— (blackout)':'— (indispo)') : d.rate}</div>
-                <div style="padding:8px;border-top:1px solid var(--border)">${d.source||''}</div>
-              `).join('')}
+              ${daily.map(d => {
+                const r = (d.rate == null || d.rate === '') ? null : Number(d.rate);
+                return `
+                  <div style="padding:8px;border-top:1px solid var(--border)">${d.day}</div>
+                  <div style="padding:8px;border-top:1px solid var(--border)">${r==null ? (LANG==='en'?'— (blackout)':'— (indispo)') : fmt(r)}</div>
+                  <div style="padding:8px;border-top:1px solid var(--border)">${d.source||''}</div>
+                `;
+              }).join('')}
             </div>
           `;
-        }
+
 
         const form = document.getElementById('price-form');
         form.addEventListener('submit', (e)=>{ e.preventDefault(); runQuote(); });
