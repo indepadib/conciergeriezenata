@@ -431,28 +431,29 @@ body{
       hideAlert();
       if(!slug){ throw new Error("Slug introuvable dans l'URL."); }
       g = await fetchGuide(slug);
-      // ---- Auto-provision du bien & mapping à partir du JSON du bucket
-try {
-  const defs = g?.pricing?.defaults || g?.defaults || {};
-  const name = g?.name || g?.display_name || slug;
-
-  await sb.rpc('ensure_property_for_slug', {
-    p_slug: slug,
-    p_name: name,
-    p_currency: defs.currency || 'MAD',
-    p_base_rate: Number(defs.base) || null,
-    p_min_rate: Number(defs.min) || null,
-    p_max_rate: Number(defs.max) || null,
-    p_cleaning_fee: Number(defs.cleaning_fee) || 0,
-    p_extra_guest_fee: Number(defs.extra_guest_fee) || 0,
-    p_included_guests: Number(defs.included_guests) || 2
-  });
-} catch (e) {
-  console.warn('ensure_property_for_slug failed', e);
-  // on ne bloque pas l’affichage; la carte Tarifs donnera un message si pas mappé
-}
-
       console.log('[guide]', g);
+
+        // ---- Auto-provision du bien & mapping à partir du JSON du bucket
+  try {
+      const defs = g?.pricing?.defaults || g?.defaults || {};
+      const name = g?.name || g?.display_name || slug;
+    
+      await sb.rpc('ensure_property_for_slug', {
+        p_slug: slug,
+        p_name: name,
+        p_currency: defs.currency || 'MAD',
+        p_base_rate: Number(defs.base) || null,
+        p_min_rate: Number(defs.min) || null,
+        p_max_rate: Number(defs.max) || null,
+        p_cleaning_fee: Number(defs.cleaning_fee) || 0,
+        p_extra_guest_fee: Number(defs.extra_guest_fee) || 0,
+        p_included_guests: Number(defs.included_guests) || 2
+      });
+    } catch (e) {
+      console.warn('ensure_property_for_slug failed', e);
+      // on ne bloque pas l’affichage; la carte Tarifs donnera un message si pas mappé
+    }
+      
     }catch(err){
       console.error(err);
       showAlert(err.message||err);
