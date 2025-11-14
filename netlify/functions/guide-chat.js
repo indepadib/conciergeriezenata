@@ -26,16 +26,15 @@ export default async (req) => {
       new URL('/', req.url).origin;
       
     // Utilisation de l'objet URL pour une construction de chemin fiable
-    const guideUrl = new URL('/.netlify/functions/get-guide', base);
-    guideUrl.searchParams.set('slug', slug);
-    guideUrl.searchParams.set('ts', Date.now()); // Anti-cache
-
+   const guidePath = `/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${Date.now()}`;
+    
     // 2. Appel de la fonction get-guide
-    const guideRes = await fetch(guideUrl.toString(), { 
-        // L'en-tête cache-control: no-store est crucial pour les appels serveur-serveur
+    // Nous passons le chemin au lieu de l'URL complète
+    const guideRes = await fetch(guidePath, { 
         headers: { 'cache-control': 'no-store' } 
     });
 
+    
     if (!guideRes.ok) {
       const errorDetail = await guideRes.text().catch(() => 'No response body');
       
