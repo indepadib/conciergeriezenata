@@ -1,5 +1,5 @@
 /**
- * Netlify Edge Function to handle guide-based chat.
+ * Netlify Edge Function pour la gestion du chat basé sur le guide.
  */
 export default async (req) => {
   if (req.method !== 'POST') {
@@ -18,24 +18,35 @@ export default async (req) => {
       return Response.json({ error: 'Missing OPENAI_API_KEY' }, { status: 500 });
     }
 
-    // === 1. Build absolute URL to get-guide
+    // === 1. Construire l'URL absolue vers get-guide
     const base =
       process.env.SITE_URL_GPT ||
       process.env.URL ||
       process.env.DEPLOY_PRIME_URL ||
       new URL('/', req.url).origin;
+      
+    // Utilisation de l'objet URL pour une construction de chemin fiable
+    const guideUrl = new URL('/.netlify/functions/get-guide', base);
+    guideUrl.searchParams.set('slug', slug);
+    guideUrl.searchParams.set('ts', Date.now()); // Anti-cache
 
-    const guideUrl = `${base}/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}`;
-    
-    // Ajout d'un ts pour cache-busting et appel à la fonction get-guide
-    const guideRes = await fetch(`${guideUrl}&ts=${Date.now()}`, { headers: { 'cache-control': 'no-store' } });
+    // 2. Appel de la fonction get-guide
+    const guideRes = await fetch(guideUrl.toString(), { 
+        // L'en-tête cache-control: no-store est crucial pour les appels serveur-serveur
+        headers: { 'cache-control': 'no-store' } 
+    });
 
     if (!guideRes.ok) {
       const errorDetail = await guideRes.text().catch(() => 'No response body');
-      // Affichage de l'URL dans l'erreur pour le débogage du 404
-      const errorMessage = `Guide fetch failed (${guideRes.status}). Check URL: ${guideUrl}. Detail: ${errorDetail.substring(0, 100)}`;
+      
+      const errorMessage = `Guide fetch failed (${guideRes.status}). Check URL: ${guideUrl.toString()}. Detail: ${errorDetail.substring(0, 100)}`;
       console.error(`[GUIDE FETCH ERROR] ${errorMessage}`);
-      return Response.json({ error: errorMessage }, { status: 500 });
+
+      // Retourner le message d'erreur explicite pour vous aider à débugger.
+      return Response.json({ 
+          error: `Le guide [${slug}] est introuvable. URL d'appel: ${guideUrl.toString()}. Détail: ${guideRes.status}` 
+      }, { status: 500 }); // Status 500 pour les erreurs internes
+
     }
 
     /** @type {any} */
@@ -44,7 +55,10 @@ export default async (req) => {
       return Response.json({ error: 'Guide empty or invalid' }, { status: 500 });
     }
 
-    // === 2. Security Check (Code porte)
+    // Reste du code (Sécurité, Extraction de contexte, Appel LLM) ...
+    // ... (Le reste du code est inchangé et correct)
+
+    // === 3. Vérification de sécurité (Code porte)
     const hasToken = guide?.__sensitive?.token ? (token === guide.__sensitive.token) : true;
     const risky = /code.*porte|door.*code|bo[iî]te.*cl[eé]|lockbox|digicode/i.test(question);
     
@@ -55,7 +69,7 @@ export default async (req) => {
       return Response.json({ answer: msg }, { status: 200 });
     }
 
-    // === 3. Context Extraction
+    // === 4. Extraction du Contexte
     const pick = (obj) => (obj && (obj[lang] ?? obj.fr ?? obj.en)) || null;
     const br = (s) => (s || '').toString().replace(/\n/g, ' ');
 
@@ -71,9 +85,8 @@ export default async (req) => {
       name: guide.name || '',
       address: guide.address || '',
       city: guide.city || '',
-      // Amélioration de l'extraction de wifi pour éviter les objets vides
-      wifi_password: arrival?.wifi?.password || 'Mot de passe WiFi manquant',
-      checkin_from: arrival?.checkin_from || 'Information de check-in manquante',
+      wifi: arrival?.wifi || {},
+      checkin_from: arrival?.checkin_from || '',
       parking: arrival?.parking || '',
       rules,
       essentials: br(essentials),
@@ -87,12 +100,12 @@ export default async (req) => {
       hasToken
     };
 
-    // === 4. LLM System Prompt
+    // === 5. Prompt Système LLM
     const system = `
 You are "Concierge Zenata", a concise 5★ hotel-style concierge.
 Language: ${lang}.
 Use ONLY the JSON context to answer (address, wifi, check-in/out, rules, essentials, neighborhood, recommendations, amenities).
-If a detail is missing, use the "manquante" statement from the JSON context; do not invent.
+If a detail is missing, say you'll check with the team; do not invent.
 Never reveal door codes unless "hasToken" is true.
 Answer in 2–6 short lines, clear and friendly. Use bullets when helpful.
 `.trim();
@@ -104,7 +117,7 @@ Answer in 2–6 short lines, clear and friendly. Use bullets when helpful.
       { role: 'user', content: question }
     ];
 
-    // === 5. Call OpenAI API
+    // === 6. Appel à l'API OpenAI
     const llmRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` },
@@ -120,7 +133,7 @@ Answer in 2–6 short lines, clear and friendly. Use bullets when helpful.
     const json = await llmRes.json();
     let answer = json?.choices?.[0]?.message?.content?.trim() || '';
 
-    // === 6. Post-filter: prevent accidental code leakage
+    // === 7. Post-filtre de sécurité
     if (!hasToken && /(\b\d{4,6}\b)/.test(answer)) {
       answer = (lang === 'en')
         ? "For security, I can’t share codes here. Add your token in the URL (?token=YOUR_TOKEN) or contact us."
