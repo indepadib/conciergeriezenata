@@ -211,17 +211,17 @@ export default async (req) => {
     if (contextBlob.wifi === '') contextBlob.wifi = 'Mot de passe WiFi manquant';
 
 
-  	// --- MISE À JOUR DU SYSTEM PROMPT: Renforcement de la priorité au GUIDE CONTEXT et OBLIGATION de recherche ---
+  	// --- MISE À JOUR DU SYSTEM PROMPT: Retour à l'utilisation des connaissances du modèle ---
   	const system = `
 You are "Concierge Zenata", a concise 5★ hotel-style concierge.
 Language: ${lang}.
 RÈGLES DU BIEN (Priorité Absolue) : Utilise le GUIDE CONTEXT (JSON) pour répondre à TOUTES les questions concernant le bien (check-in, check-out, règles, adresse, équipements, wifi). Si l'information dans le JSON est marquée comme "manquante" ou est vide, utilise la phrase du JSON (e.g., "Information de check-in manquante") au lieu d'inventer.
-RÈGLES DE RECHERCHE (Obligation) : Si la question concerne la ville, les activités, les transports ou les recommandations locales ("que faire", "recommandations", "activités"), tu DOIS utiliser l'outil google_search.
+RÈGLES DE RECHERCHE : Si la question concerne la ville, les activités, les transports ou les recommandations locales ("que faire", "recommandations", "activités"), utilise tes connaissances générales et/ou la ville du guide (${guide.city || 'Zenata'}) pour faire des recommandations.
 Réponse : Réponds en 2–6 lignes courtes, clair et amical. Utilise des listes à puces si nécessaire.
 Never reveal door codes unless "hasToken" is true.
 `.trim();
 
-  	// --- CHANGEMENT CRUCIAL ICI ---
+  	// --- CONFIGURATION OPENROUTER (SANS TOOL CALLING POUR LA STABILITÉ) ---
   	const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
   	if (!OPENROUTER_API_KEY) {
   	  return Response.json({ error: 'Missing OPENROUTER_API_KEY. Please set this variable in Netlify.' }, { status: 500 });
@@ -234,31 +234,7 @@ Never reveal door codes unless "hasToken" is true.
   	  { role: 'user', content: question }
   	];
 
-  	// --- CONFIGURATION OPENROUTER POUR LA RECHERCHE (GROUNDING) ---
-    // Utilisation de GPT-3.5 Turbo pour sa fiabilité avec le tool calling.
-    const city = guide.city || 'local attractions'; // Utiliser la ville du guide comme fallback
-    
-    // Définition de la fonction de recherche que le modèle peut appeler
-    const searchTool = {
-      type: "function",
-      function: {
-        name: "google_search",
-        description: "Search Google for real-time information, especially for questions about local attractions, activities, and general knowledge outside of the guide context. MUST be used for local recommendations.",
-        parameters: {
-          type: "object",
-          properties: {
-            query: {
-              type: "string",
-              description: "The search query, ideally including the city name if relevant, e.g., 'best restaurants in Paris' or 'activities near Zenata'."
-            }
-          },
-          required: ["query"]
-        }
-      }
-    };
-    
-    // Pour OpenRouter/OpenAI, les outils sont dans un tableau distinct.
-    const tools = [searchTool];
+    // Nous comptons sur les connaissances de GPT-3.5 pour les questions de ville.
     const modelName = 'openai/gpt-3.5-turbo';
 
   	const llmRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -268,10 +244,10 @@ Never reveal door codes unless "hasToken" is true.
           Authorization: `Bearer ${OPENROUTER_API_KEY}` 
       },
   	  body: JSON.stringify({ 
-          model: modelName, // Nouveau modèle GPT-3.5 Turbo
+          model: modelName, 
           temperature: 0.2, 
           messages,
-          tools: tools // Ajout de l'outil de recherche
+          // L'objet 'tools' a été supprimé pour éviter l'erreur 'terminated'.
       })
   	});
 
@@ -282,9 +258,6 @@ Never reveal door codes unless "hasToken" is true.
 
   	const json = await llmRes.json();
   	let answer = json?.choices?.[0]?.message?.content?.trim() || '';
-
-    // Si le modèle décide d'utiliser l'outil (tool call), OpenRouter va automatiquement exécuter la recherche
-    // et renvoyer la réponse comme si c'était le texte de la réponse (Grounding).
 
   	// Post-filter: avoid accidental code leakage if token missing
   	if (!hasToken && /(\b\d{4,6}\b)/.test(answer)) {
