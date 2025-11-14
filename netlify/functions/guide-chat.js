@@ -58,7 +58,7 @@ export default async (req) => {
 
     // === 3. Vérification de sécurité (Code porte)
     const hasToken = guide?.__sensitive?.token ? (token === guide.__sensitive.token) : true;
-    const risky = /code.*porte|door.*code|bo[iî]te.*cl[eé]|lockbox|digicode/i.i.test(question);
+    const risky = /code.*porte|door.*code|bo[iî]te.*cl[eé]|lockbox|digicode/i.test(question);
     
     if (risky && !hasToken) {
       const msg = (lang === 'en')
