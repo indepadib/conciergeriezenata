@@ -139,13 +139,19 @@ export default async (req) => {
   	  process.env.SITE_URL_GPT ||
   	  process.env.URL ||
   	  process.env.DEPLOY_PRIME_URL ||
-  	  new URL('/', req.url).origin;
+      (req.url ? new URL('/', req.url).origin : null); 
+    
+    if (!base) {
+        return Response.json({ error: 'Cannot determine base URL for guide function. Missing environment variables.' }, { status: 500 });
+    }
 
   	const guideUrl = `${base}/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${Date.now()}`;
+
   	const guideRes = await fetch(guideUrl, { headers: { 'cache-control': 'no-store' } });
 
   	if (!guideRes.ok) {
-  	  return Response.json({ error: `Guide fetch failed (${guideRes.status})` }, { status: 500 });
+        // Affichage de l'URL pour faciliter le débogage du 404/500
+  	  return Response.json({ error: `Guide fetch failed (${guideRes.status}). Check URL: ${guideUrl}` }, { status: 500 });
   	}
 
   	/** @type {any} */
@@ -177,7 +183,7 @@ export default async (req) => {
   	const recommendations = pick(guide.recommendations) || {};
   	const amenities = (Array.isArray(guide.amenities) ? guide.amenities : []).map(a => a?.label).filter(Boolean).join(', ');
 
-  	// --- NOUVELLE LOGIQUE D'EXTRACTION DE CONTEXTE AMÉLIORÉE ---
+  	// --- CONTEXTE AMÉLIORÉ ---
   	const contextBlob = {
   	  name: guide.name || '',
   	  address: guide.address || '',
@@ -187,11 +193,11 @@ export default async (req) => {
   	  checkin_from: arrival?.checkin_from || 'Information de check-in manquante',
   	  wifi: arrival?.wifi?.password || 'Mot de passe WiFi manquant', // Extraction directe pour plus de clarté
   	  parking: arrival?.parking || '',
-        arrival_instructions: br(arrival?.instructions), // Ajout des instructions d'arrivée
+        arrival_instructions: br(arrival?.instructions),
         
         // Détails du départ
-        checkout_before: departure?.checkout_before || 'Information de check-out manquante', // Heure de check-out
-  	  departure_details: departure, // Garder l'objet complet pour d'autres détails de départ
+        checkout_before: departure?.checkout_before || 'Information de check-out manquante',
+  	  departure_details: departure,
         
         // Autres informations du guide
   	  rules,
@@ -205,13 +211,13 @@ export default async (req) => {
   	  hasToken
   	};
     
-    // Si l'information est manquante, insérer un message explicite au lieu d'une chaîne vide
+    // Si l'information est manquante (chaîne vide), on assure le message d'absence
     if (contextBlob.checkin_from === '') contextBlob.checkin_from = 'Information de check-in manquante';
     if (contextBlob.checkout_before === '') contextBlob.checkout_before = 'Information de check-out manquante';
     if (contextBlob.wifi === '') contextBlob.wifi = 'Mot de passe WiFi manquant';
 
 
-  	// --- MISE À JOUR DU SYSTEM PROMPT: Retour à l'utilisation des connaissances du modèle ---
+  	// --- SYSTEM PROMPT FINAL : Priorité au JSON, Utilisation des connaissances pour le reste ---
   	const system = `
 You are "Concierge Zenata", a concise 5★ hotel-style concierge.
 Language: ${lang}.
@@ -221,7 +227,7 @@ Réponse : Réponds en 2–6 lignes courtes, clair et amical. Utilise des listes
 Never reveal door codes unless "hasToken" is true.
 `.trim();
 
-  	// --- CONFIGURATION OPENROUTER (SANS TOOL CALLING POUR LA STABILITÉ) ---
+  	// --- CONFIGURATION OPENROUTER (Modèle GPT-3.5 Turbo sans Tool Calling) ---
   	const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
   	if (!OPENROUTER_API_KEY) {
   	  return Response.json({ error: 'Missing OPENROUTER_API_KEY. Please set this variable in Netlify.' }, { status: 500 });
@@ -234,7 +240,6 @@ Never reveal door codes unless "hasToken" is true.
   	  { role: 'user', content: question }
   	];
 
-    // Nous comptons sur les connaissances de GPT-3.5 pour les questions de ville.
     const modelName = 'openai/gpt-3.5-turbo';
 
   	const llmRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -247,7 +252,7 @@ Never reveal door codes unless "hasToken" is true.
           model: modelName, 
           temperature: 0.2, 
           messages,
-          // L'objet 'tools' a été supprimé pour éviter l'erreur 'terminated'.
+          // tools: tools (Supprimé)
       })
   	});
 
