@@ -12,41 +12,33 @@ export default async (req) => {
     if (!slug || !question) {
       return Response.json({ error: 'Missing slug/question' }, { status: 400 });
     }
-
-    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
     if (!OPENAI_API_KEY) {
       return Response.json({ error: 'Missing OPENAI_API_KEY' }, { status: 500 });
     }
 
-    // === 1. Construire l'URL absolue vers get-guide
-    const base =
-      process.env.SITE_URL_GPT ||
-      process.env.URL ||
-      process.env.DEPLOY_PRIME_URL ||
-      new URL('/', req.url).origin;
-      
-    // Utilisation de l'objet URL pour une construction de chemin fiable
-   const guidePath = `/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${Date.now()}`;
+    // === 1. Construire l'URL (Utilisation du chemin LOCAL pour forcer la résolution interne Netlify)
+    const guidePath = `/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${Date.now()}`;
     
     // 2. Appel de la fonction get-guide
-    // Nous passons le chemin au lieu de l'URL complète
+    // On utilise le chemin local/relatif pour éviter les problèmes de résolution DNS en production.
     const guideRes = await fetch(guidePath, { 
+        // L'en-tête cache-control: no-store est CRUCIAL pour les appels serveur-serveur
         headers: { 'cache-control': 'no-store' } 
     });
 
-    
     if (!guideRes.ok) {
       const errorDetail = await guideRes.text().catch(() => 'No response body');
       
-      const errorMessage = `Guide fetch failed (${guideRes.status}). Check URL: ${guideUrl.toString()}. Detail: ${errorDetail.substring(0, 100)}`;
+      const errorMessage = `Guide fetch failed (${guideRes.status}). Path: ${guidePath}. Detail: ${errorDetail.substring(0, 100)}`;
       console.error(`[GUIDE FETCH ERROR] ${errorMessage}`);
 
-      // Retourner le message d'erreur explicite pour vous aider à débugger.
+      // Retourner le message d'erreur explicite.
       return Response.json({ 
-          error: `Le guide [${slug}] est introuvable. URL d'appel: ${guideUrl.toString()}. Détail: ${guideRes.status}` 
-      }, { status: 500 }); // Status 500 pour les erreurs internes
-
+          error: `Le guide [${slug}] est introuvable. Vérifiez le slug dans Supabase. Détail: ${guideRes.status}` 
+      }, { status: 500 }); 
     }
+   
 
     /** @type {any} */
     const guide = await guideRes.json();
