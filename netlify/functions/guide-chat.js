@@ -1,5 +1,6 @@
 /**
  * Netlify Edge Function pour la gestion du chat basé sur le guide.
+ * Utilisation de l'URL absolue pour garantir la compatibilité fetch en Edge Function.
  */
 export default async (req) => {
   if (req.method !== 'POST') {
@@ -12,33 +13,42 @@ export default async (req) => {
     if (!slug || !question) {
       return Response.json({ error: 'Missing slug/question' }, { status: 400 });
     }
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
     if (!OPENAI_API_KEY) {
       return Response.json({ error: 'Missing OPENAI_API_KEY' }, { status: 500 });
     }
 
-    // === 1. Construire l'URL (Utilisation du chemin LOCAL pour forcer la résolution interne Netlify)
-    const guidePath = `/.netlify/functions/get-guide?slug=${encodeURIComponent(slug)}&ts=${Date.now()}`;
+    // === 1. Construire l'URL ABSOLUE vers get-guide (Solution définitive)
+    // On utilise l'environnement Netlify (URL ou DEPLOY_PRIME_URL) pour la base.
+    const base =
+      process.env.SITE_URL_GPT ||
+      process.env.URL ||
+      process.env.DEPLOY_PRIME_URL ||
+      new URL('/', req.url).origin;
+      
+    // Construction de l'URL complète avec NEW URL pour la robustesse et l'encodage
+    const guideUrl = new URL('/.netlify/functions/get-guide', base);
+    guideUrl.searchParams.set('slug', slug);
+    guideUrl.searchParams.set('ts', Date.now()); // Anti-cache
+
+    const fullGuideUrl = guideUrl.toString();
     
     // 2. Appel de la fonction get-guide
-    // On utilise le chemin local/relatif pour éviter les problèmes de résolution DNS en production.
-    const guideRes = await fetch(guidePath, { 
-        // L'en-tête cache-control: no-store est CRUCIAL pour les appels serveur-serveur
+    const guideRes = await fetch(fullGuideUrl, { 
         headers: { 'cache-control': 'no-store' } 
     });
 
     if (!guideRes.ok) {
       const errorDetail = await guideRes.text().catch(() => 'No response body');
       
-      const errorMessage = `Guide fetch failed (${guideRes.status}). Path: ${guidePath}. Detail: ${errorDetail.substring(0, 100)}`;
+      const errorMessage = `Guide fetch failed (${guideRes.status}). Check URL: ${fullGuideUrl}. Detail: ${errorDetail.substring(0, 100)}`;
       console.error(`[GUIDE FETCH ERROR] ${errorMessage}`);
 
-      // Retourner le message d'erreur explicite.
       return Response.json({ 
-          error: `Le guide [${slug}] est introuvable. Vérifiez le slug dans Supabase. Détail: ${guideRes.status}` 
+          error: `Le guide [${slug}] est introuvable. Détail: ${guideRes.status}` 
       }, { status: 500 }); 
     }
-   
 
     /** @type {any} */
     const guide = await guideRes.json();
@@ -46,12 +56,9 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
       return Response.json({ error: 'Guide empty or invalid' }, { status: 500 });
     }
 
-    // Reste du code (Sécurité, Extraction de contexte, Appel LLM) ...
-    // ... (Le reste du code est inchangé et correct)
-
     // === 3. Vérification de sécurité (Code porte)
     const hasToken = guide?.__sensitive?.token ? (token === guide.__sensitive.token) : true;
-    const risky = /code.*porte|door.*code|bo[iî]te.*cl[eé]|lockbox|digicode/i.test(question);
+    const risky = /code.*porte|door.*code|bo[iî]te.*cl[eé]|lockbox|digicode/i.i.test(question);
     
     if (risky && !hasToken) {
       const msg = (lang === 'en')
