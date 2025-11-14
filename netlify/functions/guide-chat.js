@@ -252,7 +252,6 @@ Never reveal door codes unless "hasToken" is true.
           model: modelName, 
           temperature: 0.2, 
           messages,
-          // tools: tools (Supprimé)
       })
   	});
 
