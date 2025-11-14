@@ -713,7 +713,7 @@ try {
       { key:S('support'), icon:'help', onClick:()=>openModal(S('support'), `<p><b>${S('email')} :</b> <a href="mailto:conciergeriezenata@gmail.com">conciergeriezenata@gmail.com</a></p><div class="modal-actions"><a class="btn primary" target="_blank" rel="noreferrer" href="https://wa.me/212600000000?text=${waMsg}">WhatsApp</a><a class="btn" href="tel:+212600000000">${S('call')}</a></div>`) },
     );
 
-    /* ---------- Carte TARIFS (quote + daily) ---------- */
+    /* ---------- Carte TARIFS (quote + daily) ---------- 
    cards.push({
   key: (LANG === 'en' ? 'Pricing' : 'Tarifs'),
   icon: 'amenities',
@@ -806,7 +806,7 @@ try {
         </div>
       `;
     } // /runQuote
-
+*/
     const form = document.getElementById('price-form');
     form.addEventListener('submit', (e)=>{ e.preventDefault(); runQuote(); });
     runQuote();
