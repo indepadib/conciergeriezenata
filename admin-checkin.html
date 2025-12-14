@@ -36,6 +36,33 @@
 
         <div class="hr"></div>
 
+        <h2>Créer un lien check-in</h2>
+        <p class="muted">Génère un lien unique pour un séjour (à envoyer au voyageur).</p>
+        
+        <label class="muted">Logement</label>
+        <select id="property_id" style="width:100%;padding:10px 12px;border:1px solid rgba(0,0,0,.15);border-radius:12px">
+          <option value="">— Charger les logements —</option>
+        </select>
+        
+        <label class="muted" style="margin-top:10px">Arrivée</label>
+        <input id="arrival" type="date"/>
+        
+        <label class="muted">Départ</label>
+        <input id="departure" type="date"/>
+        
+        <div class="row" style="margin-top:10px">
+          <button id="btnLoadProps">Charger logements</button>
+          <button id="btnCreateLink">Créer lien</button>
+        </div>
+        
+        <div class="hr"></div>
+        
+        <label class="muted">Lien généré</label>
+        <input id="generatedLink" readonly placeholder="Le lien apparaîtra ici…"/>
+        <div class="row" style="margin-top:10px">
+          <button id="btnCopyLink">Copier</button>
+        </div>
+
         <h2>Filtres</h2>
         <label class="muted">Du</label>
         <input id="from" type="date"/>
