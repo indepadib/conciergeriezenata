@@ -18,3 +18,15 @@
   from = "/admin/guides/*"
   to = "/admin-guides.html"
   status = 200
+
+# Check-in digital (SPA route)
+[[redirects]]
+  from = "/checkin/*"
+  to = "/checkin.html"
+  status = 200
+
+# Admin check-in
+[[redirects]]
+  from = "/admin/checkin/*"
+  to = "/admin-checkin.html"
+  status = 200
