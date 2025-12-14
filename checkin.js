@@ -49,7 +49,22 @@ function showScreen(name) {
   Object.values(SCREENS).forEach(el => el.classList.add('cz-hide'));
   SCREENS[name].classList.remove('cz-hide');
   renderSteps(name);
+
+  // Premium progress UI (no backend change)
+  const map = window.__czProgress || {};
+  const meta = map[name];
+  if (meta) {
+    const total = 6;
+    const pct = Math.round((meta.i / total) * 100);
+    const fill = document.getElementById('progressFill');
+    const title = document.getElementById('progressTitle');
+    const step = document.getElementById('progressStep');
+    if (fill) fill.style.width = pct + '%';
+    if (title) title.textContent = meta.t;
+    if (step) step.textContent = `${meta.i}/${total}`;
+  }
 }
+
 
 function renderSteps(activeKey) {
   const wrap = $('steps');
@@ -248,6 +263,9 @@ async function init() {
     state.requireMarriage = !!(init.property && init.property.require_marriage_cert_for_moroccan_couples);
 
     $('propertyName').value = state.property?.name || '';
+     const top = document.getElementById('topPropertyName');
+      if (top) top.textContent = state.property?.name || '—';
+
     $('stayDates').value = `${state.reservation.arrival_date} → ${state.reservation.departure_date}`;
 
     // init guests
