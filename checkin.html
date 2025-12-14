@@ -4,174 +4,353 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Check-in digital – Conciergerie Zenata</title>
+
+  <!-- Optional: keep your existing premium.css if you want -->
   <link rel="stylesheet" href="/assets/premium.css"/>
   <link rel="stylesheet" href="/checkin.css"/>
+
+  <!-- Optional: nicer font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
-  <div class="cz-wrap">
-    <header class="cz-header">
-      <a class="cz-brand" href="/">Conciergerie Zenata</a>
-      <div class="cz-sub">Check-in digital</div>
+  <div class="cz-app">
+    <!-- Top bar -->
+    <header class="cz-topbar">
+      <a class="cz-logo" href="/" aria-label="Conciergerie Zenata">
+        <span class="cz-logoMark"></span>
+        <span class="cz-logoText">Conciergerie Zenata</span>
+      </a>
+
+      <div class="cz-topMeta">
+        <div class="cz-topMetaTitle">Check-in digital</div>
+        <div class="cz-topMetaSub" id="topPropertyName">—</div>
+      </div>
     </header>
 
-    <main class="cz-card">
-      <div class="cz-steps" id="steps"></div>
+    <!-- Progress -->
+    <section class="cz-progressWrap" aria-label="Progression">
+      <div class="cz-progressBar">
+        <div class="cz-progressFill" id="progressFill" style="width:0%"></div>
+      </div>
+      <div class="cz-progressRow">
+        <div class="cz-progressTitle" id="progressTitle">Préparation…</div>
+        <div class="cz-progressStep" id="progressStep">0/6</div>
+      </div>
 
-      <section id="screen-loading" class="cz-screen">
-        <h1>Préparation du check-in…</h1>
-        <p class="cz-muted">Merci de patienter quelques secondes.</p>
-      </section>
+      <!-- Keep steps for your JS (it fills #steps). We'll style it lightly -->
+      <div class="cz-stepPills" id="steps"></div>
+    </section>
 
-      <section id="screen-error" class="cz-screen cz-hide">
-        <h1>Impossible d’ouvrir le check-in</h1>
-        <p id="errorText" class="cz-muted"></p>
-      </section>
+    <!-- Main card -->
+    <main class="cz-shell">
+      <div class="cz-card">
 
-      <section id="screen-consent" class="cz-screen cz-hide">
-        <h1>Informations de séjour</h1>
-        <div class="cz-grid2">
-          <div>
-            <label>Nom du logement</label>
-            <input id="propertyName" disabled />
+        <!-- LOADING -->
+        <section id="screen-loading" class="cz-screen">
+          <div class="cz-hero">
+            <div class="cz-heroIcon">⏳</div>
+            <h1 class="cz-h1">Préparation du check-in</h1>
+            <p class="cz-sub">Nous chargeons vos informations…</p>
           </div>
-          <div>
-            <label>Dates</label>
-            <input id="stayDates" disabled />
+          <div class="cz-skeleton"></div>
+          <div class="cz-skeleton"></div>
+          <div class="cz-skeleton small"></div>
+        </section>
+
+        <!-- ERROR -->
+        <section id="screen-error" class="cz-screen cz-hide">
+          <div class="cz-hero">
+            <div class="cz-heroIcon danger">⚠️</div>
+            <h1 class="cz-h1">Lien invalide</h1>
+            <p id="errorText" class="cz-sub"></p>
           </div>
-        </div>
-
-        <div class="cz-divider"></div>
-
-        <label class="cz-check">
-          <input type="checkbox" id="consent" />
-          <span>
-            J’accepte la collecte et le traitement de mes données pour la gestion du séjour et les obligations légales.
-          </span>
-        </label>
-
-        <button class="cz-btn" id="btnStart">Commencer</button>
-      </section>
-
-      <section id="screen-guest" class="cz-screen cz-hide">
-        <h1>Voyageur <span id="guestIndexLabel"></span></h1>
-
-        <div class="cz-grid2">
-          <div><label>Nom</label><input id="g_last" autocomplete="family-name"/></div>
-          <div><label>Prénom</label><input id="g_first" autocomplete="given-name"/></div>
-
-          <div>
-            <label>Sexe</label>
-            <select id="g_sex">
-              <option value="">—</option>
-              <option value="M">M</option>
-              <option value="F">F</option>
-            </select>
+          <div class="cz-callout">
+            <strong>Besoin d’aide ?</strong>
+            <div class="cz-sub">Contactez votre hôte ou demandez un nouveau lien.</div>
           </div>
-          <div><label>Nationalité</label><input id="g_nationality" placeholder="ex: Marocaine"/></div>
+        </section>
 
-          <div><label>Date de naissance</label><input id="g_dob" type="date"/></div>
-          <div><label>Pays de résidence</label><input id="g_res_country" placeholder="ex: Maroc"/></div>
-
-          <div><label>Ville de résidence</label><input id="g_res_city" placeholder="ex: Casablanca"/></div>
-          <div><label>Domicile habituel</label><input id="g_address" placeholder="Adresse (si applicable)"/></div>
-        </div>
-
-        <div class="cz-grid2">
-          <div>
-            <label>Type de pièce</label>
-            <select id="g_id_type">
-              <option value="">—</option>
-              <option value="CNIE">CNIE</option>
-              <option value="PASSPORT">Passeport</option>
-              <option value="RESIDENCE">Titre de séjour</option>
-              <option value="OTHER">Autre</option>
-            </select>
+        <!-- CONSENT / WELCOME -->
+        <section id="screen-consent" class="cz-screen cz-hide">
+          <div class="cz-hero">
+            <div class="cz-heroIcon">👋</div>
+            <h1 class="cz-h1">Bienvenue</h1>
+            <p class="cz-sub">
+              Ce check-in prend <strong>~3 minutes</strong>. Vos données sont traitées de façon sécurisée.
+            </p>
           </div>
-          <div><label>Numéro de pièce</label><input id="g_id_number" /></div>
-        </div>
 
-        <div class="cz-divider"></div>
+          <div class="cz-infoGrid">
+            <div class="cz-infoItem">
+              <div class="cz-infoLabel">Logement</div>
+              <div class="cz-infoValue"><input id="propertyName" class="cz-input cz-inputRead" disabled /></div>
+            </div>
 
-        <h2>Documents</h2>
-        <p class="cz-muted">Ajoute une photo lisible de la pièce d’identité.</p>
-
-        <div class="cz-grid2">
-          <div>
-            <label>Pièce – face 1</label>
-            <input type="file" id="doc_front" accept="image/*,.pdf"/>
+            <div class="cz-infoItem">
+              <div class="cz-infoLabel">Dates</div>
+              <div class="cz-infoValue"><input id="stayDates" class="cz-input cz-inputRead" disabled /></div>
+            </div>
           </div>
-          <div>
-            <label>Pièce – face 2 (si nécessaire)</label>
-            <input type="file" id="doc_back" accept="image/*,.pdf"/>
+
+          <div class="cz-callout">
+            <div class="cz-badges">
+              <span class="cz-badge">🔒 Sécurisé</span>
+              <span class="cz-badge">🛂 Conforme</span>
+              <span class="cz-badge">📱 Mobile</span>
+            </div>
+            <div class="cz-sub" style="margin-top:8px">
+              Merci de confirmer votre accord pour poursuivre.
+            </div>
           </div>
-        </div>
 
-        <div class="cz-actions">
-          <button class="cz-btn cz-btn-ghost" id="btnPrevGuest">Retour</button>
-          <button class="cz-btn" id="btnSaveGuest">Enregistrer</button>
-        </div>
-      </section>
+          <label class="cz-check">
+            <input type="checkbox" id="consent"/>
+            <span>
+              J’accepte la collecte et le traitement de mes données pour la gestion du séjour et les obligations légales.
+            </span>
+          </label>
 
-      <section id="screen-group" class="cz-screen cz-hide">
-        <h1>Voyageurs</h1>
-        <p class="cz-muted">Ajoute tous les voyageurs (adultes & enfants).</p>
+          <button class="cz-btn cz-btnPrimary" id="btnStart">Commencer</button>
 
-        <div id="guestList" class="cz-list"></div>
+          <div class="cz-footnote">
+            Vous pourrez modifier vos informations avant validation.
+          </div>
+        </section>
 
-        <div class="cz-actions">
-          <button class="cz-btn cz-btn-ghost" id="btnAddGuest">Ajouter un voyageur</button>
-          <button class="cz-btn" id="btnToCouple">Continuer</button>
-        </div>
-      </section>
+        <!-- GUEST -->
+        <section id="screen-guest" class="cz-screen cz-hide">
+          <div class="cz-titleRow">
+            <div>
+              <h1 class="cz-h1">Voyageur <span id="guestIndexLabel"></span></h1>
+              <p class="cz-sub">Merci de renseigner exactement comme sur la pièce d’identité.</p>
+            </div>
+          </div>
 
-      <section id="screen-couple" class="cz-screen cz-hide">
-        <h1>Couple marocain</h1>
-        <p class="cz-muted">
-          Si vous êtes un couple marocain, certains logements peuvent demander un acte de mariage.
-        </p>
+          <div class="cz-section">
+            <div class="cz-sectionTitle">Identité</div>
 
-        <label class="cz-check">
-          <input type="checkbox" id="isMoroccanCouple"/>
-          <span>Nous sommes un couple marocain</span>
-        </label>
+            <div class="cz-grid2">
+              <div>
+                <label class="cz-label">Nom</label>
+                <input id="g_last" class="cz-input" autocomplete="family-name" placeholder="Ex: EL AMRANI"/>
+              </div>
+              <div>
+                <label class="cz-label">Prénom</label>
+                <input id="g_first" class="cz-input" autocomplete="given-name" placeholder="Ex: Sara"/>
+              </div>
 
-        <div id="marriageBox" class="cz-hide">
-          <div class="cz-divider"></div>
-          <label>Acte de mariage <span id="marriageHint" class="cz-muted"></span></label>
-          <input type="file" id="doc_marriage" accept="image/*,.pdf"/>
-        </div>
+              <div>
+                <label class="cz-label">Sexe</label>
+                <select id="g_sex" class="cz-input">
+                  <option value="">—</option>
+                  <option value="M">M</option>
+                  <option value="F">F</option>
+                </select>
+              </div>
 
-        <div class="cz-actions">
-          <button class="cz-btn cz-btn-ghost" id="btnBackToGroup">Retour</button>
-          <button class="cz-btn" id="btnToSign">Continuer</button>
-        </div>
-      </section>
+              <div>
+                <label class="cz-label">Nationalité</label>
+                <input id="g_nationality" class="cz-input" placeholder="Ex: Marocaine"/>
+              </div>
 
-      <section id="screen-sign" class="cz-screen cz-hide">
-        <h1>Signature</h1>
-        <p class="cz-muted">Signez dans le cadre ci-dessous.</p>
+              <div>
+                <label class="cz-label">Date de naissance</label>
+                <input id="g_dob" class="cz-input" type="date"/>
+              </div>
 
-        <canvas id="sig" class="cz-sign"></canvas>
-        <div class="cz-actions">
-          <button class="cz-btn cz-btn-ghost" id="btnClearSig">Effacer</button>
-          <button class="cz-btn" id="btnSubmit">Valider le check-in</button>
-        </div>
-      </section>
+              <div>
+                <label class="cz-label">Pays de résidence</label>
+                <input id="g_res_country" class="cz-input" placeholder="Ex: Maroc"/>
+              </div>
 
-      <section id="screen-done" class="cz-screen cz-hide">
-        <h1>Check-in complété ✅</h1>
-        <p class="cz-muted">Merci. Vous pouvez maintenant accéder aux informations d’arrivée.</p>
+              <div>
+                <label class="cz-label">Ville de résidence</label>
+                <input id="g_res_city" class="cz-input" placeholder="Ex: Casablanca"/>
+              </div>
 
-        <div class="cz-divider"></div>
-        <div id="instructions" class="cz-instructions"></div>
-      </section>
+              <div>
+                <label class="cz-label">Domicile habituel</label>
+                <input id="g_address" class="cz-input" placeholder="Adresse (si applicable)"/>
+              </div>
+            </div>
+          </div>
 
+          <div class="cz-section">
+            <div class="cz-sectionTitle">Pièce d’identité</div>
+
+            <div class="cz-grid2">
+              <div>
+                <label class="cz-label">Type</label>
+                <select id="g_id_type" class="cz-input">
+                  <option value="">—</option>
+                  <option value="CNIE">CNIE</option>
+                  <option value="PASSPORT">Passeport</option>
+                  <option value="RESIDENCE">Titre de séjour</option>
+                  <option value="OTHER">Autre</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="cz-label">Numéro</label>
+                <input id="g_id_number" class="cz-input" placeholder="Ex: AB123456"/>
+              </div>
+            </div>
+
+            <div class="cz-uploadGrid">
+              <div class="cz-upload">
+                <div class="cz-uploadHead">
+                  <div class="cz-uploadTitle">Face 1</div>
+                  <div class="cz-uploadHint">Photo lisible</div>
+                </div>
+                <input type="file" id="doc_front" class="cz-file" accept="image/*,.pdf"/>
+              </div>
+
+              <div class="cz-upload">
+                <div class="cz-uploadHead">
+                  <div class="cz-uploadTitle">Face 2</div>
+                  <div class="cz-uploadHint">Si nécessaire</div>
+                </div>
+                <input type="file" id="doc_back" class="cz-file" accept="image/*,.pdf"/>
+              </div>
+            </div>
+
+            <div class="cz-callout soft">
+              <strong>Conseil</strong>
+              <div class="cz-sub">Posez la pièce sur une surface plane, sans reflets.</div>
+            </div>
+          </div>
+
+          <div class="cz-actions">
+            <button class="cz-btn cz-btnGhost" id="btnPrevGuest">Retour</button>
+            <button class="cz-btn cz-btnPrimary" id="btnSaveGuest">Enregistrer & continuer</button>
+          </div>
+        </section>
+
+        <!-- GROUP -->
+        <section id="screen-group" class="cz-screen cz-hide">
+          <div class="cz-hero compact">
+            <div class="cz-heroIcon">👥</div>
+            <h1 class="cz-h1">Voyageurs</h1>
+            <p class="cz-sub">Ajoutez tous les voyageurs (adultes et enfants).</p>
+          </div>
+
+          <div id="guestList" class="cz-list"></div>
+
+          <div class="cz-actions">
+            <button class="cz-btn cz-btnGhost" id="btnAddGuest">+ Ajouter un voyageur</button>
+            <button class="cz-btn cz-btnPrimary" id="btnToCouple">Continuer</button>
+          </div>
+        </section>
+
+        <!-- COUPLE -->
+        <section id="screen-couple" class="cz-screen cz-hide">
+          <div class="cz-hero compact">
+            <div class="cz-heroIcon">🧾</div>
+            <h1 class="cz-h1">Informations complémentaires</h1>
+            <p class="cz-sub">
+              Pour respecter les règles locales, certains logements peuvent demander un acte de mariage.
+            </p>
+          </div>
+
+          <div class="cz-callout">
+            <strong>Couple marocain</strong>
+            <div class="cz-sub">Merci d’indiquer si vous voyagez en couple marocain.</div>
+          </div>
+
+          <label class="cz-check big">
+            <input type="checkbox" id="isMoroccanCouple"/>
+            <span>Oui, nous sommes un couple marocain</span>
+          </label>
+
+          <div id="marriageBox" class="cz-hide">
+            <div class="cz-section">
+              <div class="cz-sectionTitle">Acte de mariage <span id="marriageHint" class="cz-pill"></span></div>
+              <div class="cz-upload single">
+                <input type="file" id="doc_marriage" class="cz-file" accept="image/*,.pdf"/>
+              </div>
+              <div class="cz-footnote">Format photo ou PDF. Veuillez envoyer un document lisible.</div>
+            </div>
+          </div>
+
+          <div class="cz-actions">
+            <button class="cz-btn cz-btnGhost" id="btnBackToGroup">Retour</button>
+            <button class="cz-btn cz-btnPrimary" id="btnToSign">Continuer</button>
+          </div>
+        </section>
+
+        <!-- SIGN -->
+        <section id="screen-sign" class="cz-screen cz-hide">
+          <div class="cz-hero compact">
+            <div class="cz-heroIcon">✍️</div>
+            <h1 class="cz-h1">Signature</h1>
+            <p class="cz-sub">
+              Presque terminé. Veuillez signer pour confirmer l’exactitude des informations.
+            </p>
+          </div>
+
+          <div class="cz-signWrap">
+            <canvas id="sig" class="cz-sign"></canvas>
+            <div class="cz-signHint">Signez avec le doigt ou la souris.</div>
+          </div>
+
+          <div class="cz-actions">
+            <button class="cz-btn cz-btnGhost" id="btnClearSig">Effacer</button>
+            <button class="cz-btn cz-btnPrimary" id="btnSubmit">Valider le check-in</button>
+          </div>
+
+          <div class="cz-footnote">
+            Vos informations resteront confidentielles et utilisées uniquement pour le séjour.
+          </div>
+        </section>
+
+        <!-- DONE -->
+        <section id="screen-done" class="cz-screen cz-hide">
+          <div class="cz-hero">
+            <div class="cz-heroIcon success">✅</div>
+            <h1 class="cz-h1">Check-in complété</h1>
+            <p class="cz-sub">Bienvenue ! Voici vos informations d’arrivée.</p>
+          </div>
+
+          <div class="cz-instructionsCard">
+            <div class="cz-instructionsHead">
+              <div class="cz-instructionsTitle">Instructions d’accès</div>
+              <div class="cz-pill">À conserver</div>
+            </div>
+            <div id="instructions" class="cz-instructions"></div>
+          </div>
+
+          <div class="cz-callout soft">
+            <strong>Besoin d’aide ?</strong>
+            <div class="cz-sub">Contactez-nous via WhatsApp si nécessaire.</div>
+          </div>
+        </section>
+
+      </div>
     </main>
 
     <footer class="cz-footer">
-      <span class="cz-muted">© Conciergerie Zenata</span>
+      <div class="cz-footerInner">
+        <span>© Conciergerie Zenata</span>
+        <span class="cz-dot">•</span>
+        <span class="cz-muted">Check-in digital</span>
+      </div>
     </footer>
   </div>
+
+  <script>
+    // Lightweight progress mapping (UI only). No backend change.
+    window.__czProgress = {
+      consent: { i: 1, t: "Bienvenue" },
+      guest:   { i: 2, t: "Voyageur" },
+      group:   { i: 3, t: "Voyageurs" },
+      couple:  { i: 4, t: "Infos complémentaires" },
+      sign:    { i: 5, t: "Signature" },
+      done:    { i: 6, t: "Terminé" }
+    };
+  </script>
 
   <script src="/checkin.js"></script>
 </body>
