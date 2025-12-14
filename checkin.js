@@ -89,36 +89,47 @@ function fileToDataUrl(file) {
 }
 
 /* ------- Signature canvas ------- */
-function initSignature() {
-  const canvas = $('sig');
+/* ------- Signature (robust, mobile-friendly) ------- */
+function createSignaturePad(canvasId = 'sig') {
+  const canvas = document.getElementById(canvasId);
   const ctx = canvas.getContext('2d');
-
-  function resize() {
-    // retina-safe
-    const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.floor(rect.width * dpr);
-    canvas.height = Math.floor(rect.height * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-  }
-  resize();
-  window.addEventListener('resize', resize);
 
   let drawing = false;
   let last = null;
 
-  function pos(e) {
+  function resize() {
     const rect = canvas.getBoundingClientRect();
-    const t = (e.touches && e.touches[0]) ? e.touches[0] : e;
-    return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+
+    // If the canvas is hidden, rect will be 0x0 -> do nothing for now
+    if (!rect.width || !rect.height) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+
+    // Map drawing coords to CSS pixels
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    ctx.lineWidth = 2.2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
   }
 
-  function down(e) { drawing = true; last = pos(e); e.preventDefault(); }
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  function down(e) {
+    drawing = true;
+    last = getPos(e);
+    canvas.setPointerCapture?.(e.pointerId);
+    e.preventDefault();
+  }
+
   function move(e) {
     if (!drawing) return;
-    const p = pos(e);
+    const p = getPos(e);
     ctx.beginPath();
     ctx.moveTo(last.x, last.y);
     ctx.lineTo(p.x, p.y);
@@ -126,25 +137,35 @@ function initSignature() {
     last = p;
     e.preventDefault();
   }
-  function up() { drawing = false; last = null; }
 
-  canvas.addEventListener('mousedown', down);
-  canvas.addEventListener('mousemove', move);
-  window.addEventListener('mouseup', up);
+  function up(e) {
+    drawing = false;
+    last = null;
+    e.preventDefault();
+  }
 
-  canvas.addEventListener('touchstart', down, { passive:false });
-  canvas.addEventListener('touchmove', move, { passive:false });
-  window.addEventListener('touchend', up);
+  // Pointer events cover mouse + touch (best option)
+  canvas.addEventListener('pointerdown', down);
+  canvas.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
 
-  $('btnClearSig').onclick = () => {
+  window.addEventListener('resize', resize);
+
+  function clear() {
+    // Clear using device pixels
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-  };
+    // Restore transform
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
 
-  return () => {
-    // export signature
-    const png = canvas.toDataURL('image/png');
-    return png;
-  };
+  function exportPng() {
+    return canvas.toDataURL('image/png');
+  }
+
+  return { resize, clear, exportPng };
 }
 
 function validateGuestForm() {
