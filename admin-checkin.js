@@ -27,6 +27,60 @@ function setDefaultDates() {
   $('to').value = t;
 }
 
+function baseUrl() {
+  return window.location.origin;
+}
+
+async function loadProperties() {
+  if (!adminToken) return alert('Connecte-toi d’abord.');
+  const out = await api('/.netlify/functions/admin-list-properties', {
+    admin_token: adminToken
+  });
+
+  const sel = $('property_id');
+  sel.innerHTML = '<option value="">— Sélectionner —</option>';
+  (out.properties || []).forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.name || p.id;
+    sel.appendChild(opt);
+  });
+
+  if (!(out.properties || []).length) alert("Aucun logement trouvé dans properties.");
+}
+
+async function createCheckinLink() {
+  if (!adminToken) return alert('Connecte-toi d’abord.');
+
+  const propertyId = $('property_id').value;
+  const arrival = $('arrival').value;
+  const departure = $('departure').value;
+
+  if (!propertyId) return alert("Choisis un logement.");
+  if (!arrival || !departure) return alert("Mets arrivée + départ.");
+  if (departure <= arrival) return alert("La date de départ doit être après l’arrivée.");
+
+  const out = await api('/.netlify/functions/admin-create-reservation', {
+    admin_token: adminToken,
+    property_id: propertyId,
+    arrival_date: arrival,
+    departure_date: departure
+  });
+
+  $('generatedLink').value = out.link;
+  alert("Lien créé ✅");
+}
+
+function copyLink() {
+  const v = $('generatedLink').value;
+  if (!v) return alert("Aucun lien à copier.");
+  navigator.clipboard.writeText(v).then(
+    () => alert("Copié ✅"),
+    () => alert("Impossible de copier. Copie manuelle.")
+  );
+}
+
+
 function renderList(items) {
   const box = $('list');
   box.innerHTML = '';
