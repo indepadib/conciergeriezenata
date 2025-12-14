@@ -4,7 +4,7 @@
 
 const $ = (id) => document.getElementById(id);
 
-const SCREENS = {
+/*const SCREENS = {
   loading: $('screen-loading'),
   error: $('screen-error'),
   consent: $('screen-consent'),
@@ -14,6 +14,9 @@ const SCREENS = {
   sign: $('screen-sign'),
   done: $('screen-done'),
 };
+*/
+
+let SCREENS = {};
 
 const STEPS = [
   { key: 'consent', label: 'Infos' },
@@ -46,8 +49,16 @@ function tokenFromUrl() {
 }
 
 function showScreen(name) {
-  Object.values(SCREENS).forEach(el => el.classList.add('cz-hide'));
-  SCREENS[name].classList.remove('cz-hide');
+  // Hide all existing screens safely (ignore nulls)
+  Object.values(SCREENS).filter(Boolean).forEach(el => el.classList.add('cz-hide'));
+
+  const target = SCREENS[name];
+  if (!target) {
+    console.error("Screen not found:", name, SCREENS);
+    return;
+  }
+
+  target.classList.remove('cz-hide');
   renderSteps(name);
 
   // Premium progress UI (no backend change)
@@ -64,6 +75,7 @@ function showScreen(name) {
     if (step) step.textContent = `${meta.i}/${total}`;
   }
 }
+
 
 
 function renderSteps(activeKey) {
@@ -359,6 +371,17 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+     SCREENS = {
+    loading: $('screen-loading'),
+    error: $('screen-error'),
+    consent: $('screen-consent'),
+    guest: $('screen-guest'),
+    group: $('screen-group'),
+    couple: $('screen-couple'),
+    sign: $('screen-sign'),
+    done: $('screen-done'),
+  };
+
   const sigPad = createSignaturePad('sig');
 
   $('btnClearSig').onclick = () => sigPad.clear();
@@ -394,10 +417,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         ...guest
       };
 
-       if (!$('doc_front').files.length) {
-  alert("La pièce d’identité est obligatoire pour continuer.");
-  return;
-}
       await api('/.netlify/functions/checkin-save', {
         session: state.session,
         token: state.token,
