@@ -264,7 +264,9 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const exportSig = initSignature();
+  const sigPad = createSignaturePad('sig');
+
+  $('btnClearSig').onclick = () => sigPad.clear();
 
   $('btnStart').onclick = () => {
     if (!$('consent').checked) return alert("Veuillez accepter avant de continuer.");
@@ -332,16 +334,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   $('btnBackToGroup').onclick = () => showScreen('group');
 
-  $('btnToSign').onclick = () => {
-    // Si requis : on ne bloque pas ici côté front (UX),
-    // la function checkin-submit fera la validation serveur.
-    showScreen('sign');
-  };
+ $('btnToSign').onclick = () => {
+  showScreen('sign');
+
+  // VERY IMPORTANT: canvas is visible only now
+  sigPad.resize();
+  requestAnimationFrame(() => sigPad.resize());
+};
 
   $('btnSubmit').onclick = async () => {
     try {
       const marriage = state.isMoroccanCouple ? await fileToDataUrl($('doc_marriage').files[0]) : null;
-      state.signaturePngDataUrl = exportSig();
+      state.signaturePngDataUrl = sigPad.exportPng();
 
       const out = await api('/.netlify/functions/checkin-submit', {
         session: state.session,
