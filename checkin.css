@@ -1,0 +1,25 @@
+.cz-wrap{max-width:920px;margin:0 auto;padding:18px}
+.cz-header{display:flex;justify-content:space-between;align-items:end;margin:8px 0 18px}
+.cz-brand{text-decoration:none;font-weight:700;font-size:18px}
+.cz-sub{opacity:.7}
+.cz-card{background:#fff;border-radius:16px;padding:18px;border:1px solid rgba(0,0,0,.08)}
+.cz-screen{display:block}
+.cz-hide{display:none}
+.cz-muted{opacity:.7}
+.cz-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:720px){.cz-grid2{grid-template-columns:1fr}}
+label{display:block;font-size:12px;opacity:.75;margin-bottom:6px}
+input,select{width:100%;padding:10px 12px;border:1px solid rgba(0,0,0,.15);border-radius:12px}
+.cz-btn{appearance:none;border:0;border-radius:12px;padding:12px 14px;font-weight:650;cursor:pointer}
+.cz-btn-ghost{background:transparent;border:1px solid rgba(0,0,0,.18)}
+.cz-actions{display:flex;gap:10px;justify-content:space-between;margin-top:14px;flex-wrap:wrap}
+.cz-divider{height:1px;background:rgba(0,0,0,.08);margin:16px 0}
+.cz-check{display:flex;gap:10px;align-items:flex-start;margin-top:10px}
+.cz-check input{width:auto;margin-top:2px}
+.cz-sign{width:100%;height:220px;border:1px dashed rgba(0,0,0,.25);border-radius:14px;touch-action:none}
+.cz-list{display:flex;flex-direction:column;gap:10px;margin:14px 0}
+.cz-item{border:1px solid rgba(0,0,0,.10);border-radius:14px;padding:12px}
+.cz-steps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.cz-step{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid rgba(0,0,0,.12);opacity:.55}
+.cz-step.on{opacity:1}
+.cz-instructions{line-height:1.45}
