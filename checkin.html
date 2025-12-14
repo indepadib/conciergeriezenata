@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Check-in digital – Conciergerie Zenata</title>
+  <link rel="stylesheet" href="/assets/premium.css"/>
+  <link rel="stylesheet" href="/checkin.css"/>
+</head>
+<body>
+  <div class="cz-wrap">
+    <header class="cz-header">
+      <a class="cz-brand" href="/">Conciergerie Zenata</a>
+      <div class="cz-sub">Check-in digital</div>
+    </header>
+
+    <main class="cz-card">
+      <div class="cz-steps" id="steps"></div>
+
+      <section id="screen-loading" class="cz-screen">
+        <h1>Préparation du check-in…</h1>
+        <p class="cz-muted">Merci de patienter quelques secondes.</p>
+      </section>
+
+      <section id="screen-error" class="cz-screen cz-hide">
+        <h1>Impossible d’ouvrir le check-in</h1>
+        <p id="errorText" class="cz-muted"></p>
+      </section>
+
+      <section id="screen-consent" class="cz-screen cz-hide">
+        <h1>Informations de séjour</h1>
+        <div class="cz-grid2">
+          <div>
+            <label>Nom du logement</label>
+            <input id="propertyName" disabled />
+          </div>
+          <div>
+            <label>Dates</label>
+            <input id="stayDates" disabled />
+          </div>
+        </div>
+
+        <div class="cz-divider"></div>
+
+        <label class="cz-check">
+          <input type="checkbox" id="consent" />
+          <span>
+            J’accepte la collecte et le traitement de mes données pour la gestion du séjour et les obligations légales.
+          </span>
+        </label>
+
+        <button class="cz-btn" id="btnStart">Commencer</button>
+      </section>
+
+      <section id="screen-guest" class="cz-screen cz-hide">
+        <h1>Voyageur <span id="guestIndexLabel"></span></h1>
+
+        <div class="cz-grid2">
+          <div><label>Nom</label><input id="g_last" autocomplete="family-name"/></div>
+          <div><label>Prénom</label><input id="g_first" autocomplete="given-name"/></div>
+
+          <div>
+            <label>Sexe</label>
+            <select id="g_sex">
+              <option value="">—</option>
+              <option value="M">M</option>
+              <option value="F">F</option>
+            </select>
+          </div>
+          <div><label>Nationalité</label><input id="g_nationality" placeholder="ex: Marocaine"/></div>
+
+          <div><label>Date de naissance</label><input id="g_dob" type="date"/></div>
+          <div><label>Pays de résidence</label><input id="g_res_country" placeholder="ex: Maroc"/></div>
+
+          <div><label>Ville de résidence</label><input id="g_res_city" placeholder="ex: Casablanca"/></div>
+          <div><label>Domicile habituel</label><input id="g_address" placeholder="Adresse (si applicable)"/></div>
+        </div>
+
+        <div class="cz-grid2">
+          <div>
+            <label>Type de pièce</label>
+            <select id="g_id_type">
+              <option value="">—</option>
+              <option value="CNIE">CNIE</option>
+              <option value="PASSPORT">Passeport</option>
+              <option value="RESIDENCE">Titre de séjour</option>
+              <option value="OTHER">Autre</option>
+            </select>
+          </div>
+          <div><label>Numéro de pièce</label><input id="g_id_number" /></div>
+        </div>
+
+        <div class="cz-divider"></div>
+
+        <h2>Documents</h2>
+        <p class="cz-muted">Ajoute une photo lisible de la pièce d’identité.</p>
+
+        <div class="cz-grid2">
+          <div>
+            <label>Pièce – face 1</label>
+            <input type="file" id="doc_front" accept="image/*,.pdf"/>
+          </div>
+          <div>
+            <label>Pièce – face 2 (si nécessaire)</label>
+            <input type="file" id="doc_back" accept="image/*,.pdf"/>
+          </div>
+        </div>
+
+        <div class="cz-actions">
+          <button class="cz-btn cz-btn-ghost" id="btnPrevGuest">Retour</button>
+          <button class="cz-btn" id="btnSaveGuest">Enregistrer</button>
+        </div>
+      </section>
+
+      <section id="screen-group" class="cz-screen cz-hide">
+        <h1>Voyageurs</h1>
+        <p class="cz-muted">Ajoute tous les voyageurs (adultes & enfants).</p>
+
+        <div id="guestList" class="cz-list"></div>
+
+        <div class="cz-actions">
+          <button class="cz-btn cz-btn-ghost" id="btnAddGuest">Ajouter un voyageur</button>
+          <button class="cz-btn" id="btnToCouple">Continuer</button>
+        </div>
+      </section>
+
+      <section id="screen-couple" class="cz-screen cz-hide">
+        <h1>Couple marocain</h1>
+        <p class="cz-muted">
+          Si vous êtes un couple marocain, certains logements peuvent demander un acte de mariage.
+        </p>
+
+        <label class="cz-check">
+          <input type="checkbox" id="isMoroccanCouple"/>
+          <span>Nous sommes un couple marocain</span>
+        </label>
+
+        <div id="marriageBox" class="cz-hide">
+          <div class="cz-divider"></div>
+          <label>Acte de mariage <span id="marriageHint" class="cz-muted"></span></label>
+          <input type="file" id="doc_marriage" accept="image/*,.pdf"/>
+        </div>
+
+        <div class="cz-actions">
+          <button class="cz-btn cz-btn-ghost" id="btnBackToGroup">Retour</button>
+          <button class="cz-btn" id="btnToSign">Continuer</button>
+        </div>
+      </section>
+
+      <section id="screen-sign" class="cz-screen cz-hide">
+        <h1>Signature</h1>
+        <p class="cz-muted">Signez dans le cadre ci-dessous.</p>
+
+        <canvas id="sig" class="cz-sign"></canvas>
+        <div class="cz-actions">
+          <button class="cz-btn cz-btn-ghost" id="btnClearSig">Effacer</button>
+          <button class="cz-btn" id="btnSubmit">Valider le check-in</button>
+        </div>
+      </section>
+
+      <section id="screen-done" class="cz-screen cz-hide">
+        <h1>Check-in complété ✅</h1>
+        <p class="cz-muted">Merci. Vous pouvez maintenant accéder aux informations d’arrivée.</p>
+
+        <div class="cz-divider"></div>
+        <div id="instructions" class="cz-instructions"></div>
+      </section>
+
+    </main>
+
+    <footer class="cz-footer">
+      <span class="cz-muted">© Conciergerie Zenata</span>
+    </footer>
+  </div>
+
+  <script src="/checkin.js"></script>
+</body>
+</html>
