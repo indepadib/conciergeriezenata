@@ -103,6 +103,83 @@ function fileToDataUrl(file) {
   });
 }
 
+/* ------- ID DOCUMENT VALIDATION (ROBUST) ------- */
+
+async function loadImageToCanvas(file) {
+  if (!file.type.startsWith('image/')) return null;
+
+  const img = new Image();
+  img.src = URL.createObjectURL(file);
+  await img.decode();
+
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width;
+  canvas.height = img.height;
+
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+
+  return { canvas, ctx, width: img.width, height: img.height };
+}
+
+function analyzeBrightnessContrast(ctx, w, h) {
+  const data = ctx.getImageData(0, 0, w, h).data;
+  let sum = 0, sumSq = 0, n = w * h;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const v = (data[i] + data[i+1] + data[i+2]) / 3;
+    sum += v;
+    sumSq += v * v;
+  }
+
+  const mean = sum / n;
+  const variance = (sumSq / n) - (mean * mean);
+
+  return { mean, variance };
+}
+
+function checkGeometry(w, h) {
+  const ratio = w / h;
+
+  if (w < 900) return "Image trop petite (photo trop éloignée).";
+  if (ratio < 1.2 || ratio > 2.0)
+    return "Cadrage incorrect. Merci de photographier la carte à l’horizontale.";
+
+  return null;
+}
+
+async function validateIdDocument(file) {
+  if (!file) throw new Error("La pièce d’identité est obligatoire.");
+
+  if (file.size < 150 * 1024)
+    throw new Error("Fichier trop léger. Merci de reprendre la photo.");
+
+  if (!file.type.startsWith('image/') && file.type !== 'application/pdf')
+    throw new Error("Format non autorisé.");
+
+  if (file.type === 'application/pdf') {
+    return { status: "ok", note: "PDF reçu (vérification manuelle)." };
+  }
+
+  const img = await loadImageToCanvas(file);
+
+  const geoError = checkGeometry(img.width, img.height);
+  if (geoError) throw new Error(geoError);
+
+  const { mean, variance } =
+    analyzeBrightnessContrast(img.ctx, img.width, img.height);
+
+  if (mean < 60)
+    throw new Error("Image trop sombre. Merci de reprendre la photo.");
+  if (mean > 220)
+    throw new Error("Image trop claire / surexposée.");
+  if (variance < 500)
+    throw new Error("Image floue ou peu lisible.");
+
+  return { status: "ok", note: "Document conforme." };
+}
+
+
 /* ------- Signature canvas ------- */
 /* ------- Signature (robust, mobile-friendly) ------- */
 function createSignaturePad(canvasId = 'sig') {
@@ -302,14 +379,25 @@ document.addEventListener('DOMContentLoaded', async () => {
       validateGuestForm();
       const guest = readGuestFromForm();
 
-      const front = await fileToDataUrl($('doc_front').files[0]);
-      const back = await fileToDataUrl($('doc_back').files[0]);
+      const frontFile = $('doc_front').files[0];
+      const backFile = $('doc_back').files[0];
+
+      // 1️⃣ VALIDATION OBLIGATOIRE DU DOCUMENT
+      await validateIdDocument(frontFile);
+      
+      // 2️⃣ CONVERSION EN BASE64 SEULEMENT SI OK
+      const front = await fileToDataUrl(frontFile);
+      const back = backFile ? await fileToDataUrl(backFile) : null;
 
       state.guests[state.currentGuestIndex] = {
         ...state.guests[state.currentGuestIndex],
         ...guest
       };
 
+       if (!$('doc_front').files.length) {
+  alert("La pièce d’identité est obligatoire pour continuer.");
+  return;
+}
       await api('/.netlify/functions/checkin-save', {
         session: state.session,
         token: state.token,
