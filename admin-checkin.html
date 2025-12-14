@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin Check-in – Conciergerie Zenata</title>
+  <link rel="stylesheet" href="/assets/premium.css"/>
+  <style>
+    .wrap{max-width:980px;margin:0 auto;padding:18px}
+    .card{background:#fff;border:1px solid rgba(0,0,0,.10);border-radius:16px;padding:16px}
+    .grid{display:grid;grid-template-columns:1fr 2fr;gap:12px}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}}
+    input{width:100%;padding:10px 12px;border:1px solid rgba(0,0,0,.15);border-radius:12px}
+    button{border:0;border-radius:12px;padding:12px 14px;font-weight:650;cursor:pointer}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .muted{opacity:.7}
+    .list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+    .item{border:1px solid rgba(0,0,0,.10);border-radius:14px;padding:12px}
+    .item strong{display:block}
+    .hr{height:1px;background:rgba(0,0,0,.08);margin:12px 0}
+    pre{white-space:pre-wrap}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Admin – Check-in</h1>
+    <div class="card grid">
+      <div>
+        <h2>Connexion</h2>
+        <p class="muted">Mot de passe admin (Netlify env var)</p>
+        <input id="pw" type="password" placeholder="Mot de passe"/>
+        <div class="row" style="margin-top:10px">
+          <button id="btnLogin">Se connecter</button>
+          <button id="btnLogout">Déconnexion</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <h2>Filtres</h2>
+        <label class="muted">Du</label>
+        <input id="from" type="date"/>
+        <label class="muted">Au</label>
+        <input id="to" type="date"/>
+        <div class="row" style="margin-top:10px">
+          <button id="btnLoad">Charger arrivées</button>
+        </div>
+      </div>
+
+      <div>
+        <h2>Arrivées</h2>
+        <div id="list" class="list"></div>
+
+        <div class="hr"></div>
+
+        <h2>Dossier</h2>
+        <div id="detail" class="card" style="padding:12px;border-radius:14px;background:#fafafa"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/admin-checkin.js"></script>
+</body>
+</html>
