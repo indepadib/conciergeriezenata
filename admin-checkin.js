@@ -133,4 +133,12 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btnLogin').onclick = () => login().catch(e=>alert(e.message));
   $('btnLogout').onclick = () => logout();
   $('btnLoad').onclick = () => loadArrivals().catch(e=>alert(e.message));
+  // defaults for create-link dates
+  const t = todayISO();
+  $('arrival').value = t;
+  $('departure').value = t;
+
+  $('btnLoadProps').onclick = () => loadProperties().catch(e => alert(e.message));
+  $('btnCreateLink').onclick = () => createCheckinLink().catch(e => alert(e.message));
+  $('btnCopyLink').onclick = () => copyLink();
 });
