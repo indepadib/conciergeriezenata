@@ -305,6 +305,20 @@ function renderGuestList() {
 
 function loadGuestToForm(i) {
   const g = state.guests[i] || {};
+
+  const ids = [
+    'guestIndexLabel',
+    'g_last','g_first','g_sex','g_nationality','g_dob',
+    'g_res_country','g_res_city','g_address',
+    'g_id_type','g_id_number',
+    'doc_front','doc_back'
+  ];
+
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    if (!el) throw new Error(`ID manquant dans checkin.html: #${id}`);
+  }
+
   $('guestIndexLabel').textContent = `${i+1}/${state.guests.length}`;
   $('g_last').value = g.last_name || '';
   $('g_first').value = g.first_name || '';
