@@ -3,88 +3,79 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Admin Check-in – Conciergerie Zenata</title>
-  <link rel="stylesheet" href="/assets/premium.css"/>
-  <style>
-    .wrap{max-width:980px;margin:0 auto;padding:18px}
-    .card{background:#fff;border:1px solid rgba(0,0,0,.10);border-radius:16px;padding:16px}
-    .grid{display:grid;grid-template-columns:1fr 2fr;gap:12px}
-    @media(max-width:900px){.grid{grid-template-columns:1fr}}
-    input{width:100%;padding:10px 12px;border:1px solid rgba(0,0,0,.15);border-radius:12px}
-    button{border:0;border-radius:12px;padding:12px 14px;font-weight:650;cursor:pointer}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    .muted{opacity:.7}
-    .list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
-    .item{border:1px solid rgba(0,0,0,.10);border-radius:14px;padding:12px}
-    .item strong{display:block}
-    .hr{height:1px;background:rgba(0,0,0,.08);margin:12px 0}
-    pre{white-space:pre-wrap}
-  </style>
+  <title>Admin – Check-in</title>
+  <link rel="stylesheet" href="/admin-checkin.css"/>
 </head>
+
 <body>
-  <div class="wrap">
-    <h1>Admin – Check-in</h1>
-    <div class="card grid">
-      <div>
-        <h2>Connexion</h2>
-        <p class="muted">Mot de passe admin (Netlify env var)</p>
-        <input id="pw" type="password" placeholder="Mot de passe"/>
-        <div class="row" style="margin-top:10px">
-          <button id="btnLogin">Se connecter</button>
-          <button id="btnLogout">Déconnexion</button>
-        </div>
-
-        <div class="hr"></div>
-
-        <h2>Créer un lien check-in</h2>
-        <p class="muted">Génère un lien unique pour un séjour (à envoyer au voyageur).</p>
-        
-        <label class="muted">Logement</label>
-        <select id="property_id" style="width:100%;padding:10px 12px;border:1px solid rgba(0,0,0,.15);border-radius:12px">
-          <option value="">— Charger les logements —</option>
-        </select>
-        
-        <label class="muted" style="margin-top:10px">Arrivée</label>
-        <input id="arrival" type="date"/>
-        
-        <label class="muted">Départ</label>
-        <input id="departure" type="date"/>
-        
-        <div class="row" style="margin-top:10px">
-          <button id="btnLoadProps">Charger logements</button>
-          <button id="btnCreateLink">Créer lien</button>
-        </div>
-        
-        <div class="hr"></div>
-        
-        <label class="muted">Lien généré</label>
-        <input id="generatedLink" readonly placeholder="Le lien apparaîtra ici…"/>
-        <div class="row" style="margin-top:10px">
-          <button id="btnCopyLink">Copier</button>
-        </div>
-
-        <h2>Filtres</h2>
-        <label class="muted">Du</label>
-        <input id="from" type="date"/>
-        <label class="muted">Au</label>
-        <input id="to" type="date"/>
-        <div class="row" style="margin-top:10px">
-          <button id="btnLoad">Charger arrivées</button>
-        </div>
-      </div>
-
-      <div>
-        <h2>Arrivées</h2>
-        <div id="list" class="list"></div>
-
-        <div class="hr"></div>
-
-        <h2>Dossier</h2>
-        <div id="detail" class="card" style="padding:12px;border-radius:14px;background:#fafafa"></div>
-      </div>
-    </div>
+<header class="admin-top">
+  <strong>Conciergerie Zenata</strong>
+  <div>
+    <button id="btnLogout">Déconnexion</button>
   </div>
+</header>
 
-  <script src="/admin-checkin.js"></script>
+<main class="admin-wrap">
+
+  <!-- LOGIN -->
+  <section id="loginBox" class="card">
+    <h2>Connexion admin</h2>
+    <input id="pw" type="password" placeholder="Mot de passe admin"/>
+    <button id="btnLogin">Se connecter</button>
+  </section>
+
+  <!-- CREATE LINK -->
+  <section id="createBox" class="card hidden">
+    <h2>Créer un check-in</h2>
+
+    <label>Logement</label>
+    <select id="property_id"></select>
+
+    <label>Arrivée</label>
+    <input type="date" id="arrival"/>
+
+    <label>Départ</label>
+    <input type="date" id="departure"/>
+
+    <button id="btnCreateLink">Créer le lien</button>
+
+    <div class="row">
+      <input id="generatedLink" readonly/>
+      <button id="btnCopyLink">Copier</button>
+    </div>
+  </section>
+
+  <!-- ARRIVALS -->
+  <section id="arrivalsBox" class="card hidden">
+    <h2>Arrivées</h2>
+
+    <div class="row">
+      <input type="date" id="from"/>
+      <input type="date" id="to"/>
+      <button id="btnLoad">Afficher</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Dates</th>
+          <th>Logement</th>
+          <th>Statut</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="list"></tbody>
+    </table>
+  </section>
+
+  <!-- DETAIL -->
+  <section id="detailBox" class="card hidden">
+    <h2>Dossier check-in</h2>
+    <div id="detail"></div>
+  </section>
+
+</main>
+
+<script src="/admin-checkin-v2.js"></script>
 </body>
 </html>
