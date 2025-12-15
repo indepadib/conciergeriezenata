@@ -3,79 +3,175 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Admin – Check-in</title>
+  <title>Admin Check-in – Conciergerie Zenata</title>
   <link rel="stylesheet" href="/admin-checkin.css"/>
 </head>
-
 <body>
-<header class="admin-top">
-  <strong>Conciergerie Zenata</strong>
-  <div>
-    <button id="btnLogout">Déconnexion</button>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="mark"></div>
+    <div class="brandText">
+      <div class="brandName">Conciergerie Zenata</div>
+      <div class="brandSub">Admin • Check-in</div>
+    </div>
+  </div>
+
+  <div class="topActions">
+    <span class="pill" id="authState">Non connecté</span>
+    <button class="btn ghost" id="btnOpenLogin">Connexion</button>
+    <button class="btn ghost" id="btnLogout">Déconnexion</button>
   </div>
 </header>
 
-<main class="admin-wrap">
+<main class="wrap">
+  <section class="grid">
 
-  <!-- LOGIN -->
-  <section id="loginBox" class="card">
-    <h2>Connexion admin</h2>
-    <input id="pw" type="password" placeholder="Mot de passe admin"/>
-    <button id="btnLogin">Se connecter</button>
-  </section>
+    <!-- Create link -->
+    <div class="card">
+      <div class="cardHead">
+        <div>
+          <div class="cardTitle">Créer un check-in</div>
+          <div class="cardSub">Génère un lien unique à envoyer au voyageur.</div>
+        </div>
+        <button class="btn ghost" id="btnLoadProps">Rafraîchir logements</button>
+      </div>
 
-  <!-- CREATE LINK -->
-  <section id="createBox" class="card hidden">
-    <h2>Créer un check-in</h2>
+      <div class="formGrid">
+        <div class="field">
+          <label>Logement</label>
+          <select id="property_id"></select>
+        </div>
 
-    <label>Logement</label>
-    <select id="property_id"></select>
+        <div class="field">
+          <label>Arrivée</label>
+          <input type="date" id="arrival"/>
+        </div>
 
-    <label>Arrivée</label>
-    <input type="date" id="arrival"/>
+        <div class="field">
+          <label>Départ</label>
+          <input type="date" id="departure"/>
+        </div>
 
-    <label>Départ</label>
-    <input type="date" id="departure"/>
+        <div class="field">
+          <label>&nbsp;</label>
+          <button class="btn primary" id="btnCreateLink">Créer le lien</button>
+        </div>
+      </div>
 
-    <button id="btnCreateLink">Créer le lien</button>
+      <div class="linkRow">
+        <div class="field" style="flex:1">
+          <label>Lien généré</label>
+          <input id="generatedLink" readonly placeholder="Le lien apparaîtra ici…"/>
+        </div>
+        <div class="field" style="width:170px">
+          <label>&nbsp;</label>
+          <button class="btn" id="btnCopyLink">Copier</button>
+        </div>
+      </div>
 
-    <div class="row">
-      <input id="generatedLink" readonly/>
-      <button id="btnCopyLink">Copier</button>
+      <div class="toast" id="toast" aria-live="polite"></div>
     </div>
-  </section>
 
-  <!-- ARRIVALS -->
-  <section id="arrivalsBox" class="card hidden">
-    <h2>Arrivées</h2>
+    <!-- Arrivals -->
+    <div class="card">
+      <div class="cardHead">
+        <div>
+          <div class="cardTitle">Arrivées</div>
+          <div class="cardSub">Suivi des check-ins par date.</div>
+        </div>
 
-    <div class="row">
-      <input type="date" id="from"/>
-      <input type="date" id="to"/>
-      <button id="btnLoad">Afficher</button>
+        <div class="filters">
+          <div class="field">
+            <label>Du</label>
+            <input type="date" id="from"/>
+          </div>
+          <div class="field">
+            <label>Au</label>
+            <input type="date" id="to"/>
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <button class="btn primary" id="btnLoad">Afficher</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tableWrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Dates</th>
+              <th>Logement</th>
+              <th>Statut</th>
+              <th>ID</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="list"></tbody>
+        </table>
+
+        <div class="empty" id="emptyState">
+          <div class="emptyIcon">📭</div>
+          <div class="emptyTitle">Aucune arrivée</div>
+          <div class="emptySub">Choisis une plage de dates puis clique “Afficher”.</div>
+        </div>
+      </div>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Dates</th>
-          <th>Logement</th>
-          <th>Statut</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="list"></tbody>
-    </table>
   </section>
-
-  <!-- DETAIL -->
-  <section id="detailBox" class="card hidden">
-    <h2>Dossier check-in</h2>
-    <div id="detail"></div>
-  </section>
-
 </main>
 
-<script src="/admin-checkin-v2.js"></script>
+<!-- Drawer (detail) -->
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawerHead">
+    <div>
+      <div class="drawerTitle" id="dTitle">Dossier</div>
+      <div class="drawerSub" id="dSub">—</div>
+    </div>
+    <button class="btn ghost" id="btnCloseDrawer">Fermer</button>
+  </div>
+
+  <div class="drawerBody">
+    <div class="kpis" id="dKpis"></div>
+
+    <div class="section">
+      <div class="sectionTitle">Voyageurs</div>
+      <div class="list" id="dGuests"></div>
+    </div>
+
+    <div class="section">
+      <div class="sectionTitle">Données brutes</div>
+      <pre class="pre" id="detail"></pre>
+      <div class="hint">On remplacera ce bloc JSON par une vue “documents + PDF + signature” dès que tes functions renvoient les URLs.</div>
+    </div>
+  </div>
+</aside>
+
+<!-- Modal login -->
+<div class="modalOverlay" id="loginModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modalHead">
+      <div>
+        <div class="modalTitle">Connexion admin</div>
+        <div class="modalSub">Accès réservé • Check-in digital</div>
+      </div>
+    </div>
+
+    <div class="modalBody">
+      <div class="field">
+        <label>Mot de passe</label>
+        <input id="pw" type="password" placeholder="••••••••"/>
+      </div>
+      <div class="modalActions">
+        <button class="btn" id="btnCancelLogin">Annuler</button>
+        <button class="btn primary" id="btnLogin">Se connecter</button>
+      </div>
+      <div class="error" id="loginError"></div>
+    </div>
+  </div>
+</div>
+
+<script src="/admin-checkin.js"></script>
 </body>
 </html>
