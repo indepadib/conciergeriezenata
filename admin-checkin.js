@@ -1,144 +1,74 @@
-const $ = (id) => document.getElementById(id);
+const $ = id => document.getElementById(id);
+let adminToken = localStorage.getItem('cz_admin_checkin_token');
 
-let adminToken = localStorage.getItem('cz_admin_checkin_token') || null;
+const show = id => $(id).classList.remove('hidden');
+const hide = id => $(id).classList.add('hidden');
 
 async function api(path, body) {
-  const res = await fetch(path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body || {}),
-  });
-  const txt = await res.text();
-  let json = null;
-  try { json = JSON.parse(txt); } catch {}
-  if (!res.ok) throw new Error((json && json.error) ? json.error : (txt || `Erreur ${res.status}`));
-  return json ?? {};
+  const r = await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j = await r.json();
+  if(!r.ok) throw new Error(j.error||'Erreur');
+  return j;
 }
 
-function todayISO() {
-  const d = new Date();
-  const z = (n) => String(n).padStart(2,'0');
-  return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
-}
-
-function setDefaultDates() {
-  const t = todayISO();
-  $('from').value = t;
-  $('to').value = t;
-}
-
-function baseUrl() {
-  return window.location.origin;
-}
-
-async function loadProperties() {
-  if (!adminToken) return alert('Connecte-toi d’abord.');
-  const out = await api('/.netlify/functions/admin-list-properties', {
-    admin_token: adminToken
-  });
-
-  const sel = $('property_id');
-  sel.innerHTML = '<option value="">— Sélectionner —</option>';
-  (out.properties || []).forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.id;
-    opt.textContent = p.name || p.id;
-    sel.appendChild(opt);
-  });
-
-  if (!(out.properties || []).length) alert("Aucun logement trouvé dans properties.");
-}
-
-async function createCheckinLink() {
-  if (!adminToken) return alert('Connecte-toi d’abord.');
-
-  const propertyId = $('property_id').value;
-  const arrival = $('arrival').value;
-  const departure = $('departure').value;
-
-  if (!propertyId) return alert("Choisis un logement.");
-  if (!arrival || !departure) return alert("Mets arrivée + départ.");
-  if (departure <= arrival) return alert("La date de départ doit être après l’arrivée.");
-
-  const out = await api('/.netlify/functions/admin-create-reservation', {
-    admin_token: adminToken,
-    property_id: propertyId,
-    arrival_date: arrival,
-    departure_date: departure
-  });
-
-  $('generatedLink').value = out.link;
-  alert("Lien créé ✅");
-}
-
-function copyLink() {
-  const v = $('generatedLink').value;
-  if (!v) return alert("Aucun lien à copier.");
-  navigator.clipboard.writeText(v).then(
-    () => alert("Copié ✅"),
-    () => alert("Impossible de copier. Copie manuelle.")
-  );
-}
-
-
-function renderList(items) {
-  const box = $('list');
-  box.innerHTML = '';
-  items.forEach(it => {
-    const el = document.createElement('div');
-    el.className = 'item';
-    el.innerHTML = `<strong>${it.property_name}</strong>
-      <div class="muted">${it.arrival_date} → ${it.departure_date} • ${it.status}</div>
-      <div class="muted">ID: ${it.id}</div>`;
-    el.onclick = () => loadDetail(it.id);
-    box.appendChild(el);
-  });
-}
-
-async function login() {
-  const pw = $('pw').value;
-  const out = await api('/.netlify/functions/admin-login', { password: pw });
+async function login(){
+  const out = await api('/.netlify/functions/admin-login',{password:$('pw').value});
   adminToken = out.token;
-  localStorage.setItem('cz_admin_checkin_token', adminToken);
-  alert('OK');
+  localStorage.setItem('cz_admin_checkin_token',adminToken);
+  initAdmin();
 }
 
-function logout() {
-  adminToken = null;
-  localStorage.removeItem('cz_admin_checkin_token');
-  alert('Déconnecté');
+async function initAdmin(){
+  hide('loginBox');
+  show('createBox'); show('arrivalsBox');
+  await loadProperties();
 }
 
-async function loadArrivals() {
-  if (!adminToken) return alert('Connecte-toi d’abord.');
-  const out = await api('/.netlify/functions/admin-list-arrivals', {
-    admin_token: adminToken,
-    date_from: $('from').value,
-    date_to: $('to').value,
+async function loadProperties(){
+  const out = await api('/.netlify/functions/admin-list-properties',{admin_token:adminToken});
+  $('property_id').innerHTML = out.properties.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+}
+
+async function createLink(){
+  const out = await api('/.netlify/functions/admin-create-reservation',{
+    admin_token:adminToken,
+    property_id:$('property_id').value,
+    arrival_date:$('arrival').value,
+    departure_date:$('departure').value
   });
-  renderList(out.arrivals || []);
+  $('generatedLink').value = out.link;
 }
 
-async function loadDetail(reservationId) {
-  if (!adminToken) return alert('Connecte-toi d’abord.');
-  const out = await api('/.netlify/functions/admin-get-reservation', {
-    admin_token: adminToken,
-    reservation_id: reservationId,
+async function loadArrivals(){
+  const out = await api('/.netlify/functions/admin-list-arrivals',{
+    admin_token:adminToken,
+    date_from:$('from').value,
+    date_to:$('to').value
   });
-  $('detail').innerHTML = `<pre>${JSON.stringify(out, null, 2)}</pre>`;
+  $('list').innerHTML = out.arrivals.map(a=>`
+    <tr>
+      <td>${a.arrival_date} → ${a.departure_date}</td>
+      <td>${a.property_name}</td>
+      <td><span class="badge ${a.status}">${a.status}</span></td>
+      <td><button onclick="loadDetail('${a.id}')">Ouvrir</button></td>
+    </tr>
+  `).join('');
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  setDefaultDates();
-  $('btnLogin').onclick = () => login().catch(e=>alert(e.message));
-  $('btnLogout').onclick = () => logout();
-  $('btnLoad').onclick = () => loadArrivals().catch(e=>alert(e.message));
-  // defaults for create-link dates
-  const t = todayISO();
-  $('arrival').value = t;
-  $('departure').value = t;
+async function loadDetail(id){
+  const out = await api('/.netlify/functions/admin-get-reservation',{
+    admin_token:adminToken,reservation_id:id
+  });
+  show('detailBox');
+  $('detail').innerHTML = `
+    <pre>${JSON.stringify(out,null,2)}</pre>
+  `;
+}
 
-  $('btnLoadProps').onclick = () => loadProperties().catch(e => alert(e.message));
-  $('btnCreateLink').onclick = () => createCheckinLink().catch(e => alert(e.message));
-  $('btnCopyLink').onclick = () => copyLink();
-});
+$('btnLogin').onclick = login;
+$('btnCreateLink').onclick = createLink;
+$('btnLoad').onclick = loadArrivals;
+$('btnCopyLink').onclick = ()=>navigator.clipboard.writeText($('generatedLink').value);
+
+if(adminToken) initAdmin();
+
