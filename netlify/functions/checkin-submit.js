@@ -64,14 +64,31 @@ exports.handler = async (event) => {
       .eq('id', reservation_id);
     if (uErr) throw uErr;
 
+       // Create signed urls for what we stored (optional but nice UX)
+    const expiresIn = Number(process.env.CHECKIN_SIGNED_URL_EXPIRES || 60 * 60 * 6);
+    const files = {};
+
+    if (documents?.marriage_certificate) {
+      const { data: d } = await sb.storage.from(docsBucket).createSignedUrl(`${reservation_id}/marriage_certificate`, expiresIn);
+      if (d?.signedUrl) files.marriage_url = d.signedUrl;
+    }
+
+    if (signature_png) {
+      const { data: d } = await sb.storage.from(docsBucket).createSignedUrl(`${reservation_id}/signature`, expiresIn);
+      if (d?.signedUrl) files.signature_url = d.signedUrl;
+    }
+
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ok: true,
-        instructions_html: prop?.checkin_instructions_html || `<p><strong>${prop?.name || 'Logement'}</strong><br/>Instructions d’arrivée à définir.</p>`
+        instructions_html: prop?.checkin_instructions_html || `<p><strong>${prop?.name || 'Logement'}</strong><br/>Instructions d’arrivée à définir.</p>`,
+        files,
+        signed_urls_expires_in: expiresIn
       })
     };
+
   } catch (e) {
     return { statusCode: 500, body: JSON.stringify({ error: e.message || String(e) }) };
   }
