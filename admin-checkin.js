@@ -244,7 +244,61 @@ function renderDrawer(out) {
     `).join('')
     : `<div class="hint">Aucun voyageur enregistré.</div>`;
 
-  $('detail').textContent = JSON.stringify(out, null, 2);
+    const signed = out.signed_urls || {};
+  const resDocs = signed.reservation || {};
+  const guestDocs = signed.guests || {};
+
+  // Documents UI
+  let htmlDocs = '';
+
+  // Reservation docs
+  const resButtons = [];
+  if (resDocs.marriage_certificate) resButtons.push(btn("Acte de mariage", resDocs.marriage_certificate));
+  if (resDocs.signature_png) resButtons.push(btn("Signature (PNG)", resDocs.signature_png));
+
+  if (resButtons.length) {
+    htmlDocs += `<div class="section">
+      <div class="sectionTitle">Documents réservation</div>
+      <div class="list">${resButtons.join('')}</div>
+    </div>`;
+  }
+
+  // Guest docs
+  const guestBlocks = [];
+  for (const g of (guests || [])) {
+    const gd = guestDocs[g.id] || {};
+    const b = [];
+    if (gd.id_front) b.push(btn("ID • Face 1", gd.id_front));
+    if (gd.id_back) b.push(btn("ID • Face 2", gd.id_back));
+    if (b.length) {
+      guestBlocks.push(`
+        <div class="item">
+          <strong>${escapeHtml((g.first_name || '') + ' ' + (g.last_name || '')) || 'Voyageur'}</strong>
+          <div class="sub">${b.join(' ')}</div>
+        </div>
+      `);
+    }
+  }
+  if (guestBlocks.length) {
+    htmlDocs += `<div class="section">
+      <div class="sectionTitle">Documents voyageurs</div>
+      <div class="list">${guestBlocks.join('')}</div>
+    </div>`;
+  }
+
+  // Inject docs + keep JSON as “debug”
+  $('detail').innerHTML = `
+    ${htmlDocs || `<div class="hint">Aucun document stocké (ou URLs non générées).</div>`}
+    <div class="section" style="margin-top:14px">
+      <div class="sectionTitle">Données brutes</div>
+      <pre class="pre">${escapeHtml(JSON.stringify(out, null, 2))}</pre>
+    </div>
+  `;
+
+  function btn(label, url) {
+    return `<a class="btn" href="${url}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none">${escapeHtml(label)} ↗</a>`;
+  }
+
 }
 
 async function loadDetail(reservationId) {
