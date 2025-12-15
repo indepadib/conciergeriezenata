@@ -1,3 +1,7 @@
+/* Admin Check-in – Conciergerie Zenata
+   UI premium + modal login + arrivals table + drawer detail + signed docs + police fiche (print/PDF)
+*/
+
 const $ = (id) => document.getElementById(id);
 
 let adminToken = localStorage.getItem('cz_admin_checkin_token') || null;
@@ -8,10 +12,15 @@ async function api(path, body) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body || {}),
   });
+
   const txt = await res.text();
   let json = null;
   try { json = JSON.parse(txt); } catch {}
-  if (!res.ok) throw new Error((json && json.error) ? json.error : (txt || `Erreur ${res.status}`));
+
+  if (!res.ok) {
+    const msg = (json && json.error) ? json.error : (txt || `Erreur ${res.status}`);
+    throw new Error(msg);
+  }
   return json ?? {};
 }
 
@@ -23,7 +32,6 @@ function escapeHtml(s) {
     .replaceAll('"','&quot;')
     .replaceAll("'","&#039;");
 }
-
 
 function todayISO() {
   const d = new Date();
@@ -40,29 +48,45 @@ function toast(msg) {
   toast._t = setTimeout(() => { el.style.display = 'none'; }, 2200);
 }
 
+function statusLabel(s) {
+  const map = {
+    sent: 'Lien envoyé',
+    in_progress: 'En cours',
+    submitted: 'Complété',
+    issue: 'Problème'
+  };
+  return map[s] || s || '—';
+}
+
+/* ---------- Modal / Drawer ---------- */
+
 function setAuthUI() {
   const isAuthed = !!adminToken;
-  $('authState').textContent = isAuthed ? 'Connecté' : 'Non connecté';
-  $('btnLogout').style.display = isAuthed ? 'inline-flex' : 'none';
-  $('btnOpenLogin').style.display = isAuthed ? 'none' : 'inline-flex';
+  if ($('authState')) $('authState').textContent = isAuthed ? 'Connecté' : 'Non connecté';
+  if ($('btnLogout')) $('btnLogout').style.display = isAuthed ? 'inline-flex' : 'none';
+  if ($('btnOpenLogin')) $('btnOpenLogin').style.display = isAuthed ? 'none' : 'inline-flex';
 }
 
 function openLogin() {
-  $('loginError').textContent = '';
+  if (!$('loginModal')) return;
+  if ($('loginError')) $('loginError').textContent = '';
   $('loginModal').classList.add('open');
   $('loginModal').setAttribute('aria-hidden', 'false');
-  setTimeout(() => $('pw').focus(), 50);
+  setTimeout(() => $('pw')?.focus(), 50);
 }
 function closeLogin() {
+  if (!$('loginModal')) return;
   $('loginModal').classList.remove('open');
   $('loginModal').setAttribute('aria-hidden', 'true');
 }
 
 function openDrawer() {
+  if (!$('drawer')) return;
   $('drawer').classList.add('open');
   $('drawer').setAttribute('aria-hidden', 'false');
 }
 function closeDrawer() {
+  if (!$('drawer')) return;
   $('drawer').classList.remove('open');
   $('drawer').setAttribute('aria-hidden', 'true');
 }
@@ -75,18 +99,24 @@ async function requireAuth() {
 
 async function login() {
   try {
-    $('loginError').textContent = '';
-    const pw = $('pw').value;
-    if (!pw) return $('loginError').textContent = "Mot de passe requis.";
+    if ($('loginError')) $('loginError').textContent = '';
+    const pw = $('pw')?.value || '';
+    if (!pw) {
+      if ($('loginError')) $('loginError').textContent = "Mot de passe requis.";
+      return;
+    }
+
     const out = await api('/.netlify/functions/admin-login', { password: pw });
     adminToken = out.token;
     localStorage.setItem('cz_admin_checkin_token', adminToken);
+
     closeLogin();
     setAuthUI();
     toast('Connecté ✅');
+
     await initAuthed();
   } catch (e) {
-    $('loginError').textContent = e.message || String(e);
+    if ($('loginError')) $('loginError').textContent = e.message || String(e);
   }
 }
 
@@ -94,308 +124,11 @@ function logout() {
   adminToken = null;
   localStorage.removeItem('cz_admin_checkin_token');
   setAuthUI();
+  toast('Déconnecté');
   openLogin();
 }
 
-async function loadProperties() {
-  if (!(await requireAuth())) return;
-
-  toast("Chargement des logements…");
-  const out = await api('/.netlify/functions/admin-list-properties', { admin_token: adminToken });
-
-  // DEBUG visible (tu pourras enlever après)
-  console.log("admin-list-properties OUT =", out);
-
-  const sel = $('property_id');
-  const props = out.properties || [];
-
-  sel.innerHTML = `<option value="">— Sélectionner un logement —</option>`;
-
-  props.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.id;
-    opt.textContent = (p.name && String(p.name).trim()) ? p.name : p.id;
-    sel.appendChild(opt);
-  });
-
-  if (!props.length) {
-    toast("⚠️ Aucun logement trouvé. Vérifie la table properties.");
-  } else {
-    // sélectionne automatiquement le 1er logement pour éviter un “select vide”
-    sel.value = props[0].id;
-    toast(`✅ ${props.length} logement(s) chargés`);
-  }
-}
-
-async function createCheckinLink() {
-  if (!(await requireAuth())) return;
-
-  const propertyId = $('property_id').value;
-  const arrival = $('arrival').value;
-  const departure = $('departure').value;
-
-  if (!propertyId) return toast("Choisis un logement.");
-  if (!arrival || !departure) return toast("Mets arrivée + départ.");
-  if (departure <= arrival) return toast("Départ doit être après l’arrivée.");
-
-  const out = await api('/.netlify/functions/admin-create-reservation', {
-    admin_token: adminToken,
-    property_id: propertyId,
-    arrival_date: arrival,
-    departure_date: departure
-  });
-
-  $('generatedLink').value = out.link || '';
-  toast("Lien créé ✅");
-  const selectedOpt = $('property_id').selectedOptions?.[0];
-const propertyName = selectedOpt ? selectedOpt.textContent : $('property_id').value;
-
-const items = getRecent();
-items.unshift({
-  link: out.link,
-  property_id: $('property_id').value,
-  property_name: propertyName,
-  arrival_date: arrival,
-  departure_date: departure,
-  created_at: new Date().toISOString()
-});
-setRecent(items);
-renderRecent();
-
-}
-
-async function copyLink() {
-  const v = $('generatedLink').value;
-  if (!v) return toast("Aucun lien à copier.");
-  try {
-    await navigator.clipboard.writeText(v);
-    toast("Copié ✅");
-  } catch {
-    toast("Copie manuelle requise.");
-  }
-}
-
-function statusLabel(s) {
-  const map = {
-    sent: 'Lien envoyé',
-    in_progress: 'En cours',
-    submitted: 'Complété',
-    issue: 'Problème'
-  };
-  return map[s] || s || '—';
-}
-
-function renderArrivals(items) {
-  const tbody = $('list');
-  const empty = $('emptyState');
-
-  if (!items || !items.length) {
-    tbody.innerHTML = '';
-    empty.style.display = 'flex';
-    return;
-  }
-  empty.style.display = 'none';
-
-  tbody.innerHTML = items.map(it => `
-    <tr>
-      <td>${it.arrival_date} → ${it.departure_date}</td>
-      <td><strong>${escapeHtml(it.property_name || '—')}</strong></td>
-      <td><span class="badge ${it.status || ''}">${statusLabel(it.status)}</span></td>
-      <td><span class="pill">${escapeHtml(String(it.id))}</span></td>
-      <td style="text-align:right">
-        <button class="btn" data-open="${it.id}">Ouvrir</button>
-      </td>
-    </tr>
-  `).join('');
-
-  // bind open buttons
-  [...tbody.querySelectorAll('button[data-open]')].forEach(btn => {
-    btn.onclick = () => loadDetail(btn.getAttribute('data-open'));
-  });
-}
-
-async function loadArrivals() {
-  if (!(await requireAuth())) return;
-  const out = await api('/.netlify/functions/admin-list-arrivals', {
-    admin_token: adminToken,
-    date_from: $('from').value,
-    date_to: $('to').value,
-  });
-  renderArrivals(out.arrivals || []);
-}
-
-function renderDrawer(out) {
-  // Best-effort: we don’t know exact shape; show clean summary + JSON for now
-  const r = out.reservation || out.checkin_reservation || out.data?.reservation || null;
-  const property = out.property || out.data?.property || null;
-  const guests = out.guests || out.data?.guests || [];
-  const ficheBtn = `<button class="btn" data-fiche="${g.id}">Fiche Police</button>`;
-
-  $('dTitle').textContent = property?.name ? `Dossier • ${property.name}` : 'Dossier check-in';
-  $('dSub').textContent = r ? `${r.arrival_date} → ${r.departure_date}` : '—';
-
-  const kpis = [];
-  if (r?.status) kpis.push({ label: 'Statut', value: statusLabel(r.status) });
-  if (r?.id) kpis.push({ label: 'Reservation ID', value: r.id });
-  kpis.push({ label: 'Voyageurs', value: String(guests?.length || 0) });
-
-  $('dKpis').innerHTML = kpis.map(k => `
-    <div class="kpi">
-      <div class="kpiLabel">${escapeHtml(k.label)}</div>
-      <div class="kpiValue">${escapeHtml(String(k.value))}</div>
-    </div>
-  `).join('');
-
-  $('dGuests').innerHTML = (guests || []).length
-    ? guests.map((g, i) => `
-      <div class="item">
-        <strong>${escapeHtml((g.first_name || '') + ' ' + (g.last_name || '')) || `Voyageur ${i+1}`}</strong>
-        <div class="sub">${escapeHtml([g.nationality, g.id_type, g.id_number].filter(Boolean).join(' • '))}</div>
-      </div>
-    `).join('')
-    : `<div class="hint">Aucun voyageur enregistré.</div>`;
-
-    const signed = out.signed_urls || {};
-  const resDocs = signed.reservation || {};
-  const guestDocs = signed.guests || {};
-
-  // Documents UI
-  let htmlDocs = '';
-
-  // Reservation docs
-  const resButtons = [];
-  if (resDocs.marriage_certificate) resButtons.push(btn("Acte de mariage", resDocs.marriage_certificate));
-  if (resDocs.signature_png) resButtons.push(btn("Signature (PNG)", resDocs.signature_png));
-
-  if (resButtons.length) {
-    htmlDocs += `<div class="section">
-      <div class="sectionTitle">Documents réservation</div>
-      <div class="list">${resButtons.join('')}</div>
-    </div>`;
-  }
-
-  // Guest docs
-  const guestBlocks = [];
-  for (const g of (guests || [])) {
-    const gd = guestDocs[g.id] || {};
-    const b = [];
-    if (gd.id_front) b.push(btn("ID • Face 1", gd.id_front));
-    if (gd.id_back) b.push(btn("ID • Face 2", gd.id_back));
-    if (b.length) {
-      guestBlocks.push(`
-        <div class="item">
-          <strong>${escapeHtml((g.first_name || '') + ' ' + (g.last_name || '')) || 'Voyageur'}</strong>
-          <div class="sub">${b.join(' ')}</div>
-        </div>
-      `);
-    }
-  }
-  if (guestBlocks.length) {
-    htmlDocs += `<div class="section">
-      <div class="sectionTitle">Documents voyageurs</div>
-      <div class="list">${guestBlocks.join('')}</div>
-    </div>`;
-  }
-
-  // Inject docs + keep JSON as “debug”
-  $('detail').innerHTML = `
-    ${htmlDocs || `<div class="hint">Aucun document stocké (ou URLs non générées).</div>`}
-    <div class="section" style="margin-top:14px">
-      <div class="sectionTitle">Données brutes</div>
-      <pre class="pre">${escapeHtml(JSON.stringify(out, null, 2))}</pre>
-    </div>
-  `;
-
-  function btn(label, url) {
-    return `<a class="btn" href="${url}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none">${escapeHtml(label)} ↗</a>`;
-  }
-
-}
-
-async function loadDetail(reservationId) {
-  if (!adminToken) return alert('Connecte-toi d’abord.');
-
-  const out = await api('/.netlify/functions/admin-get-reservation', {
-    admin_token: adminToken,
-    reservation_id: reservationId,
-  });
-
-  const { reservation, guests, signed_urls } = out;
-
-  let html = `
-    <div class="section">
-      <h3>Réservation</h3>
-      <div>${reservation.arrival_date} → ${reservation.departure_date}</div>
-      <div>Status : <strong>${reservation.status}</strong></div>
-    </div>
-  `;
-
-  // ==== VOYAGEURS ====
-  html += `<div class="section"><h3>Voyageurs</h3>`;
-
-  guests.forEach(g => {
-    html += `
-      <div class="item">
-        <strong>${escapeHtml(g.first_name)} ${escapeHtml(g.last_name)}</strong>
-        <div class="muted">${escapeHtml(g.nationality)} • ${escapeHtml(g.id_type)} ${escapeHtml(g.id_number)}</div>
-
-        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
-          <button class="btn" data-fiche="${g.id}">🧾 Fiche de police</button>
-        </div>
-      </div>
-    `;
-  });
-
-  html += `</div>`;
-
-  $('detail').innerHTML = html;
-
-  // ==== BIND BOUTONS FICHE POLICE ====
-  document.querySelectorAll('[data-fiche]').forEach(btn => {
-    btn.onclick = async () => {
-      const guestId = btn.getAttribute('data-fiche');
-
-      const win = window.open('', '_blank');
-
-      const html = await fetch('/.netlify/functions/admin-police-fiche', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          admin_token: adminToken,
-          reservation_id: reservationId,
-          guest_id: guestId
-        })
-      }).then(r => r.text());
-
-      win.document.open();
-      win.document.write(html);
-      win.document.close();
-    };
-  });
-}
-
-
-function setDefaultDates() {
-  const t = todayISO();
-  $('from').value = t;
-  $('to').value = t;
-  $('arrival').value = t;
-  $('departure').value = t;
-}
-
-function escapeHtml(s) {
-  return String(s ?? '')
-    .replaceAll('&','&amp;')
-    .replaceAll('<','&lt;')
-    .replaceAll('>','&gt;')
-    .replaceAll('"','&quot;')
-    .replaceAll("'","&#039;");
-}
-
-async function initAuthed() {
-  await loadProperties().catch(e => toast(e.message || String(e)));
-  await loadArrivals().catch(e => toast(e.message || String(e)));
-}
+/* ---------- Recent links (localStorage) ---------- */
 
 const RECENT_KEY = "cz_recent_checkin_links";
 
@@ -430,39 +163,303 @@ function renderRecent() {
 
   [...box.querySelectorAll('button[data-copy]')].forEach(btn => {
     btn.onclick = async () => {
-      await navigator.clipboard.writeText(btn.getAttribute('data-copy'));
-      toast("Copié ✅");
+      try {
+        await navigator.clipboard.writeText(btn.getAttribute('data-copy'));
+        toast("Copié ✅");
+      } catch {
+        toast("Copie manuelle requise.");
+      }
     };
   });
 }
 
+/* ---------- Properties / Create link ---------- */
+
+async function loadProperties() {
+  if (!(await requireAuth())) return;
+
+  toast("Chargement des logements…");
+  const out = await api('/.netlify/functions/admin-list-properties', { admin_token: adminToken });
+
+  const sel = $('property_id');
+  if (!sel) return;
+
+  const props = out.properties || [];
+  sel.innerHTML = `<option value="">— Sélectionner un logement —</option>`;
+
+  props.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = (p.name && String(p.name).trim()) ? p.name : p.id;
+    sel.appendChild(opt);
+  });
+
+  if (!props.length) {
+    toast("⚠️ Aucun logement trouvé. Vérifie la table properties.");
+  } else {
+    sel.value = props[0].id;
+    toast(`✅ ${props.length} logement(s) chargés`);
+  }
+}
+
+async function createCheckinLink() {
+  if (!(await requireAuth())) return;
+
+  const propertyId = $('property_id')?.value;
+  const arrival = $('arrival')?.value;
+  const departure = $('departure')?.value;
+
+  if (!propertyId) return toast("Choisis un logement.");
+  if (!arrival || !departure) return toast("Mets arrivée + départ.");
+  if (departure <= arrival) return toast("Départ doit être après l’arrivée.");
+
+  const out = await api('/.netlify/functions/admin-create-reservation', {
+    admin_token: adminToken,
+    property_id: propertyId,
+    arrival_date: arrival,
+    departure_date: departure
+  });
+
+  if ($('generatedLink')) $('generatedLink').value = out.link || '';
+  toast("Lien créé ✅");
+
+  // Save to recent
+  const selectedOpt = $('property_id')?.selectedOptions?.[0];
+  const propertyName = selectedOpt ? selectedOpt.textContent : propertyId;
+
+  const items = getRecent();
+  items.unshift({
+    link: out.link,
+    property_id: propertyId,
+    property_name: propertyName,
+    arrival_date: arrival,
+    departure_date: departure,
+    created_at: new Date().toISOString()
+  });
+  setRecent(items);
+  renderRecent();
+}
+
+async function copyLink() {
+  const v = $('generatedLink')?.value;
+  if (!v) return toast("Aucun lien à copier.");
+  try {
+    await navigator.clipboard.writeText(v);
+    toast("Copié ✅");
+  } catch {
+    toast("Copie manuelle requise.");
+  }
+}
+
+/* ---------- Arrivals table ---------- */
+
+function renderArrivals(items) {
+  const tbody = $('list');
+  const empty = $('emptyState');
+  if (!tbody) return;
+
+  if (!items || !items.length) {
+    tbody.innerHTML = '';
+    if (empty) empty.style.display = 'flex';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  tbody.innerHTML = items.map(it => `
+    <tr>
+      <td>${escapeHtml(it.arrival_date)} → ${escapeHtml(it.departure_date)}</td>
+      <td><strong>${escapeHtml(it.property_name || '—')}</strong></td>
+      <td><span class="badge ${escapeHtml(it.status || '')}">${escapeHtml(statusLabel(it.status))}</span></td>
+      <td><span class="pill">${escapeHtml(String(it.id))}</span></td>
+      <td style="text-align:right">
+        <button class="btn" data-open="${escapeHtml(String(it.id))}">Ouvrir</button>
+      </td>
+    </tr>
+  `).join('');
+
+  // bind open buttons
+  [...tbody.querySelectorAll('button[data-open]')].forEach(btn => {
+    btn.onclick = () => loadDetail(btn.getAttribute('data-open'));
+  });
+}
+
+async function loadArrivals() {
+  if (!(await requireAuth())) return;
+
+  const out = await api('/.netlify/functions/admin-list-arrivals', {
+    admin_token: adminToken,
+    date_from: $('from')?.value,
+    date_to: $('to')?.value,
+  });
+
+  renderArrivals(out.arrivals || []);
+}
+
+/* ---------- Drawer detail ---------- */
+
+async function loadDetail(reservationId) {
+  if (!(await requireAuth())) return;
+
+  try {
+    const out = await api('/.netlify/functions/admin-get-reservation', {
+      admin_token: adminToken,
+      reservation_id: reservationId,
+    });
+
+    renderDrawer(out, reservationId);
+    openDrawer();
+  } catch (e) {
+    console.error(e);
+    toast(e.message || String(e));
+  }
+}
+
+function renderDrawer(out, reservationId) {
+  const r = out.reservation || null;
+  const guests = out.guests || [];
+  const signed = out.signed_urls || {};
+  const resDocs = signed.reservation || {};
+  const guestDocs = signed.guests || {};
+
+  if ($('dTitle')) $('dTitle').textContent = `Dossier check-in`;
+  if ($('dSub')) $('dSub').textContent = r ? `${r.arrival_date} → ${r.departure_date}` : '—';
+
+  const kpis = [];
+  if (r?.status) kpis.push({ label: 'Statut', value: statusLabel(r.status) });
+  if (r?.id) kpis.push({ label: 'Reservation ID', value: r.id });
+  kpis.push({ label: 'Voyageurs', value: String(guests.length) });
+
+  if ($('dKpis')) {
+    $('dKpis').innerHTML = kpis.map(k => `
+      <div class="kpi">
+        <div class="kpiLabel">${escapeHtml(k.label)}</div>
+        <div class="kpiValue">${escapeHtml(String(k.value))}</div>
+      </div>
+    `).join('');
+  }
+
+  // ===== Guests with docs + police fiche button =====
+  if ($('dGuests')) {
+    $('dGuests').innerHTML = guests.length ? guests.map((g, i) => {
+      const gd = guestDocs[g.id] || {};
+      const docBtns = [
+        gd.id_front ? docBtn('ID • Face 1', gd.id_front) : '',
+        gd.id_back ? docBtn('ID • Face 2', gd.id_back) : '',
+      ].filter(Boolean).join(' ');
+
+      return `
+        <div class="item">
+          <strong>${escapeHtml((g.first_name || '') + ' ' + (g.last_name || '')) || `Voyageur ${i+1}`}</strong>
+          <div class="sub">${escapeHtml([g.nationality, g.id_type, g.id_number].filter(Boolean).join(' • '))}</div>
+
+          <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
+            ${docBtns}
+            <button class="btn" data-fiche="${escapeHtml(String(g.id))}">🧾 Fiche police</button>
+          </div>
+        </div>
+      `;
+    }).join('') : `<div class="hint">Aucun voyageur enregistré.</div>`;
+  }
+
+  // ===== Reservation docs area + raw json =====
+  const resButtons = [
+    resDocs.marriage_certificate ? docBtn('Acte de mariage', resDocs.marriage_certificate) : '',
+    resDocs.signature_png ? docBtn('Signature (PNG)', resDocs.signature_png) : '',
+  ].filter(Boolean).join(' ');
+
+  if ($('detail')) {
+    $('detail').innerHTML = `
+      <div class="section">
+        <div class="sectionTitle">Documents réservation</div>
+        ${resButtons ? `<div class="list">${resButtons}</div>` : `<div class="hint">Aucun document réservation.</div>`}
+      </div>
+
+      <div class="section" style="margin-top:14px">
+        <div class="sectionTitle">Données brutes</div>
+        <pre class="pre">${escapeHtml(JSON.stringify(out, null, 2))}</pre>
+      </div>
+    `;
+  }
+
+  // bind police fiche buttons
+  document.querySelectorAll('[data-fiche]').forEach(btn => {
+    btn.onclick = async () => {
+      const guestId = btn.getAttribute('data-fiche');
+      try {
+        const win = window.open('', '_blank');
+        if (!win) return toast("Pop-up bloquée par le navigateur.");
+
+        const html = await fetch('/.netlify/functions/admin-police-fiche', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            admin_token: adminToken,
+            reservation_id: reservationId,
+            guest_id: guestId
+          })
+        }).then(r => r.text());
+
+        win.document.open();
+        win.document.write(html);
+        win.document.close();
+      } catch (e) {
+        console.error(e);
+        toast(e.message || String(e));
+      }
+    };
+  });
+
+  function docBtn(label, url) {
+    return `<a class="btn" href="${url}" target="_blank" rel="noopener"
+      style="display:inline-flex;align-items:center;gap:8px;text-decoration:none">${escapeHtml(label)} ↗</a>`;
+  }
+}
+
+/* ---------- Init ---------- */
+
+function setDefaultDates() {
+  const t = todayISO();
+  if ($('from')) $('from').value = t;
+  if ($('to')) $('to').value = t;
+  if ($('arrival')) $('arrival').value = t;
+  if ($('departure')) $('departure').value = t;
+}
+
+async function initAuthed() {
+  await loadProperties().catch(e => toast(e.message || String(e)));
+  await loadArrivals().catch(e => toast(e.message || String(e)));
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
   setDefaultDates();
   setAuthUI();
+  renderRecent();
 
-  $('btnOpenLogin').onclick = openLogin;
-  $('btnCancelLogin').onclick = closeLogin;
-  $('btnLogin').onclick = () => login();
-  $('btnLogout').onclick = logout;
+  // Buttons
+  $('btnOpenLogin')?.addEventListener('click', openLogin);
+  $('btnCancelLogin')?.addEventListener('click', closeLogin);
+  $('btnLogin')?.addEventListener('click', login);
+  $('btnLogout')?.addEventListener('click', logout);
 
-  $('btnLoadProps').onclick = () => loadProperties().catch(e => toast(e.message || String(e)));
-  $('btnCreateLink').onclick = () => createCheckinLink().catch(e => toast(e.message || String(e)));
-  $('btnCopyLink').onclick = () => copyLink();
-  $('btnLoad').onclick = () => loadArrivals().catch(e => toast(e.message || String(e)));
+  $('btnLoadProps')?.addEventListener('click', () => loadProperties().catch(e => toast(e.message || String(e))));
+  $('btnCreateLink')?.addEventListener('click', () => createCheckinLink().catch(e => toast(e.message || String(e))));
+  $('btnCopyLink')?.addEventListener('click', copyLink);
+  $('btnLoad')?.addEventListener('click', () => loadArrivals().catch(e => toast(e.message || String(e))));
 
-  $('btnCloseDrawer').onclick = closeDrawer;
+  $('btnCloseDrawer')?.addEventListener('click', closeDrawer);
 
-  $('btnClearRecent').onclick = () => { setRecent([]); renderRecent(); toast("Historique vidé"); };
-renderRecent();
-
+  $('btnClearRecent')?.addEventListener('click', () => {
+    setRecent([]);
+    renderRecent();
+    toast("Historique vidé");
+  });
 
   // Close modal on overlay click
-  $('loginModal').addEventListener('click', (e) => {
+  $('loginModal')?.addEventListener('click', (e) => {
     if (e.target === $('loginModal')) closeLogin();
   });
 
-  // Close drawer on ESC
+  // ESC closes modal/drawer
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeLogin();
@@ -470,7 +467,8 @@ renderRecent();
     }
   });
 
-  // Auto: if no token => open modal. if token => init.
+  // Auto init
   if (!adminToken) openLogin();
   else await initAuthed();
 });
+
