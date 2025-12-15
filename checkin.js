@@ -76,6 +76,15 @@ function showScreen(name) {
   }
 }
 
+.cz-docLinks{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.cz-docBtn{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 14px;border-radius:14px;
+  border:1px solid rgba(17,24,39,.12);
+  background:#fff;text-decoration:none;color:var(--primary);font-weight:700;
+}
+.cz-docBtn span{font-weight:600;color:rgba(17,24,39,.75)}
+
 
 
 function renderSteps(activeKey) {
