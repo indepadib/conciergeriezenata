@@ -137,6 +137,21 @@ async function createCheckinLink() {
 
   $('generatedLink').value = out.link || '';
   toast("Lien créé ✅");
+  const selectedOpt = $('property_id').selectedOptions?.[0];
+const propertyName = selectedOpt ? selectedOpt.textContent : $('property_id').value;
+
+const items = getRecent();
+items.unshift({
+  link: out.link,
+  property_id: $('property_id').value,
+  property_name: propertyName,
+  arrival_date: arrival,
+  departure_date: departure,
+  created_at: new Date().toISOString()
+});
+setRecent(items);
+renderRecent();
+
 }
 
 async function copyLink() {
@@ -264,6 +279,45 @@ async function initAuthed() {
   await loadArrivals().catch(e => toast(e.message || String(e)));
 }
 
+const RECENT_KEY = "cz_recent_checkin_links";
+
+function getRecent() {
+  try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); }
+  catch { return []; }
+}
+
+function setRecent(items) {
+  localStorage.setItem(RECENT_KEY, JSON.stringify(items.slice(0, 20)));
+}
+
+function renderRecent() {
+  const box = $('recentLinks');
+  if (!box) return;
+
+  const items = getRecent();
+  if (!items.length) {
+    box.innerHTML = `<div class="hint">Aucun lien créé récemment.</div>`;
+    return;
+  }
+
+  box.innerHTML = items.map(it => `
+    <div class="recentItem">
+      <div class="meta">
+        <strong>${escapeHtml(it.property_name || 'Logement')}</strong>
+        <span>${escapeHtml(it.arrival_date)} → ${escapeHtml(it.departure_date)}</span>
+      </div>
+      <button class="btn" data-copy="${escapeHtml(it.link)}">Copier</button>
+    </div>
+  `).join('');
+
+  [...box.querySelectorAll('button[data-copy]')].forEach(btn => {
+    btn.onclick = async () => {
+      await navigator.clipboard.writeText(btn.getAttribute('data-copy'));
+      toast("Copié ✅");
+    };
+  });
+}
+
 
 document.addEventListener('DOMContentLoaded', async () => {
   setDefaultDates();
@@ -280,6 +334,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   $('btnLoad').onclick = () => loadArrivals().catch(e => toast(e.message || String(e)));
 
   $('btnCloseDrawer').onclick = closeDrawer;
+
+  $('btnClearRecent').onclick = () => { setRecent([]); renderRecent(); toast("Historique vidé"); };
+renderRecent();
+
 
   // Close modal on overlay click
   $('loginModal').addEventListener('click', (e) => {
