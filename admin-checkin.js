@@ -260,9 +260,10 @@ function escapeHtml(s) {
 }
 
 async function initAuthed() {
-  // called after login or on reload if token exists
   await loadProperties().catch(e => toast(e.message || String(e)));
+  await loadArrivals().catch(e => toast(e.message || String(e)));
 }
+
 
 document.addEventListener('DOMContentLoaded', async () => {
   setDefaultDates();
