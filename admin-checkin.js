@@ -89,15 +89,32 @@ function logout() {
 
 async function loadProperties() {
   if (!(await requireAuth())) return;
+
+  toast("Chargement des logements…");
   const out = await api('/.netlify/functions/admin-list-properties', { admin_token: adminToken });
+
+  // DEBUG visible (tu pourras enlever après)
+  console.log("admin-list-properties OUT =", out);
 
   const sel = $('property_id');
   const props = out.properties || [];
-  sel.innerHTML = props.length
-    ? props.map(p => `<option value="${p.id}">${(p.name || p.id)}</option>`).join('')
-    : `<option value="">— Aucun logement —</option>`;
 
-  if (!props.length) toast("Aucun logement trouvé.");
+  sel.innerHTML = `<option value="">— Sélectionner un logement —</option>`;
+
+  props.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = (p.name && String(p.name).trim()) ? p.name : p.id;
+    sel.appendChild(opt);
+  });
+
+  if (!props.length) {
+    toast("⚠️ Aucun logement trouvé. Vérifie la table properties.");
+  } else {
+    // sélectionne automatiquement le 1er logement pour éviter un “select vide”
+    sel.value = props[0].id;
+    toast(`✅ ${props.length} logement(s) chargés`);
+  }
 }
 
 async function createCheckinLink() {
