@@ -7,74 +7,146 @@ exports.handler = async (event) => {
     verifyAdminToken(admin_token);
 
     if (!reservation_id || !guest_id) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Missing reservation_id or guest_id' }) };
+      return { statusCode: 400, body: 'Missing reservation_id or guest_id' };
     }
 
     const sb = sbAdmin();
 
-    const { data: resv, error: rErr } = await sb
+    // Reservation
+    const { data: resv } = await sb
       .from('checkin_reservations')
-      .select('*')
+      .select('arrival_date, departure_date, is_moroccan_couple, property_id')
       .eq('id', reservation_id)
       .single();
-    if (rErr) throw rErr;
 
-    const { data: guest, error: gErr } = await sb
+    // Property
+    const { data: property } = await sb
+      .from('properties')
+      .select('name')
+      .eq('id', resv.property_id)
+      .single();
+
+    // Guest
+    const { data: guest } = await sb
       .from('checkin_guests')
       .select('*')
       .eq('id', guest_id)
       .single();
-    if (gErr) throw gErr;
 
-    // Simple printable HTML (you can improve later)
-    const html = `<!doctype html>
-<html><head><meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Fiche Police</title>
+    // Guest documents
+    const { data: guestDocs } = await sb
+      .from('checkin_guest_documents')
+      .select('*')
+      .eq('guest_id', guest_id);
+
+    // Reservation documents (marriage, signature)
+    const { data: resDocs } = await sb
+      .from('checkin_reservation_documents')
+      .select('*')
+      .eq('reservation_id', reservation_id);
+
+    const getDoc = (docs, type) =>
+      (docs || []).find(d => d.doc_type === type)?.storage_path;
+
+    const cinFront = getDoc(guestDocs, 'id_front');
+    const cinBack = getDoc(guestDocs, 'id_back');
+    const marriage = getDoc(resDocs, 'marriage_certificate');
+    const signature = getDoc(resDocs, 'signature_png');
+
+    const img = (path) =>
+      path
+        ? `<img src="${process.env.SUPABASE_PUBLIC_URL}/storage/v1/object/public/checkin-docs/${path}" />`
+        : `<div class="empty">Non fourni</div>`;
+
+    const today = new Date().toLocaleDateString('fr-FR');
+
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      body: `
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<title>Fiche de police</title>
 <style>
-  body{font-family:system-ui,Segoe UI,Roboto,Arial; margin:24px; color:#111}
-  h1{margin:0 0 12px}
-  .muted{color:#666}
-  .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px}
-  .box{border:1px solid #ddd; border-radius:12px; padding:12px}
-  .k{font-size:12px; color:#666; text-transform:uppercase; letter-spacing:.03em}
-  .v{font-weight:700; margin-top:4px}
-  .print{position:fixed; top:14px; right:14px}
-  @media print { .print{display:none} }
+body{font-family:Arial,Helvetica,sans-serif;color:#000}
+.page{max-width:820px;margin:0 auto;padding:24px}
+h1,h2,h3{text-align:center;margin:4px 0}
+hr{margin:12px 0}
+.label{font-weight:bold}
+.row{display:flex;gap:16px;margin-bottom:6px}
+.col{flex:1}
+.box{border:1px solid #000;padding:8px;margin-top:6px}
+.images img{max-width:100%;max-height:220px;border:1px solid #000;margin-bottom:6px}
+.signature img{max-height:120px}
+.small{font-size:12px}
+.empty{border:1px dashed #999;padding:16px;text-align:center;color:#666}
+@media print {
+  body{margin:0}
+}
 </style>
 </head>
 <body>
-<button class="print" onclick="window.print()">Imprimer / PDF</button>
+<div class="page">
 
-<h1>Fiche de Police</h1>
-<div class="muted">Réservation: ${escapeHtml(resv.id)} • Arrivée: ${escapeHtml(resv.arrival_date)} • Départ: ${escapeHtml(resv.departure_date)}</div>
+<h2>Royaume du Maroc</h2>
+<h3>Ministère de l’Intérieur</h3>
+<h1>FICHE INDIVIDUELLE DE POLICE</h1>
 
-<div class="grid">
-  <div class="box"><div class="k">Nom</div><div class="v">${escapeHtml(guest.last_name || '')}</div></div>
-  <div class="box"><div class="k">Prénom</div><div class="v">${escapeHtml(guest.first_name || '')}</div></div>
-  <div class="box"><div class="k">Sexe</div><div class="v">${escapeHtml(guest.sex || '')}</div></div>
-  <div class="box"><div class="k">Nationalité</div><div class="v">${escapeHtml(guest.nationality || '')}</div></div>
-  <div class="box"><div class="k">Date de naissance</div><div class="v">${escapeHtml(guest.dob || '')}</div></div>
-  <div class="box"><div class="k">Pays de résidence</div><div class="v">${escapeHtml(guest.res_country || '')}</div></div>
-  <div class="box"><div class="k">Ville de résidence</div><div class="v">${escapeHtml(guest.res_city || '')}</div></div>
-  <div class="box"><div class="k">Adresse</div><div class="v">${escapeHtml(guest.address || '')}</div></div>
-  <div class="box"><div class="k">Type pièce</div><div class="v">${escapeHtml(guest.id_type || '')}</div></div>
-  <div class="box"><div class="k">Numéro pièce</div><div class="v">${escapeHtml(guest.id_number || '')}</div></div>
+<hr/>
+
+<div class="row">
+  <div class="col"><span class="label">Établissement :</span> ${property?.name || '—'}</div>
+  <div class="col"><span class="label">Séjour :</span> ${resv.arrival_date} → ${resv.departure_date}</div>
 </div>
 
-</body></html>`;
+<div class="box">
+  <div class="row">
+    <div class="col"><span class="label">Nom :</span> ${guest.last_name || ''}</div>
+    <div class="col"><span class="label">Prénom :</span> ${guest.first_name || ''}</div>
+  </div>
+  <div class="row">
+    <div class="col"><span class="label">Sexe :</span> ${guest.sex || ''}</div>
+    <div class="col"><span class="label">Nationalité :</span> ${guest.nationality || ''}</div>
+  </div>
+  <div class="row">
+    <div class="col"><span class="label">Date de naissance :</span> ${guest.dob || ''}</div>
+    <div class="col"><span class="label">Pays de résidence :</span> ${guest.res_country || ''}</div>
+  </div>
+  <div class="row">
+    <div class="col"><span class="label">Adresse :</span> ${guest.address || ''}</div>
+    <div class="col"><span class="label">Pièce :</span> ${guest.id_type || ''} — ${guest.id_number || ''}</div>
+  </div>
+</div>
 
-    return { statusCode: 200, headers: { 'Content-Type': 'text/html' }, body: html };
+<h3>Pièce d’identité</h3>
+<div class="images">
+  ${img(cinFront)}
+  ${img(cinBack)}
+</div>
+
+<h3>Acte de mariage</h3>
+<div class="images">
+  ${resv.is_moroccan_couple ? img(marriage) : '<div class="empty">Non applicable</div>'}
+</div>
+
+<h3>Signature du voyageur</h3>
+<div class="signature">
+  ${img(signature)}
+</div>
+
+<div class="box small">
+  Je soussigné(e) certifie exacts les renseignements ci-dessus.<br/>
+  Fait le ${today}
+</div>
+
+</div>
+</body>
+</html>
+`
+    };
   } catch (e) {
-    return { statusCode: 500, body: JSON.stringify({ error: e.message || String(e) }) };
+    return { statusCode: 500, body: e.message || String(e) };
   }
 };
-
-function escapeHtml(s) {
-  return String(s ?? '')
-    .replaceAll('&','&amp;')
-    .replaceAll('<','&lt;')
-    .replaceAll('>','&gt;')
-    .replaceAll('"','&quot;')
-    .replaceAll("'","&#039;");
-}
