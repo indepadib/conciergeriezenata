@@ -76,14 +76,7 @@ function showScreen(name) {
   }
 }
 
-.cz-docLinks{display:flex;flex-direction:column;gap:10px;margin-top:10px}
-.cz-docBtn{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:12px 14px;border-radius:14px;
-  border:1px solid rgba(17,24,39,.12);
-  background:#fff;text-decoration:none;color:var(--primary);font-weight:700;
-}
-.cz-docBtn span{font-weight:600;color:rgba(17,24,39,.75)}
+
 
 
 
@@ -504,6 +497,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         documents: { marriage_certificate: marriage },
         signature_png: state.signaturePngDataUrl,
       });
+
+       const links = [];
+            if (out.receipt_pdf_url) links.push({ label: "Fiche (PDF)", url: out.receipt_pdf_url });
+            if (out.files?.id_front_url) links.push({ label: "Pièce d’identité – Face 1", url: out.files.id_front_url });
+            if (out.files?.id_back_url) links.push({ label: "Pièce d’identité – Face 2", url: out.files.id_back_url });
+            if (out.files?.marriage_url) links.push({ label: "Acte de mariage", url: out.files.marriage_url });
+            if (out.files?.signature_url) links.push({ label: "Signature (PNG)", url: out.files.signature_url });
+            
+            const box = document.getElementById('docLinks');
+            if (box) {
+              box.innerHTML = links.length
+                ? links.map(x => `<a class="cz-docBtn" href="${x.url}" target="_blank" rel="noopener">${x.label}<span>Ouvrir</span></a>`).join('')
+                : `<div class="cz-sub">Aucun document à afficher.</div>`;
+            }
+
 
       // show instructions
       $('instructions').innerHTML = out.instructions_html || "<p>Instructions indisponibles pour le moment.</p>";
