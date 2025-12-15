@@ -15,6 +15,16 @@ async function api(path, body) {
   return json ?? {};
 }
 
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
+}
+
+
 function todayISO() {
   const d = new Date();
   const z = (n) => String(n).padStart(2,'0');
@@ -219,6 +229,7 @@ function renderDrawer(out) {
   const r = out.reservation || out.checkin_reservation || out.data?.reservation || null;
   const property = out.property || out.data?.property || null;
   const guests = out.guests || out.data?.guests || [];
+  const ficheBtn = `<button class="btn" data-fiche="${g.id}">Fiche Police</button>`;
 
   $('dTitle').textContent = property?.name ? `Dossier • ${property.name}` : 'Dossier check-in';
   $('dSub').textContent = r ? `${r.arrival_date} → ${r.departure_date}` : '—';
@@ -302,14 +313,67 @@ function renderDrawer(out) {
 }
 
 async function loadDetail(reservationId) {
-  if (!(await requireAuth())) return;
+  if (!adminToken) return alert('Connecte-toi d’abord.');
+
   const out = await api('/.netlify/functions/admin-get-reservation', {
     admin_token: adminToken,
     reservation_id: reservationId,
   });
-  renderDrawer(out);
-  openDrawer();
+
+  const { reservation, guests, signed_urls } = out;
+
+  let html = `
+    <div class="section">
+      <h3>Réservation</h3>
+      <div>${reservation.arrival_date} → ${reservation.departure_date}</div>
+      <div>Status : <strong>${reservation.status}</strong></div>
+    </div>
+  `;
+
+  // ==== VOYAGEURS ====
+  html += `<div class="section"><h3>Voyageurs</h3>`;
+
+  guests.forEach(g => {
+    html += `
+      <div class="item">
+        <strong>${escapeHtml(g.first_name)} ${escapeHtml(g.last_name)}</strong>
+        <div class="muted">${escapeHtml(g.nationality)} • ${escapeHtml(g.id_type)} ${escapeHtml(g.id_number)}</div>
+
+        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
+          <button class="btn" data-fiche="${g.id}">🧾 Fiche de police</button>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+
+  $('detail').innerHTML = html;
+
+  // ==== BIND BOUTONS FICHE POLICE ====
+  document.querySelectorAll('[data-fiche]').forEach(btn => {
+    btn.onclick = async () => {
+      const guestId = btn.getAttribute('data-fiche');
+
+      const win = window.open('', '_blank');
+
+      const html = await fetch('/.netlify/functions/admin-police-fiche', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          admin_token: adminToken,
+          reservation_id: reservationId,
+          guest_id: guestId
+        })
+      }).then(r => r.text());
+
+      win.document.open();
+      win.document.write(html);
+      win.document.close();
+    };
+  });
 }
+
 
 function setDefaultDates() {
   const t = todayISO();
