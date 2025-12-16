@@ -338,6 +338,24 @@ function renderDrawer(out, reservationId) {
     `).join('');
   }
 
+   const actionsBox = document.getElementById('dActions');
+      if (actionsBox) {
+        actionsBox.innerHTML = `
+          <button class="btn" id="btnPoliceAll">🧾 Dossier police (tous)</button>
+        `;
+        document.getElementById('btnPoliceAll').onclick = async () => {
+          const win = window.open('', '_blank');
+          if (!win) return toast("Pop-up bloquée.");
+          const html = await fetch('/.netlify/functions/admin-police-fiche', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ admin_token: adminToken, reservation_id: reservationId })
+          }).then(r => r.text());
+          win.document.open(); win.document.write(html); win.document.close();
+        };
+      }
+
+   
   // ===== Guests with docs + police fiche button =====
   if ($('dGuests')) {
     $('dGuests').innerHTML = guests.length ? guests.map((g, i) => {
