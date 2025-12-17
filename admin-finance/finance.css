@@ -1,0 +1,115 @@
+:root{
+  --bg:#0b0f18;
+  --panel:#0f1624;
+  --panel2:#111b2e;
+  --text:#e8eefc;
+  --muted:#9db0d3;
+  --line:rgba(255,255,255,.08);
+  --accent:#7aa7ff;
+  --accent2:#6ee7b7;
+  --danger:#ff6b6b;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+  --radius: 16px;
+  --radius2: 22px;
+  --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:var(--font);
+  background: radial-gradient(1200px 600px at 15% -10%, rgba(122,167,255,.25), transparent 60%),
+              radial-gradient(1200px 600px at 85% -20%, rgba(110,231,183,.16), transparent 55%),
+              var(--bg);
+  color:var(--text);
+}
+a{color:inherit}
+.topbar{
+  position:sticky; top:0;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 20px;
+  border-bottom:1px solid var(--line);
+  backdrop-filter: blur(10px);
+  background: rgba(11,15,24,.65);
+  z-index:20;
+}
+.brand{display:flex; gap:12px; align-items:center}
+.logo{
+  width:42px; height:42px;
+  border-radius:14px;
+  display:grid; place-items:center;
+  background: linear-gradient(135deg, rgba(122,167,255,.25), rgba(110,231,183,.15));
+  border:1px solid var(--line);
+  box-shadow: var(--shadow);
+  font-weight:800;
+}
+.title{font-weight:800; letter-spacing:.2px}
+.subtitle{font-size:12px; color:var(--muted); margin-top:2px}
+.topbar-actions{display:flex; gap:10px}
+.container{max-width:1200px; margin:20px auto; padding:0 16px}
+.grid{display:grid; gap:14px}
+.kpis{grid-template-columns: repeat(4, minmax(0, 1fr));}
+.two{grid-template-columns: 1.2fr .8fr;}
+@media (max-width: 1100px){
+  .kpis{grid-template-columns: repeat(2, minmax(0, 1fr));}
+  .two{grid-template-columns: 1fr;}
+}
+.card{
+  background: linear-gradient(180deg, rgba(17,27,46,.8), rgba(15,22,36,.8));
+  border:1px solid var(--line);
+  border-radius: var(--radius2);
+  box-shadow: var(--shadow);
+}
+.pad{padding:16px}
+.card-label{color:var(--muted); font-size:12px; padding:14px 16px 0}
+.card-value{font-size:30px; font-weight:900; padding:6px 16px 0}
+.card-hint{color:var(--muted); font-size:12px; padding:6px 16px 14px}
+.card-head h2{margin:0 0 6px 0}
+.muted{color:var(--muted); font-size:12px}
+.divider{height:1px; background:var(--line); margin:14px 0}
+
+.form-row{display:flex; flex-direction:column; gap:8px; margin:10px 0}
+.form-row.two{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+label{font-size:12px; color:var(--muted)}
+input, select{
+  background: rgba(255,255,255,.03);
+  border:1px solid var(--line);
+  border-radius: 14px;
+  padding:11px 12px;
+  color:var(--text);
+  outline:none;
+}
+input:focus, select:focus{border-color: rgba(122,167,255,.5)}
+.row-inline{display:flex; align-items:center; gap:10px}
+.inline{color:var(--text)}
+
+.btn{
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.03);
+  color:var(--text);
+  padding:10px 12px;
+  border-radius: 14px;
+  cursor:pointer;
+  font-weight:700;
+}
+.btn:hover{border-color: rgba(122,167,255,.35)}
+.btn-primary{
+  background: linear-gradient(135deg, rgba(122,167,255,.35), rgba(122,167,255,.12));
+  border-color: rgba(122,167,255,.35);
+}
+.btn-ghost{background: transparent}
+.form-actions{display:flex; align-items:center; gap:12px; margin-top:10px}
+
+.table-wrap{overflow:auto; border-radius: 16px; border:1px solid var(--line)}
+.table{width:100%; border-collapse:collapse; font-size:13px}
+.table th, .table td{padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap}
+.table th{color:var(--muted); font-weight:700; text-align:left; background: rgba(255,255,255,.02)}
+.table tr:hover td{background: rgba(122,167,255,.06)}
+.badge{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:4px 8px; border-radius:999px;
+  border:1px solid var(--line);
+  font-size:12px; color:var(--muted);
+}
+.badge.ok{border-color: rgba(110,231,183,.35); color: rgba(110,231,183,.9)}
+.badge.warn{border-color: rgba(255,214,102,.35); color: rgba(255,214,102,.9)}
+.badge.danger{border-color: rgba(255,107,107,.35); color: rgba(255,107,107,.9)}
