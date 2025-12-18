@@ -26,17 +26,18 @@ function badge(status){
 }
 
 async function ensureAdmin(){
-  const { data: { user } } = await supabase.auth.getUser();
-  if(!user) return { ok:false, reason:"no_user" };
-
   const { data, error } = await supabase
-    .from('admin_users')
-    .select('user_id')
-    .eq('user_id', user.id)
-    .maybeSingle();
+  .from('admin_users')
+  .select('user_id, role')
+  .eq('user_id', user.id)
+  .maybeSingle();
 
-  if(error || !data) return { ok:false, reason:"not_admin" };
-  return { ok:true, user };
+if (error) {
+  console.error("admin_users select error:", error);
+  return { ok:false, reason:"admin_check_failed", error };
+}
+if (!data) return { ok:false, reason:"not_admin" };
+return { ok:true, user, role: data.role };
 }
 
 async function showLogin(msg=""){
