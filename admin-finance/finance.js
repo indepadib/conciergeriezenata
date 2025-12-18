@@ -7,28 +7,27 @@ const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qZ2NocnF0dmt3emhqdnd3ZnRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2OTMxODEsImV4cCI6MjA3NTI2OTE4MX0.Ok7fj3QUs28Q8dOiNy6caSBmjcUmjFrZgmIvAnzJZ00";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// UI
 const $ = (id) => document.getElementById(id);
 
 function money(n){
   const v = Number(n || 0);
   return v.toLocaleString('fr-MA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " MAD";
 }
-
+function monthRange(yyyyMm){
+  const [y, m] = yyyyMm.split('-').map(Number);
+  const start = new Date(y, m - 1, 1);
+  const end = new Date(y, m, 0);
+  return { start: start.toISOString().slice(0,10), end: end.toISOString().slice(0,10) };
+}
 function badge(status){
-  if(status === 'paid') return `<span class="badge ok">Payée</span>`;
-  if(status === 'sent') return `<span class="badge warn">Envoyée</span>`;
-  if(status === 'draft') return `<span class="badge">Brouillon</span>`;
-  return `<span class="badge danger">${status}</span>`;
+  return status === 'locked'
+    ? `<span class="badge locked">Locked</span>`
+    : `<span class="badge draft">Draft</span>`;
 }
 
-async function requireAdmin(){
+async function ensureAdmin(){
   const { data: { user } } = await supabase.auth.getUser();
-  if(!user){
-    // if you already have your own admin token system, redirect to it.
-    alert("Non connecté. Ouvre la page login admin (Supabase Auth).");
-    return false;
-  }
+  if(!user) return { ok:false, reason:"no_user" };
 
   const { data, error } = await supabase
     .from('admin_users')
@@ -36,269 +35,331 @@ async function requireAdmin(){
     .eq('user_id', user.id)
     .maybeSingle();
 
-  if(error || !data){
-    alert("Accès refusé (admin only).");
-    return false;
-  }
-  return true;
+  if(error || !data) return { ok:false, reason:"not_admin" };
+  return { ok:true, user };
+}
+
+async function showLogin(msg=""){
+  $('app').classList.add('hidden');
+  $('login').classList.remove('hidden');
+  $('authMsg').textContent = msg;
+}
+async function showApp(user){
+  $('login').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  $('whoami').textContent = user?.email || "admin";
+}
+
+function setTab(tab){
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.nav-item[data-tab="${tab}"]`)?.classList.add('active');
+
+  document.querySelectorAll('.tab').forEach(t => t.classList.add('hidden'));
+  $(`tab-${tab}`)?.classList.remove('hidden');
+
+  const map = {
+    overview: ["Résumé", "Les chiffres importants, sans jargon."],
+    closing: ["Clôture du mois", "Tu suis les étapes : choisir → vérifier → clôturer → verrouiller."],
+    owners: ["Propriétaires", "Tu vois directement qui doit recevoir combien."],
+    cash: ["Trésorerie", "Combien on a en banque et d’où ça vient."],
+    settings: ["Réglages", "Règles simples. On évite les options inutiles."]
+  };
+  $('pageTitle').textContent = map[tab][0];
+  $('pageSub').textContent = map[tab][1];
 }
 
 async function loadProperties(){
   const { data, error } = await supabase
     .from('properties')
-    .select('id,name,owner_id')
-    .order('name', { ascending: true });
+    .select('id,name')
+    .order('name', { ascending:true });
 
   if(error) throw error;
 
-  const opts = data.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-  $('selProperty').innerHTML = opts || `<option value="">Aucun bien</option>`;
-  $('selExpenseProperty').innerHTML = opts || `<option value="">Aucun bien</option>`;
+  $('selProperty').innerHTML = (data || []).map(p => `<option value="${p.id}">${p.name}</option>`).join('')
+    || `<option value="">Aucun bien</option>`;
 }
 
-async function loadCategories(){
-  const { data, error } = await supabase
-    .from('expense_categories')
-    .select('id,code,label')
-    .order('label', { ascending: true });
+async function loadOverview(){
+  // 1) CA Zenata (sum of invoices in current month)
+  const now = new Date();
+  const month = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const { start, end } = monthRange(month);
 
-  if(error) throw error;
-
-  $('selCategory').innerHTML = data.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
-}
-
-function last30DaysRange(){
-  const end = new Date();
-  const start = new Date();
-  start.setDate(end.getDate() - 30);
-  return {
-    start: start.toISOString().slice(0,10),
-    end: end.toISOString().slice(0,10),
-  };
-}
-
-async function loadKPIs(){
-  const { start, end } = last30DaysRange();
-
-  // billed last 30 days (invoices.total)
   const inv = await supabase
-    .from('invoices')
-    .select('total,status,issued_at')
-    .gte('issued_at', start + 'T00:00:00.000Z')
-    .lte('issued_at', end + 'T23:59:59.999Z');
+    .from('zenata_invoices')
+    .select('total, issued_date')
+    .gte('issued_date', start)
+    .lte('issued_date', end);
 
-  if(inv.error) throw inv.error;
+  const revenue = (inv.data || []).reduce((s,r)=>s+Number(r.total||0),0);
+  $('kpiRevenue').textContent = money(revenue);
 
-  const billed = inv.data.reduce((acc, r) => acc + Number(r.total || 0), 0);
-  const draft = inv.data.filter(r => r.status === 'draft').length;
+  // 2) Dette propriétaires (sum balances)
+  const bal = await supabase
+    .from('v_owner_balance_by_owner')
+    .select('balance');
+  const ownerDebt = (bal.data || []).reduce((s,r)=>s+Number(r.balance||0),0);
+  $('kpiOwnerDebt').textContent = money(ownerDebt);
 
-  $('kpiBilled').textContent = money(billed);
-  $('kpiDraft').textContent = String(draft);
+  // 3) Cash
+  const cash = await supabase
+    .from('v_cash_balance')
+    .select('balance');
+  const cashTotal = (cash.data || []).reduce((s,r)=>s+Number(r.balance||0),0);
+  $('kpiCash').textContent = money(cashTotal);
 
-  // billable expenses 30j
-  const exp = await supabase
-    .from('expenses')
-    .select('amount,bill_to_owner,owner_markup_rate,expense_date')
-    .gte('expense_date', start)
-    .lte('expense_date', end)
-    .eq('bill_to_owner', true);
+  // 4) Pending closings (rough heuristic): properties count - locked closings count for month
+  const props = await supabase.from('properties').select('id');
+  const locked = await supabase
+    .from('monthly_closings')
+    .select('id,property_id,status,period_start,period_end')
+    .eq('status','locked')
+    .gte('period_start', start)
+    .lte('period_end', end);
 
-  if(exp.error) throw exp.error;
+  const pending = Math.max(0, (props.data?.length||0) - (locked.data?.length||0));
+  $('kpiPending').textContent = String(pending);
 
-  const expBilled = exp.data.reduce((acc, r) => {
-    const amt = Number(r.amount || 0);
-    const mk = Number(r.owner_markup_rate || 0);
-    return acc + Math.round((amt * (1 + mk)) * 100) / 100;
-  }, 0);
+  // TODO list
+  const todo = [];
+  if(pending > 0) todo.push({ t:`Faire ${pending} clôture(s) ce mois-ci`, a:`Aller à “Clôture du mois”`, tab:'closing' });
+  if(ownerDebt > 0) todo.push({ t:`Verser aux propriétaires (solde à payer)`, a:`Voir “Propriétaires”`, tab:'owners' });
+  if((cash.data?.length||0) === 0) todo.push({ t:`Ajouter un compte bancaire`, a:`Voir “Trésorerie”`, tab:'cash' });
 
-  $('kpiBillableExpenses').textContent = money(expBilled);
+  $('todo').innerHTML = (todo.length ? todo : [{t:"Rien d’urgent ✅", a:"Tout est à jour"}]).map(x => `
+    <div class="todo-item">
+      <div><b>${x.t}</b><div class="muted">${x.a}</div></div>
+      ${x.tab ? `<button class="btn" data-goto="${x.tab}">Ouvrir</button>` : ``}
+    </div>
+  `).join('');
 
-  // cleaning services 30j
-  const st = await supabase.from('service_types').select('id,code').eq('code','CLEANING').maybeSingle();
-  if(st.error) throw st.error;
-
-  if(st.data){
-    const clean = await supabase
-      .from('services')
-      .select('bill_amount,service_date,bill_to_owner,service_type_id')
-      .eq('bill_to_owner', true)
-      .eq('service_type_id', st.data.id)
-      .gte('service_date', start)
-      .lte('service_date', end);
-
-    if(clean.error) throw clean.error;
-
-    const csum = clean.data.reduce((a,r)=>a+Number(r.bill_amount||0),0);
-    $('kpiCleaning').textContent = money(csum);
-  } else {
-    $('kpiCleaning').textContent = money(0);
-  }
+  document.querySelectorAll('[data-goto]').forEach(b => b.onclick = () => setTab(b.dataset.goto));
 }
 
-async function loadInvoices(){
-  const { data, error } = await supabase
-    .from('invoices')
-    .select('id, invoice_number, status, total, period_start, period_end, properties(name)')
-    .order('issued_at', { ascending: false })
-    .limit(20);
+let lastPreview = null;
+let lastClosingId = null;
 
-  if(error) throw error;
-
-  const tbody = $('tblInvoices').querySelector('tbody');
-  tbody.innerHTML = data.map(inv => {
-    const propName = inv.properties?.name || '—';
-    const period = `${inv.period_start} → ${inv.period_end}`;
-    return `
-      <tr>
-        <td>${inv.invoice_number || '—'}</td>
-        <td>${propName}</td>
-        <td>${period}</td>
-        <td>${badge(inv.status)}</td>
-        <td><b>${money(inv.total)}</b></td>
-        <td>
-          <button class="btn" onclick="openInvoice('${inv.id}')">Ouvrir</button>
-        </td>
-      </tr>
-    `;
-  }).join('') || `<tr><td colspan="6" class="muted">Aucune facture</td></tr>`;
-}
-
-async function loadExpenses(){
-  const { data, error } = await supabase
-    .from('expenses')
-    .select('expense_date, description, amount, bill_to_owner, owner_markup_rate, properties(name)')
-    .order('expense_date', { ascending: false })
-    .limit(20);
-
-  if(error) throw error;
-
-  const tbody = $('tblExpenses').querySelector('tbody');
-  tbody.innerHTML = data.map(e => {
-    const propName = e.properties?.name || '—';
-    const ref = e.bill_to_owner ? 'Oui' : 'Non';
-    return `
-      <tr>
-        <td>${e.expense_date}</td>
-        <td>${propName}</td>
-        <td>${(e.description||'').slice(0,60)}</td>
-        <td>${money(e.amount)}</td>
-        <td>${ref}</td>
-      </tr>
-    `;
-  }).join('') || `<tr><td colspan="5" class="muted">Aucune dépense</td></tr>`;
-}
-
-async function generateInvoice(){
+async function previewClosing(){
   const propertyId = $('selProperty').value;
-  const start = $('inpStart').value;
-  const end = $('inpEnd').value;
+  const month = $('inpMonth').value;
+  if(!propertyId || !month){ $('closeMsg').textContent = "Choisis un bien et un mois."; return; }
 
-  if(!propertyId || !start || !end){
-    $('genStatus').textContent = "Choisis un bien + période.";
-    return;
-  }
+  const { start, end } = monthRange(month);
+  $('closeMsg').textContent = "Calcul…";
 
-  $('genStatus').textContent = "Génération…";
-
-  const { data, error } = await supabase.rpc('generate_monthly_invoice', {
+  const { data, error } = await supabase.rpc('calc_monthly_summary', {
     p_property_id: propertyId,
     p_period_start: start,
     p_period_end: end
   });
 
-  if(error){
-    console.error(error);
-    $('genStatus').textContent = "Erreur: " + error.message;
-    return;
-  }
+  if(error){ $('closeMsg').textContent = "Erreur: " + error.message; return; }
 
-  $('genStatus').textContent = "Facture générée ✅";
-  await refreshAll();
-  openInvoice(data);
+  const row = Array.isArray(data) ? data[0] : data;
+  lastPreview = row;
+
+  const adj = Number($('inpAdjust').value || 0);
+  $('cPayout').textContent = money(row?.payout_total);
+  $('cComm').textContent = money(row?.commission_amount);
+  $('cConsum').textContent = money(row?.consumables_amount);
+  $('cBill').textContent = money(row?.billable_expenses_amount);
+  $('cGross').textContent = money(row?.gross_total);
+  $('cClean').textContent = money(row?.cleaning_collected_total);
+
+  $('cNet').textContent = money(Number(row?.net_owner_amount||0) + adj);
+  $('cMeta').textContent = `${start} → ${end} • Base: ${row?.commission_base} • Taux ${(Number(row?.commission_rate||0)*100).toFixed(0)}%`;
+
+  await loadClosingHistory(propertyId);
+  $('closeMsg').textContent = "OK ✅ Vérifie puis clôture.";
 }
 
-async function addExpense(){
-  const propertyId = $('selExpenseProperty').value;
-  const expense_date = $('expDate').value;
-  const amount = Number($('expAmount').value || 0);
-  const description = $('expDesc').value || '';
-  const bill_to_owner = $('expBill').checked;
-  const owner_markup_rate = Number($('expMarkup').value || 0);
-  const category_id = $('selCategory').value;
+async function loadClosingHistory(propertyId){
+  const { data, error } = await supabase
+    .from('monthly_closings')
+    .select('id,period_start,period_end,status,net_owner_amount')
+    .eq('property_id', propertyId)
+    .order('period_end', { ascending:false })
+    .limit(10);
 
-  if(!propertyId || !expense_date || !amount){
-    $('expStatus').textContent = "Bien + date + montant requis.";
-    return;
-  }
+  if(error) return;
 
-  $('expStatus').textContent = "Ajout…";
-
-  const { error } = await supabase.from('expenses').insert([{
-    property_id: propertyId,
-    expense_date,
-    amount,
-    description,
-    bill_to_owner,
-    owner_markup_rate,
-    category_id
-  }]);
-
-  if(error){
-    console.error(error);
-    $('expStatus').textContent = "Erreur: " + error.message;
-    return;
-  }
-
-  $('expStatus').textContent = "Dépense ajoutée ✅";
-  $('expAmount').value = '';
-  $('expDesc').value = '';
-  $('expBill').checked = false;
-  $('expMarkup').value = '0';
-  await refreshAll();
+  $('tblClosings').querySelector('tbody').innerHTML = (data||[]).map(c => `
+    <tr>
+      <td>${c.period_start} → ${c.period_end}</td>
+      <td>${badge(c.status)}</td>
+      <td><b>${money(c.net_owner_amount)}</b></td>
+    </tr>
+  `).join('') || `<tr><td colspan="3" class="muted">Aucune clôture</td></tr>`;
 }
 
-window.openInvoice = async function(invoiceId){
-  // Open printable invoice page with query param
-  window.open(`./invoice.html?id=${encodeURIComponent(invoiceId)}`, '_blank');
-};
+async function doClose(){
+  const propertyId = $('selProperty').value;
+  const month = $('inpMonth').value;
+  if(!propertyId || !month){ $('closeMsg').textContent = "Choisis un bien et un mois."; return; }
 
-async function refreshAll(){
-  await Promise.all([
-    loadKPIs(),
-    loadInvoices(),
-    loadExpenses(),
-  ]);
+  const { start, end } = monthRange(month);
+  const adj = Number($('inpAdjust').value || 0);
+  const notes = $('inpNotes').value || null;
+  const vatRate = Number($('inpVat').value || 0);
+
+  $('closeMsg').textContent = "Clôture…";
+
+  const { data: closingId, error: e1 } = await supabase.rpc('close_month', {
+    p_property_id: propertyId,
+    p_period_start: start,
+    p_period_end: end,
+    p_adjustments: adj,
+    p_notes: notes
+  });
+  if(e1){ $('closeMsg').textContent = "Erreur clôture: " + e1.message; return; }
+  lastClosingId = closingId;
+
+  const { error: e2 } = await supabase.rpc('create_zenata_invoice_from_closing', {
+    p_closing_id: closingId,
+    p_vat_rate: vatRate
+  });
+  if(e2){ $('closeMsg').textContent = "Clôture OK, erreur facture: " + e2.message; return; }
+
+  $('closeMsg').textContent = "Clôture + facture ✅";
+  await previewClosing();
+  await loadOverview();
 }
 
-async function main(){
-  const ok = await requireAdmin();
-  if(!ok) return;
+async function doLock(){
+  if(!lastClosingId){ $('closeMsg').textContent = "Clôture d’abord, puis verrouille."; return; }
+  $('closeMsg').textContent = "Verrouillage…";
+  const { error } = await supabase.rpc('lock_closing', { p_closing_id: lastClosingId });
+  if(error){ $('closeMsg').textContent = "Erreur lock: " + error.message; return; }
+  $('closeMsg').textContent = "Locked ✅";
+  await previewClosing();
+  await loadOverview();
+}
 
-  // Default period = last month
-  const now = new Date();
-  const firstThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const lastMonthEnd = new Date(firstThisMonth.getTime() - 1);
-  const lastMonthStart = new Date(lastMonthEnd.getFullYear(), lastMonthEnd.getMonth(), 1);
+async function loadOwners(q=""){
+  const { data, error } = await supabase
+    .from('owners')
+    .select('id,full_name,email')
+    .order('full_name', { ascending:true })
+    .limit(100);
+  if(error) return;
 
-  $('inpStart').value = lastMonthStart.toISOString().slice(0,10);
-  $('inpEnd').value = lastMonthEnd.toISOString().slice(0,10);
+  // balances by owner
+  const bal = await supabase.from('v_owner_balance_by_owner').select('owner_id,balance');
+  const map = new Map((bal.data||[]).map(x => [x.owner_id, Number(x.balance||0)]));
 
-  $('expDate').value = new Date().toISOString().slice(0,10);
-
-  $('btnGenerate').addEventListener('click', generateInvoice);
-  $('btnAddExpense').addEventListener('click', addExpense);
-  $('btnRefresh').addEventListener('click', refreshAll);
-  $('btnLogout').addEventListener('click', async () => {
-    await supabase.auth.signOut();
-    location.reload();
+  const filtered = (data||[]).filter(o => {
+    const s = (o.full_name||"") + " " + (o.email||"");
+    return s.toLowerCase().includes((q||"").toLowerCase());
   });
 
-  await loadProperties();
-  await loadCategories();
-  await refreshAll();
+  $('tblOwners').querySelector('tbody').innerHTML = filtered.map(o => `
+    <tr>
+      <td><b>${o.full_name||"—"}</b></td>
+      <td class="muted">${o.email||"—"}</td>
+      <td><b>${money(map.get(o.id)||0)}</b></td>
+    </tr>
+  `).join('') || `<tr><td colspan="3" class="muted">Aucun propriétaire</td></tr>`;
 }
 
-main().catch(err => {
-  console.error(err);
-  alert("Erreur chargement Finance: " + err.message);
-});
+async function loadCash(){
+  const { data } = await supabase.from('v_cash_balance').select('account_name,balance');
+  $('tblCash').querySelector('tbody').innerHTML = (data||[]).map(r => `
+    <tr>
+      <td><b>${r.account_name}</b></td>
+      <td><b>${money(r.balance)}</b></td>
+    </tr>
+  `).join('') || `<tr><td colspan="2" class="muted">Aucun compte</td></tr>`;
+}
+
+// Auth actions
+async function loginEmailPassword(){
+  const email = $('authEmail').value.trim();
+  const password = $('authPassword').value;
+  $('authMsg').textContent = "Connexion…";
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if(error){ $('authMsg').textContent = "Erreur: " + error.message; return; }
+
+  await boot();
+}
+async function magicLink(){
+  const email = $('authEmail').value.trim();
+  if(!email){ $('authMsg').textContent = "Entre ton email."; return; }
+  $('authMsg').textContent = "Envoi du lien…";
+
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.href }
+  });
+  if(error){ $('authMsg').textContent = "Erreur: " + error.message; return; }
+
+  $('authMsg').textContent = "Lien envoyé ✅ Check ta boîte mail.";
+}
+
+async function boot(){
+  const a = await ensureAdmin();
+  if(!a.ok){
+    if(a.reason === "no_user") return showLogin("");
+    return showLogin("Accès refusé : tu n’es pas admin (table admin_users).");
+  }
+
+  showApp(a.user);
+
+  // Default month = last month
+  const now = new Date();
+  const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  $('inpMonth').value = lastMonth.toISOString().slice(0,7);
+
+  await loadProperties();
+  await loadOverview();
+  await previewClosing();
+  await loadOwners();
+  await loadCash();
+}
+
+function wire(){
+  // tabs
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.onclick = async () => {
+      setTab(btn.dataset.tab);
+      if(btn.dataset.tab === 'overview') await loadOverview();
+      if(btn.dataset.tab === 'closing') await previewClosing();
+      if(btn.dataset.tab === 'owners') await loadOwners($('ownerSearch').value||"");
+      if(btn.dataset.tab === 'cash') await loadCash();
+    };
+  });
+
+  $('btnReload').onclick = async () => {
+    await loadOverview();
+    await previewClosing();
+    await loadOwners($('ownerSearch').value||"");
+    await loadCash();
+  };
+
+  $('btnPreview').onclick = previewClosing;
+  $('btnClose').onclick = doClose;
+  $('btnLock').onclick = doLock;
+
+  $('selProperty').onchange = () => { lastClosingId = null; previewClosing(); };
+  $('inpMonth').onchange = () => { lastClosingId = null; previewClosing(); };
+  $('inpAdjust').oninput = () => {
+    if(!lastPreview) return;
+    const adj = Number($('inpAdjust').value||0);
+    $('cNet').textContent = money(Number(lastPreview.net_owner_amount||0)+adj);
+  };
+
+  $('ownerSearch').oninput = () => loadOwners($('ownerSearch').value||"");
+
+  $('btnLogin').onclick = loginEmailPassword;
+  $('btnMagic').onclick = magicLink;
+
+  $('btnLogout').onclick = async () => { await supabase.auth.signOut(); location.reload(); };
+
+  // keep session changes
+  supabase.auth.onAuthStateChange((_event,_session) => boot());
+}
+
+wire();
+boot();
+
