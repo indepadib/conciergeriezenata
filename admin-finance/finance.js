@@ -49,6 +49,133 @@ async function ensureAdmin(){
   return { ok:true, user, role: data.role };
 }
 
+async function loadPropertiesTable(q=""){
+  const { data, error } = await supabaseClient
+    .from('properties')
+    .select('id,name,owners(full_name),owner_id')
+    .order('name', { ascending:true })
+    .limit(200);
+
+  if(error){ console.error(error); return; }
+
+  // finance settings (forfait consommables)
+  const fs = await supabaseClient
+    .from('finance_settings')
+    .select('property_id, consumables_flat_mad');
+
+  const mapConsum = new Map((fs.data||[]).map(x => [x.property_id, Number(x.consumables_flat_mad||0)]));
+
+  const filtered = (data||[]).filter(p => (p.name||"").toLowerCase().includes((q||"").toLowerCase()));
+
+  $('tblProps').querySelector('tbody').innerHTML = filtered.map(p => `
+    <tr>
+      <td><b>${p.name}</b></td>
+      <td class="muted">${p.owners?.full_name || '—'}</td>
+      <td><b>${money(mapConsum.get(p.id)||0)}</b></td>
+      <td><button class="btn" data-close="${p.id}">Clôturer</button></td>
+    </tr>
+  `).join('') || `<tr><td colspan="4" class="muted">Aucun bien</td></tr>`;
+
+  document.querySelectorAll('[data-close]').forEach(b => {
+    b.onclick = () => {
+      setTab('closing');
+      $('selProperty').value = b.dataset.close;
+      previewClosing();
+    };
+  });
+
+  // also populate expense property dropdown
+  $('expProperty').innerHTML = (data||[]).map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+}
+
+async function addExpense(){
+  const propertyId = $('expProperty').value;
+  const type = $('expType').value;
+  const amount = Number($('expAmount').value || 0);
+  const date = $('expDate').value || new Date().toISOString().slice(0,10);
+  const desc = $('expDesc').value || null;
+
+  if(!amount || amount <= 0){ $('expMsg').textContent = "Entre un montant > 0."; return; }
+  if(!desc){ $('expMsg').textContent = "Ajoute une description."; return; }
+
+  $('expMsg').textContent = "Enregistrement…";
+
+  if(type === 'owner'){
+    const billToOwner = $('expBillToOwner').value === 'true';
+    const markup = Number($('expMarkup').value || 0);
+
+    const { error } = await supabaseClient.from('expenses').insert([{
+      property_id: propertyId,
+      expense_date: date,
+      description: desc,
+      amount: amount,
+      bill_to_owner: billToOwner,
+      owner_markup_rate: markup
+    }]);
+
+    if(error){ console.error(error); $('expMsg').textContent = "Erreur: " + error.message; return; }
+  } else {
+    const { error } = await supabaseClient.from('zenata_expenses').insert([{
+      expense_date: date,
+      description: desc,
+      amount: amount,
+      paid: false
+    }]);
+
+    if(error){ console.error(error); $('expMsg').textContent = "Erreur: " + error.message; return; }
+  }
+
+  $('expMsg').textContent = "Ajouté ✅";
+  $('expAmount').value = "";
+  $('expDesc').value = "";
+  await loadRecentExpenses();
+}
+
+async function loadRecentExpenses(){
+  // owner expenses
+  const a = await supabaseClient
+    .from('expenses')
+    .select('expense_date, description, amount, property_id, properties(name)')
+    .order('expense_date', { ascending:false })
+    .limit(15);
+
+  // zenata expenses
+  const b = await supabaseClient
+    .from('zenata_expenses')
+    .select('expense_date, description, amount')
+    .order('expense_date', { ascending:false })
+    .limit(15);
+
+  const rows = [];
+
+  (a.data||[]).forEach(x => rows.push({
+    date: x.expense_date,
+    property: x.properties?.name || '—',
+    type: 'Propriétaire',
+    desc: x.description,
+    amount: x.amount
+  }));
+  (b.data||[]).forEach(x => rows.push({
+    date: x.expense_date,
+    property: 'Zenata',
+    type: 'Charge',
+    desc: x.description,
+    amount: x.amount
+  }));
+
+  rows.sort((r1,r2) => (r2.date||"").localeCompare(r1.date||""));
+
+  $('tblExpenses').querySelector('tbody').innerHTML = rows.slice(0,20).map(r => `
+    <tr>
+      <td>${r.date}</td>
+      <td class="muted">${r.property}</td>
+      <td>${r.type}</td>
+      <td>${r.desc}</td>
+      <td><b>${money(r.amount)}</b></td>
+    </tr>
+  `).join('') || `<tr><td colspan="5" class="muted">Aucune dépense</td></tr>`;
+}
+
 
 async function showLogin(msg=""){
   $('app').classList.add('hidden');
@@ -387,6 +514,9 @@ async function boot(){
   await previewClosing();
   await loadOwners();
   await loadCash();
+  await loadPropertiesTable();
+await loadRecentExpenses();
+
 }
 
 function wire(){
@@ -398,6 +528,12 @@ function wire(){
       if(btn.dataset.tab === 'closing') await previewClosing();
       if(btn.dataset.tab === 'owners') await loadOwners($('ownerSearch').value||"");
       if(btn.dataset.tab === 'cash') await loadCash();
+      $('propSearch').oninput = () => loadPropertiesTable($('propSearch').value || "");
+      $('btnAddExpense').onclick = addExpense;
+      $('expType').onchange = () => {
+      $('ownerExtra').style.display = ($('expType').value === 'owner') ? '' : 'none';
+};
+
     };
   });
 
