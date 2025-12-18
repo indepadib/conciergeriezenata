@@ -2,10 +2,10 @@
 //  CZ Finance - Admin (MVP v1)
 // =============================
 
-// 1) Configure Supabase
-const SUPABASE_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qZ2NocnF0dmt3emhqdnd3ZnRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2OTMxODEsImV4cCI6MjA3NTI2OTE4MX0.Ok7fj3QUs28Q8dOiNy6caSBmjcUmjFrZgmIvAnzJZ00";
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// 1) Configure supabaseClient
+const supabase_URL = "https://ojgchrqtvkwzhjvwwftd.supabaseClient.co";
+const supabase_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qZ2NocnF0dmt3emhqdnd3ZnRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2OTMxODEsImV4cCI6MjA3NTI2OTE4MX0.Ok7fj3QUs28Q8dOiNy6caSBmjcUmjFrZgmIvAnzJZ00";
+const supabaseClient = window.supabase.createClient(supabase_URL, supabase_ANON_KEY);
 
 const $ = (id) => document.getElementById(id);
 
@@ -25,7 +25,7 @@ function badge(status){
     : `<span class="badge draft">Draft</span>`;
 }
 async function ensureAdmin(){
-  const { data: userRes, error: userErr } = await supabase.auth.getUser();
+  const { data: userRes, error: userErr } = await supabaseClient.auth.getUser();
   const user = userRes?.user;
 
   if (userErr) {
@@ -34,7 +34,7 @@ async function ensureAdmin(){
   }
   if (!user) return { ok:false, reason:"no_user" };
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('admin_users')
     .select('user_id, role')
     .eq('user_id', user.id)
@@ -80,7 +80,7 @@ function setTab(tab){
 }
 
 async function loadProperties(){
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('properties')
     .select('id,name')
     .order('name', { ascending:true });
@@ -97,7 +97,7 @@ async function loadOverview(){
   const month = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   const { start, end } = monthRange(month);
 
-  const inv = await supabase
+  const inv = await supabaseClient
     .from('zenata_invoices')
     .select('total, issued_date')
     .gte('issued_date', start)
@@ -107,22 +107,22 @@ async function loadOverview(){
   $('kpiRevenue').textContent = money(revenue);
 
   // 2) Dette propriétaires (sum balances)
-  const bal = await supabase
+  const bal = await supabaseClient
     .from('v_owner_balance_by_owner')
     .select('balance');
   const ownerDebt = (bal.data || []).reduce((s,r)=>s+Number(r.balance||0),0);
   $('kpiOwnerDebt').textContent = money(ownerDebt);
 
   // 3) Cash
-  const cash = await supabase
+  const cash = await supabaseClient
     .from('v_cash_balance')
     .select('balance');
   const cashTotal = (cash.data || []).reduce((s,r)=>s+Number(r.balance||0),0);
   $('kpiCash').textContent = money(cashTotal);
 
   // 4) Pending closings (rough heuristic): properties count - locked closings count for month
-  const props = await supabase.from('properties').select('id');
-  const locked = await supabase
+  const props = await supabaseClient.from('properties').select('id');
+  const locked = await supabaseClient
     .from('monthly_closings')
     .select('id,property_id,status,period_start,period_end')
     .eq('status','locked')
@@ -159,7 +159,7 @@ async function previewClosing(){
   const { start, end } = monthRange(month);
   $('closeMsg').textContent = "Calcul…";
 
-  const { data, error } = await supabase.rpc('calc_monthly_summary', {
+  const { data, error } = await supabaseClient.rpc('calc_monthly_summary', {
     p_property_id: propertyId,
     p_period_start: start,
     p_period_end: end
@@ -186,7 +186,7 @@ async function previewClosing(){
 }
 
 async function loadClosingHistory(propertyId){
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('monthly_closings')
     .select('id,period_start,period_end,status,net_owner_amount')
     .eq('property_id', propertyId)
@@ -216,7 +216,7 @@ async function doClose(){
 
   $('closeMsg').textContent = "Clôture…";
 
-  const { data: closingId, error: e1 } = await supabase.rpc('close_month', {
+  const { data: closingId, error: e1 } = await supabaseClient.rpc('close_month', {
     p_property_id: propertyId,
     p_period_start: start,
     p_period_end: end,
@@ -226,7 +226,7 @@ async function doClose(){
   if(e1){ $('closeMsg').textContent = "Erreur clôture: " + e1.message; return; }
   lastClosingId = closingId;
 
-  const { error: e2 } = await supabase.rpc('create_zenata_invoice_from_closing', {
+  const { error: e2 } = await supabaseClient.rpc('create_zenata_invoice_from_closing', {
     p_closing_id: closingId,
     p_vat_rate: vatRate
   });
@@ -240,7 +240,7 @@ async function doClose(){
 async function doLock(){
   if(!lastClosingId){ $('closeMsg').textContent = "Clôture d’abord, puis verrouille."; return; }
   $('closeMsg').textContent = "Verrouillage…";
-  const { error } = await supabase.rpc('lock_closing', { p_closing_id: lastClosingId });
+  const { error } = await supabaseClient.rpc('lock_closing', { p_closing_id: lastClosingId });
   if(error){ $('closeMsg').textContent = "Erreur lock: " + error.message; return; }
   $('closeMsg').textContent = "Locked ✅";
   await previewClosing();
@@ -248,7 +248,7 @@ async function doLock(){
 }
 
 async function loadOwners(q=""){
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('owners')
     .select('id,full_name,email')
     .order('full_name', { ascending:true })
@@ -256,7 +256,7 @@ async function loadOwners(q=""){
   if(error) return;
 
   // balances by owner
-  const bal = await supabase.from('v_owner_balance_by_owner').select('owner_id,balance');
+  const bal = await supabaseClient.from('v_owner_balance_by_owner').select('owner_id,balance');
   const map = new Map((bal.data||[]).map(x => [x.owner_id, Number(x.balance||0)]));
 
   const filtered = (data||[]).filter(o => {
@@ -274,7 +274,7 @@ async function loadOwners(q=""){
 }
 
 async function loadCash(){
-  const { data } = await supabase.from('v_cash_balance').select('account_name,balance');
+  const { data } = await supabaseClient.from('v_cash_balance').select('account_name,balance');
   $('tblCash').querySelector('tbody').innerHTML = (data||[]).map(r => `
     <tr>
       <td><b>${r.account_name}</b></td>
@@ -297,13 +297,13 @@ async function loginEmailPassword(){
   $('authMsg').textContent = "Connexion…";
 
   try {
-    const res = await supabase.auth.signInWithPassword({ email, password });
+    const res = await supabaseClient.auth.signInWithPassword({ email, password });
 
     if (res?.error) {
       // Gestion rate limit
       const msg = res.error.message || "";
       if (msg.includes("429") || msg.toLowerCase().includes("rate") || msg.toLowerCase().includes("too many")) {
-        $('authMsg').textContent = "Trop de tentatives. Réessaie plus tard (limite Supabase).";
+        $('authMsg').textContent = "Trop de tentatives. Réessaie plus tard (limite supabaseClient).";
       } else {
         $('authMsg').textContent = "Erreur: " + msg;
       }
@@ -316,7 +316,7 @@ async function loginEmailPassword(){
 
   } catch (e) {
     const m = (e?.message || String(e));
-    if (m.includes("429")) $('authMsg').textContent = "Rate limit Supabase (429). Réessaie plus tard.";
+    if (m.includes("429")) $('authMsg').textContent = "Rate limit supabaseClient (429). Réessaie plus tard.";
     else $('authMsg').textContent = "Erreur: " + m;
     console.error(e);
   } finally {
@@ -340,7 +340,7 @@ async function magicLink(){
   $('authMsg').textContent = "Envoi du lien…";
 
   try {
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabaseClient.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: window.location.href }
     });
@@ -425,9 +425,9 @@ function wire(){
   $('btnLogin').onclick = loginEmailPassword;
   $('btnMagic').onclick = magicLink;
 
-  $('btnLogout').onclick = async () => { await supabase.auth.signOut(); location.reload(); };
+  $('btnLogout').onclick = async () => { await supabaseClient.auth.signOut(); location.reload(); };
 
-  supabase.auth.onAuthStateChange((event,_session) => {
+  supabaseClient.auth.onAuthStateChange((event,_session) => {
   if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
     boot();
   }
