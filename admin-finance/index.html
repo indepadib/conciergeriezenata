@@ -8,165 +8,258 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
+
+<!-- LOGIN -->
+<div id="login" class="auth">
+  <div class="auth-card">
+    <div class="auth-brand">
       <div class="logo">CZ</div>
       <div>
-        <div class="title">Finance</div>
-        <div class="subtitle">Facturation propriétaires & compta interne</div>
+        <div class="auth-title">Finance Admin</div>
+        <div class="auth-sub">Connexion admin • simple et sécurisé</div>
       </div>
     </div>
 
-    <div class="topbar-actions">
-      <button id="btnRefresh" class="btn">Rafraîchir</button>
-      <button id="btnLogout" class="btn btn-ghost">Déconnexion</button>
+    <div class="field">
+      <label>Email</label>
+      <input id="authEmail" type="email" placeholder="admin@conciergeriezenata.com" autocomplete="email"/>
     </div>
-  </header>
 
-  <main class="container">
-    <section class="grid kpis">
-      <div class="card">
-        <div class="card-label">Facturé (30j)</div>
-        <div id="kpiBilled" class="card-value">—</div>
-        <div id="kpiBilledHint" class="card-hint">Total factures (hors “info”)</div>
+    <div class="field">
+      <label>Mot de passe</label>
+      <input id="authPassword" type="password" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+
+    <div class="auth-actions">
+      <button id="btnLogin" class="btn btn-primary">Se connecter</button>
+      <button id="btnMagic" class="btn">Recevoir un lien</button>
+    </div>
+
+    <div id="authMsg" class="muted"></div>
+
+    <div class="auth-help">
+      <div class="muted">Si tu n’arrives pas à te connecter :</div>
+      <ul class="muted">
+        <li>Vérifie que ton user est dans <b>admin_users</b>.</li>
+        <li>Vérifie URL + ANON KEY Supabase.</li>
+        <li>Si besoin, utilise “Recevoir un lien”.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="app hidden">
+  <aside class="sidebar">
+    <div class="side-top">
+      <div class="brand">
+        <div class="logo">CZ</div>
+        <div>
+          <div class="title">Finance</div>
+          <div id="whoami" class="subtitle">—</div>
+        </div>
       </div>
-      <div class="card">
-        <div class="card-label">Factures draft</div>
-        <div id="kpiDraft" class="card-value">—</div>
-        <div class="card-hint">À vérifier / envoyer</div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" data-tab="overview">📌 Résumé</button>
+      <button class="nav-item" data-tab="closing">🧾 Clôture du mois</button>
+      <button class="nav-item" data-tab="owners">👤 Propriétaires</button>
+      <button class="nav-item" data-tab="cash">🏦 Trésorerie</button>
+      <button class="nav-item" data-tab="settings">⚙️ Réglages</button>
+    </nav>
+
+    <div class="side-bottom">
+      <button id="btnLogout" class="btn btn-ghost wfull">Déconnexion</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <div>
+        <h1 id="pageTitle">Résumé</h1>
+        <div id="pageSub" class="muted">Les chiffres importants, sans jargon.</div>
       </div>
-      <div class="card">
-        <div class="card-label">Achats refacturables (30j)</div>
-        <div id="kpiBillableExpenses" class="card-value">—</div>
-        <div class="card-hint">Dépenses marquées “bill_to_owner”</div>
+      <div class="header-actions">
+        <button id="btnReload" class="btn">Rafraîchir</button>
       </div>
-      <div class="card">
-        <div class="card-label">Ménages refacturés (30j)</div>
-        <div id="kpiCleaning" class="card-value">—</div>
-        <div class="card-hint">Services CLEANING bill_to_owner</div>
+    </header>
+
+    <!-- OVERVIEW -->
+    <section id="tab-overview" class="tab">
+      <div class="cards">
+        <div class="card">
+          <div class="card-label">Ce que Zenata a gagné (commission)</div>
+          <div id="kpiRevenue" class="card-value">—</div>
+          <div class="muted">Basé sur les factures Zenata</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Ce que tu dois aux propriétaires</div>
+          <div id="kpiOwnerDebt" class="card-value">—</div>
+          <div class="muted">Solde ledger propriétaires</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Cash Zenata (banque)</div>
+          <div id="kpiCash" class="card-value">—</div>
+          <div class="muted">Somme des comptes de trésorerie</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Closings à faire (ce mois)</div>
+          <div id="kpiPending" class="card-value">—</div>
+          <div class="muted">Biens sans clôture verrouillée</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>À faire maintenant</h2>
+          <div class="muted">3 actions maximum, claires.</div>
+        </div>
+        <div id="todo" class="todo"></div>
       </div>
     </section>
 
-    <section class="grid two">
-      <div class="card pad">
-        <div class="card-head">
-          <h2>Générer une facture mensuelle</h2>
-          <div class="muted">MVP v1 : commission + ménages + achats refacturables</div>
+    <!-- CLOSING -->
+    <section id="tab-closing" class="tab hidden">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Clôture mensuelle</h2>
+          <div class="muted">1) Choisir • 2) Vérifier • 3) Clôturer • 4) Verrouiller</div>
         </div>
 
-        <div class="form-row">
-          <label>Bien</label>
-          <select id="selProperty"></select>
-        </div>
-
-        <div class="form-row two">
-          <div>
-            <label>Période début</label>
-            <input id="inpStart" type="date"/>
+        <div class="grid3">
+          <div class="field">
+            <label>Bien</label>
+            <select id="selProperty"></select>
           </div>
-          <div>
-            <label>Période fin</label>
-            <input id="inpEnd" type="date"/>
+          <div class="field">
+            <label>Mois</label>
+            <input id="inpMonth" type="month"/>
+          </div>
+          <div class="field">
+            <label>TVA (si applicable)</label>
+            <input id="inpVat" type="number" step="0.01" value="0" placeholder="0.20 = 20%"/>
           </div>
         </div>
 
-        <div class="form-actions">
-          <button id="btnGenerate" class="btn btn-primary">Générer facture</button>
-          <span id="genStatus" class="muted"></span>
+        <div class="grid2">
+          <div class="mini">
+            <div class="mini-label">Net propriétaire (estimation)</div>
+            <div id="cNet" class="mini-value">—</div>
+            <div id="cMeta" class="muted">—</div>
+          </div>
+          <div class="mini">
+            <div class="mini-label">Commission Zenata</div>
+            <div id="cComm" class="mini-value">—</div>
+            <div class="muted">20% hors ménage</div>
+          </div>
+        </div>
+
+        <div class="rows">
+          <div class="row"><span class="muted">Payout total (fonds encaissés)</span><b id="cPayout">—</b></div>
+          <div class="row"><span class="muted">Consommables</span><b id="cConsum">—</b></div>
+          <div class="row"><span class="muted">Achats/réparations (refacturés)</span><b id="cBill">—</b></div>
+          <div class="row"><span class="muted">Revenus bruts (info)</span><span id="cGross">—</span></div>
+          <div class="row"><span class="muted">Ménage payé voyageur (info)</span><span id="cClean">—</span></div>
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label>Ajustement (MAD)</label>
+            <input id="inpAdjust" type="number" step="0.01" value="0"/>
+            <div class="muted">+ augmente le net propriétaire • - le diminue</div>
+          </div>
+          <div class="field">
+            <label>Notes</label>
+            <input id="inpNotes" type="text" placeholder="Ex: geste commercial, etc."/>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="btnPreview" class="btn">Vérifier</button>
+          <button id="btnClose" class="btn btn-primary">Clôturer + Facture Zenata</button>
+          <button id="btnLock" class="btn">Verrouiller</button>
+          <span id="closeMsg" class="muted"></span>
         </div>
 
         <div class="divider"></div>
 
-        <h3>Dernières factures</h3>
-        <div class="table-wrap">
-          <table class="table" id="tblInvoices">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Bien</th>
-                <th>Période</th>
-                <th>Statut</th>
-                <th>Total</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card pad">
-        <div class="card-head">
-          <h2>Achats / Charges</h2>
-          <div class="muted">Saisie rapide + refacturation</div>
-        </div>
-
-        <div class="form-row">
-          <label>Bien</label>
-          <select id="selExpenseProperty"></select>
-        </div>
-
-        <div class="form-row two">
-          <div>
-            <label>Date</label>
-            <input id="expDate" type="date"/>
-          </div>
-          <div>
-            <label>Montant (MAD)</label>
-            <input id="expAmount" type="number" step="0.01" placeholder="0.00"/>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <label>Description</label>
-          <input id="expDesc" type="text" placeholder="Ex: Achat ampoules + piles télécommande"/>
-        </div>
-
-        <div class="form-row">
-          <label>Refacturer au propriétaire ?</label>
-          <div class="row-inline">
-            <input id="expBill" type="checkbox"/>
-            <label for="expBill" class="inline">Oui</label>
-          </div>
-        </div>
-
-        <div class="form-row two">
-          <div>
-            <label>Marge (ex: 0.10 = +10%)</label>
-            <input id="expMarkup" type="number" step="0.01" value="0"/>
-          </div>
-          <div>
-            <label>Catégorie</label>
-            <select id="selCategory"></select>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button id="btnAddExpense" class="btn">Ajouter dépense</button>
-          <span id="expStatus" class="muted"></span>
-        </div>
-
-        <div class="divider"></div>
-
-        <h3>Dépenses récentes</h3>
-        <div class="table-wrap">
-          <table class="table" id="tblExpenses">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Bien</th>
-                <th>Description</th>
-                <th>Montant</th>
-                <th>Refact.</th>
-              </tr>
-            </thead>
+        <h3>Historique (ce bien)</h3>
+        <div class="tablewrap">
+          <table class="table" id="tblClosings">
+            <thead><tr><th>Période</th><th>Statut</th><th>Net propriétaire</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
       </div>
     </section>
+
+    <!-- OWNERS -->
+    <section id="tab-owners" class="tab hidden">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Propriétaires</h2>
+          <div class="muted">Tu vois directement qui doit recevoir combien.</div>
+        </div>
+
+        <div class="field">
+          <label>Recherche</label>
+          <input id="ownerSearch" placeholder="Nom, email, téléphone…"/>
+        </div>
+
+        <div class="tablewrap">
+          <table class="table" id="tblOwners">
+            <thead><tr><th>Nom</th><th>Email</th><th>Balance (MAD)</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- CASH -->
+    <section id="tab-cash" class="tab hidden">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Trésorerie</h2>
+          <div class="muted">Combien on a en banque et d’où ça vient.</div>
+        </div>
+
+        <div class="tablewrap">
+          <table class="table" id="tblCash">
+            <thead><tr><th>Compte</th><th>Balance</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="tab-settings" class="tab hidden">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Réglages</h2>
+          <div class="muted">Commission, consommables, règles…</div>
+        </div>
+
+        <div class="rows">
+          <div class="row">
+            <span class="muted">Commission (par défaut)</span>
+            <span><b>20%</b> hors ménage</span>
+          </div>
+          <div class="row">
+            <span class="muted">Consommables</span>
+            <span>Forfait mensuel par bien (dans finance_settings)</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="muted">Les réglages avancés (TVA, modèles de contrat, exports compta) arrivent ensuite.</div>
+      </div>
+    </section>
+
   </main>
+</div>
 
-  <script src="./finance.js"></script>
+<script src="./finance.js"></script>
 </body>
 </html>
