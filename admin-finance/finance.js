@@ -3,7 +3,7 @@
 // =============================
 
 // 1) Configure supabaseClient
-const supabase_URL = "https://ojgchrqtvkwzhjvwwftd.supabaseClient.co";
+const supabase_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";
 const supabase_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qZ2NocnF0dmt3emhqdnd3ZnRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2OTMxODEsImV4cCI6MjA3NTI2OTE4MX0.Ok7fj3QUs28Q8dOiNy6caSBmjcUmjFrZgmIvAnzJZ00";
 const supabaseClient = window.supabase.createClient(supabase_URL, supabase_ANON_KEY);
 
