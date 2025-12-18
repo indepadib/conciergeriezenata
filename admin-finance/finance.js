@@ -24,21 +24,31 @@ function badge(status){
     ? `<span class="badge locked">Locked</span>`
     : `<span class="badge draft">Draft</span>`;
 }
-
 async function ensureAdmin(){
-  const { data, error } = await supabase
-  .from('admin_users')
-  .select('user_id, role')
-  .eq('user_id', user.id)
-  .maybeSingle();
+  const { data: userRes, error: userErr } = await supabase.auth.getUser();
+  const user = userRes?.user;
 
-if (error) {
-  console.error("admin_users select error:", error);
-  return { ok:false, reason:"admin_check_failed", error };
+  if (userErr) {
+    console.error("getUser error:", userErr);
+    return { ok:false, reason:"no_user" };
+  }
+  if (!user) return { ok:false, reason:"no_user" };
+
+  const { data, error } = await supabase
+    .from('admin_users')
+    .select('user_id, role')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("admin_users select error:", error);
+    return { ok:false, reason:"admin_check_failed", error };
+  }
+  if (!data) return { ok:false, reason:"not_admin" };
+
+  return { ok:true, user, role: data.role };
 }
-if (!data) return { ok:false, reason:"not_admin" };
-return { ok:true, user, role: data.role };
-}
+
 
 async function showLogin(msg=""){
   $('app').classList.add('hidden');
@@ -357,9 +367,11 @@ async function magicLink(){
 
 
 async function boot(){
-  const a = await ensureAdmin();
+   const a = await ensureAdmin();
+
   if(!a.ok){
     if(a.reason === "no_user") return showLogin("");
+    if(a.reason === "admin_check_failed") return showLogin("Erreur lecture admin_users (RLS). Applique la policy self_read.");
     return showLogin("Accès refusé : tu n’es pas admin (table admin_users).");
   }
 
