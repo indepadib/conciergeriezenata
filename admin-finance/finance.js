@@ -272,30 +272,88 @@ async function loadCash(){
   `).join('') || `<tr><td colspan="2" class="muted">Aucun compte</td></tr>`;
 }
 
-// Auth actions
+let loginInFlight = false;
+
 async function loginEmailPassword(){
+  if (loginInFlight) return;               // bloque double clic
+  loginInFlight = true;
+
   const email = $('authEmail').value.trim();
   const password = $('authPassword').value;
+
+  $('btnLogin').disabled = true;
+  $('btnMagic').disabled = true;
   $('authMsg').textContent = "Connexion…";
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if(error){ $('authMsg').textContent = "Erreur: " + error.message; return; }
+  try {
+    const res = await supabase.auth.signInWithPassword({ email, password });
 
-  await boot();
+    if (res?.error) {
+      // Gestion rate limit
+      const msg = res.error.message || "";
+      if (msg.includes("429") || msg.toLowerCase().includes("rate") || msg.toLowerCase().includes("too many")) {
+        $('authMsg').textContent = "Trop de tentatives. Réessaie plus tard (limite Supabase).";
+      } else {
+        $('authMsg').textContent = "Erreur: " + msg;
+      }
+      console.error("Auth error:", res.error);
+      return;
+    }
+
+    $('authMsg').textContent = "Connecté ✅";
+    await boot();
+
+  } catch (e) {
+    const m = (e?.message || String(e));
+    if (m.includes("429")) $('authMsg').textContent = "Rate limit Supabase (429). Réessaie plus tard.";
+    else $('authMsg').textContent = "Erreur: " + m;
+    console.error(e);
+  } finally {
+    loginInFlight = false;
+    $('btnLogin').disabled = false;
+    $('btnMagic').disabled = false;
+  }
 }
+
+let otpInFlight = false;
+
 async function magicLink(){
+  if (otpInFlight) return;
+  otpInFlight = true;
+
   const email = $('authEmail').value.trim();
-  if(!email){ $('authMsg').textContent = "Entre ton email."; return; }
+  if(!email){ $('authMsg').textContent = "Entre ton email."; otpInFlight=false; return; }
+
+  $('btnLogin').disabled = true;
+  $('btnMagic').disabled = true;
   $('authMsg').textContent = "Envoi du lien…";
 
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: window.location.href }
-  });
-  if(error){ $('authMsg').textContent = "Erreur: " + error.message; return; }
+  try {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href }
+    });
 
-  $('authMsg').textContent = "Lien envoyé ✅ Check ta boîte mail.";
+    if(error){
+      const msg = error.message || "";
+      if (msg.includes("429") || msg.toLowerCase().includes("too many")) {
+        $('authMsg').textContent = "Trop de demandes de lien. Réessaie plus tard.";
+      } else {
+        $('authMsg').textContent = "Erreur: " + msg;
+      }
+      console.error("OTP error:", error);
+      return;
+    }
+
+    $('authMsg').textContent = "Lien envoyé ✅ (si SMTP configuré).";
+
+  } finally {
+    otpInFlight = false;
+    $('btnLogin').disabled = false;
+    $('btnMagic').disabled = false;
+  }
 }
+
 
 async function boot(){
   const a = await ensureAdmin();
@@ -356,8 +414,12 @@ function wire(){
 
   $('btnLogout').onclick = async () => { await supabase.auth.signOut(); location.reload(); };
 
-  // keep session changes
-  supabase.auth.onAuthStateChange((_event,_session) => boot());
+  supabase.auth.onAuthStateChange((event,_session) => {
+  if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+    boot();
+  }
+});
+
 }
 
 wire();
