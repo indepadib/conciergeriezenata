@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Clôture mensuelle — Finance</title>
+  <link rel="stylesheet" href="./closings.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">CZ</div>
+    <div>
+      <div class="title">Clôture mensuelle</div>
+      <div class="subtitle">Calcul net propriétaire + facture Zenata + verrouillage</div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button id="btnRefresh" class="btn">Rafraîchir</button>
+    <button id="btnLogout" class="btn btn-ghost">Déconnexion</button>
+  </div>
+</header>
+
+<main class="container">
+  <section class="panel">
+    <div class="panel-head">
+      <h2>1) Sélection</h2>
+      <div class="muted">Choisis le bien et le mois. Le preview se calcule instantanément.</div>
+    </div>
+
+    <div class="grid-3">
+      <div class="field">
+        <label>Bien</label>
+        <select id="selProperty"></select>
+      </div>
+      <div class="field">
+        <label>Mois</label>
+        <input id="inpMonth" type="month"/>
+      </div>
+      <div class="field">
+        <label>TVA (si applicable)</label>
+        <input id="inpVat" type="number" step="0.01" value="0" placeholder="0.20 = 20%"/>
+        <div class="hint">Pour l’instant on met 0 par défaut.</div>
+      </div>
+    </div>
+
+    <div class="panel-actions">
+      <button id="btnPreview" class="btn btn-primary">Calculer preview</button>
+      <span id="status" class="muted"></span>
+    </div>
+  </section>
+
+  <section class="grid-2">
+    <section class="panel">
+      <div class="panel-head">
+        <h2>2) Preview (calcul)</h2>
+        <div class="muted">Commission = 20% hors ménage. Consommables = forfait. Achats = bill_to_owner.</div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi">
+          <div class="kpi-label">Payout total (fonds encaissés)</div>
+          <div id="kpiPayout" class="kpi-value">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Commission Zenata</div>
+          <div id="kpiCommission" class="kpi-value">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Consommables</div>
+          <div id="kpiConsumables" class="kpi-value">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Achats / réparations refacturés</div>
+          <div id="kpiBillables" class="kpi-value">—</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="rows">
+        <div class="row">
+          <span class="muted">Revenus bruts (info)</span>
+          <span id="vGross">—</span>
+        </div>
+        <div class="row">
+          <span class="muted">Ménage payé voyageur (info)</span>
+          <span id="vCleaning">—</span>
+        </div>
+        <div class="row">
+          <span class="muted">Hébergement (gross - ménage)</span>
+          <span id="vHousing">—</span>
+        </div>
+        <div class="row">
+          <span class="muted">Frais plateformes (info)</span>
+          <span id="vPlatformFees">—</span>
+        </div>
+      </div>
+
+      <div class="bigbox">
+        <div class="bigbox-label">Net à reverser au propriétaire</div>
+        <div id="kpiNetOwner" class="bigbox-value">—</div>
+        <div id="ownerMeta" class="muted">—</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>3) Valider & verrouiller</h2>
+        <div class="muted">Écrit le closing + ledger propriétaire, génère la facture Zenata, puis verrouille.</div>
+      </div>
+
+      <div class="field">
+        <label>Ajustement manuel (MAD)</label>
+        <input id="inpAdjust" type="number" step="0.01" value="0"/>
+        <div class="hint">+ augmente le net propriétaire, - le diminue.</div>
+      </div>
+
+      <div class="field">
+        <label>Notes</label>
+        <textarea id="inpNotes" rows="4" placeholder="Ex: Ajustement suite geste commercial, etc."></textarea>
+      </div>
+
+      <div class="panel-actions">
+        <button id="btnClose" class="btn btn-primary">Clôturer le mois</button>
+        <button id="btnLock" class="btn">Verrouiller</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3>Derniers closings (ce bien)</h3>
+      <div class="tablewrap">
+        <table class="table" id="tblClosings">
+          <thead>
+            <tr>
+              <th>Période</th>
+              <th>Statut</th>
+              <th>Net owner</th>
+              <th>Facture CZ</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3>Solde propriétaire (ledger)</h3>
+      <div class="rows">
+        <div class="row">
+          <span class="muted">Balance (MAD)</span>
+          <span id="ownerBalance">—</span>
+        </div>
+      </div>
+    </section>
+  </section>
+</main>
+
+<script src="./closings.js"></script>
+</body>
+</html>
