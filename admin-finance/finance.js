@@ -539,6 +539,32 @@ async function loadPropertiesList(){
   if(msg) msg.textContent = `${rows.length} bien(s)`;
 }
 
+async function loadDashboard(){
+  const now = new Date();
+  const m = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const start = `${m}-01`;
+  const end = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+
+  const { data } = await supabaseClient
+    .from('monthly_closings')
+    .select('housing_revenue_total, commission_amount, net_owner_amount')
+    .gte('period_start', start)
+    .lte('period_end', end)
+    .eq('status','locked');
+
+  const rows = data || [];
+  const housing = rows.reduce((s,x)=>s+Number(x.housing_revenue_total||0),0);
+  const commission = rows.reduce((s,x)=>s+Number(x.commission_amount||0),0);
+  const toPay = rows.reduce((s,x)=>s+Number(x.net_owner_amount||0),0);
+  const margin = commission;
+
+  $('kpiHousing').textContent = money(housing);
+  $('kpiCommission').textContent = money(commission);
+  $('kpiToPay').textContent = money(toPay);
+  $('kpiMargin').textContent = money(margin);
+}
+
+
 /*************************************************
  * OWNERS (Propriétaires)
  *************************************************/
