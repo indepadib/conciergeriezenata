@@ -524,13 +524,6 @@ function wire(){
     window.__expT = setTimeout(loadExpensesV2, 150);
   });
 
-  // Auth state changes (avoid infinite loops)
-  supabaseClient.auth.onAuthStateChange((event) => {
-    if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-      boot();
-    }
-  });
-}
 
 /*************************************************
  * BOOT
