@@ -478,6 +478,110 @@ async function magicLink(){
     $('btnMagic') && ($('btnMagic').disabled = false);
   }
 }
+
+/*************************************************
+ * PROPERTIES (Biens)
+ *************************************************/
+async function loadPropertiesList(){
+  const tbody = $('tblProps')?.querySelector('tbody');
+  const msg = $('propsMsg');
+  if(msg) msg.textContent = "Chargement…";
+  if(!tbody) return;
+
+  const q = ($('propSearch')?.value || "").trim().toLowerCase();
+
+  // On prend aussi owner via relation si possible
+  const { data, error } = await supabaseClient
+    .from('properties')
+    .select('id,name,owner_id,owners(full_name,email)')
+    .order('name', { ascending:true })
+    .limit(500);
+
+  if(error){
+    console.error(error);
+    if(msg) msg.textContent = "Erreur: " + error.message;
+    return;
+  }
+
+  let rows = data || [];
+  if(q) rows = rows.filter(p => (p.name||"").toLowerCase().includes(q));
+
+  tbody.innerHTML = rows.map(p => `
+    <tr>
+      <td><b>${p.name || "—"}</b></td>
+      <td class="muted">${p.owners?.full_name || "—"}</td>
+      <td class="row-actions">
+        <button class="iconbtn" data-prop-exp="${p.id}">Dépenses</button>
+        <button class="iconbtn" data-prop-close="${p.id}">Clôturer</button>
+      </td>
+    </tr>
+  `).join('') || `<tr><td colspan="3" class="muted">Aucun bien</td></tr>`;
+
+  // Actions
+  document.querySelectorAll('[data-prop-exp]').forEach(b => {
+    b.onclick = async () => {
+      setTab('expenses');
+      $('fProperty').value = b.dataset.propExp;
+      await loadExpensesV2();
+    };
+  });
+
+  document.querySelectorAll('[data-prop-close]').forEach(b => {
+    b.onclick = () => {
+      setTab('closing');
+      // Si tu as un select property dans closing :
+      if($('selProperty')) $('selProperty').value = b.dataset.propClose;
+      // previewClosing si tu l’as
+      if(typeof previewClosing === 'function') previewClosing();
+    };
+  });
+
+  if(msg) msg.textContent = `${rows.length} bien(s)`;
+}
+
+/*************************************************
+ * OWNERS (Propriétaires)
+ *************************************************/
+async function loadOwnersList(){
+  const tbody = $('tblOwners')?.querySelector('tbody');
+  const msg = $('ownersMsg');
+  if(msg) msg.textContent = "Chargement…";
+  if(!tbody) return;
+
+  const q = ($('ownerSearch')?.value || "").trim().toLowerCase();
+
+  const { data, error } = await supabaseClient
+    .from('owners')
+    .select('id,full_name,email,phone,created_at')
+    .order('created_at', { ascending:false })
+    .limit(500);
+
+  if(error){
+    console.error(error);
+    if(msg) msg.textContent = "Erreur: " + error.message;
+    return;
+  }
+
+  let rows = data || [];
+  if(q){
+    rows = rows.filter(o =>
+      (o.full_name||"").toLowerCase().includes(q) ||
+      (o.email||"").toLowerCase().includes(q) ||
+      (o.phone||"").toLowerCase().includes(q)
+    );
+  }
+
+  tbody.innerHTML = rows.map(o => `
+    <tr>
+      <td><b>${o.full_name || "—"}</b></td>
+      <td class="muted">${o.email || "—"}</td>
+      <td class="muted">${o.phone || "—"}</td>
+    </tr>
+  `).join('') || `<tr><td colspan="3" class="muted">Aucun propriétaire</td></tr>`;
+
+  if(msg) msg.textContent = `${rows.length} propriétaire(s)`;
+}
+
 /*************************************************
  * WIRE UI
  *************************************************/
@@ -487,7 +591,7 @@ function wire(){
   const btnMagic = $('btnMagic');
   if(btnLogin) btnLogin.onclick = loginEmailPassword;
   if(btnMagic) btnMagic.onclick = magicLink;
-
+  
   // Tabs navigation
   document.querySelectorAll('.nav-item').forEach(btn => {
     btn.onclick = async () => {
@@ -499,7 +603,26 @@ function wire(){
         await loadExpenseProperties();
         await loadExpensesV2();
       }
+      if(tab === 'properties') await loadPropertiesList();
+      if(tab === 'owners') await loadOwnersList();
     };
+    // ===== Biens =====
+  const propSearch = $('propSearch');
+  if(propSearch){
+    propSearch.oninput = () => {
+      clearTimeout(window.__psT);
+      window.__psT = setTimeout(loadPropertiesList, 150);
+    };
+  }
+
+  // ===== Owners =====
+  const ownerSearch = $('ownerSearch');
+  if(ownerSearch){
+    ownerSearch.oninput = () => {
+      clearTimeout(window.__osT);
+      window.__osT = setTimeout(loadOwnersList, 150);
+    };
+  }
   });
 
   // Global buttons (optional)
@@ -509,6 +632,7 @@ function wire(){
       await supabaseClient.auth.signOut();
       location.reload();
     };
+    
   }
 
   // ===== Expenses V2 wiring =====
@@ -556,6 +680,10 @@ async function boot(){
   }
 
   showApp(a.user);
+    // preload lists
+  if($('tblProps')) await loadPropertiesList();
+  if($('tblOwners')) await loadOwnersList();
+
 
   // Default month filter for expenses
   const fMonth = $('fMonth');
