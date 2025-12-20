@@ -124,78 +124,95 @@
 
     <!-- CLOSING -->
     <section id="tab-closing" class="tab hidden">
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Clôture mensuelle</h2>
-          <div class="muted">1) Choisir • 2) Vérifier • 3) Clôturer • 4) Verrouiller</div>
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <h2>Clôture du mois</h2>
+        <div class="muted">Choisir → vérifier → valider. Tout est calculé automatiquement.</div>
+      </div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="card">
+      <h3>1) Choisir</h3>
+      <div class="grid2">
+        <div class="field">
+          <label>Bien</label>
+          <select id="cProperty"></select>
         </div>
-
-        <div class="grid3">
-          <div class="field">
-            <label>Bien</label>
-            <select id="selProperty"></select>
-          </div>
-          <div class="field">
-            <label>Mois</label>
-            <input id="inpMonth" type="month"/>
-          </div>
-          <div class="field">
-            <label>TVA (si applicable)</label>
-            <input id="inpVat" type="number" step="0.01" value="0" placeholder="0.20 = 20%"/>
-          </div>
-        </div>
-
-        <div class="grid2">
-          <div class="mini">
-            <div class="mini-label">Net propriétaire (estimation)</div>
-            <div id="cNet" class="mini-value">—</div>
-            <div id="cMeta" class="muted">—</div>
-          </div>
-          <div class="mini">
-            <div class="mini-label">Commission Zenata</div>
-            <div id="cComm" class="mini-value">—</div>
-            <div class="muted">20% hors ménage</div>
-          </div>
-        </div>
-
-        <div class="rows">
-          <div class="row"><span class="muted">Payout total (fonds encaissés)</span><b id="cPayout">—</b></div>
-          <div class="row"><span class="muted">Consommables</span><b id="cConsum">—</b></div>
-          <div class="row"><span class="muted">Achats/réparations (refacturés)</span><b id="cBill">—</b></div>
-          <div class="row"><span class="muted">Revenus bruts (info)</span><span id="cGross">—</span></div>
-          <div class="row"><span class="muted">Ménage payé voyageur (info)</span><span id="cClean">—</span></div>
-        </div>
-
-        <div class="grid2">
-          <div class="field">
-            <label>Ajustement (MAD)</label>
-            <input id="inpAdjust" type="number" step="0.01" value="0"/>
-            <div class="muted">+ augmente le net propriétaire • - le diminue</div>
-          </div>
-          <div class="field">
-            <label>Notes</label>
-            <input id="inpNotes" type="text" placeholder="Ex: geste commercial, etc."/>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button id="btnPreview" class="btn">Vérifier</button>
-          <button id="btnClose" class="btn btn-primary">Clôturer + Facture Zenata</button>
-          <button id="btnLock" class="btn">Verrouiller</button>
-          <span id="closeMsg" class="muted"></span>
-        </div>
-
-        <div class="divider"></div>
-
-        <h3>Historique (ce bien)</h3>
-        <div class="tablewrap">
-          <table class="table" id="tblClosings">
-            <thead><tr><th>Période</th><th>Statut</th><th>Net propriétaire</th></tr></thead>
-            <tbody></tbody>
-          </table>
+        <div class="field">
+          <label>Mois</label>
+          <input id="cMonth" type="month"/>
         </div>
       </div>
-    </section>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="card">
+      <h3>2) Revenus plateformes</h3>
+      <div class="grid2">
+        <div>
+          <h4>Airbnb</h4>
+          <div class="field">
+            <label>Revenu logement</label>
+            <input id="airbnbHousing" type="number" step="0.01"/>
+          </div>
+          <div class="field">
+            <label>Frais plateforme</label>
+            <input id="airbnbFees" type="number" step="0.01"/>
+          </div>
+        </div>
+        <div>
+          <h4>Booking</h4>
+          <div class="field">
+            <label>Revenu logement</label>
+            <input id="bookingHousing" type="number" step="0.01"/>
+          </div>
+          <div class="field">
+            <label>Frais plateforme</label>
+            <input id="bookingFees" type="number" step="0.01"/>
+          </div>
+        </div>
+      </div>
+      <div class="muted" id="revTotalMsg"></div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="card">
+      <h3>3) Déductions</h3>
+      <div class="grid2">
+        <div class="field">
+          <label>Consommables (ce mois)</label>
+          <input id="cConsumables" type="number" step="0.01"/>
+          <div class="hint">Pré-rempli avec le forfait du bien. Modifiable pour ce mois.</div>
+        </div>
+        <div class="field">
+          <label>Dépenses refacturables</label>
+          <input id="cExpenses" type="number" step="0.01" disabled/>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="card highlight">
+      <h3>4) Résumé propriétaire</h3>
+      <div class="summary">
+        <div><span>Revenus logement</span><b id="sHousing">—</b></div>
+        <div><span>Commission Zenata (20%)</span><b id="sCommission">—</b></div>
+        <div><span>Consommables</span><b id="sConsumables">—</b></div>
+        <div><span>Dépenses</span><b id="sExpenses">—</b></div>
+        <hr/>
+        <div class="total"><span>À verser au propriétaire</span><b id="sNet">—</b></div>
+      </div>
+    </div>
+
+    <!-- ACTION -->
+    <div class="actions">
+      <button id="btnCloseMonth" class="btn btn-primary">Valider la clôture du mois</button>
+      <span id="closeMsg" class="muted"></span>
+    </div>
+  </div>
+</section>
 
    <section id="tab-expenses" class="tab hidden">
   <div class="panel">
