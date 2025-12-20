@@ -14,7 +14,7 @@ const supabase_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // IMPORTANT: keep supabase library loaded via CDN in index.html
 // <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(supabase_URL, supabase_ANON_KEY);
 
 const $ = (id) => document.getElementById(id);
 
