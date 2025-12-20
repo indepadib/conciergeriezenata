@@ -583,6 +583,117 @@ async function loadOwnersList(){
 }
 
 /*************************************************
+ * CLOSING – UX + LOGIC
+ *************************************************/
+const COMMISSION_RATE = 0.20;
+
+function calcClosing(){
+  const aH = Number($('airbnbHousing').value||0);
+  const bH = Number($('bookingHousing').value||0);
+  const housing = aH + bH;
+
+  const consum = Number($('cConsumables').value||0);
+  const exp = Number($('cExpenses').value||0);
+  const commission = housing * COMMISSION_RATE;
+  const net = housing - commission - consum - exp;
+
+  $('revTotalMsg').textContent = `Total revenus logement : ${money(housing)}`;
+  $('sHousing').textContent = money(housing);
+  $('sCommission').textContent = `-${money(commission)}`;
+  $('sConsumables').textContent = `-${money(consum)}`;
+  $('sExpenses').textContent = `-${money(exp)}`;
+  $('sNet').textContent = money(net);
+
+  return { housing, commission, consum, exp, net };
+}
+
+async function loadClosingDefaults(){
+  // properties dropdown
+  await loadExpenseProperties(); // déjà existant → remplit EXP_PROPS
+  $('cProperty').innerHTML = EXP_PROPS.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+
+  // month default
+  const now = new Date();
+  $('cMonth').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+  // consommables forfait du bien
+  $('cProperty').onchange = async () => {
+    const pid = $('cProperty').value;
+    const { data } = await supabaseClient
+      .from('finance_settings')
+      .select('consumables_flat_mad')
+      .eq('property_id', pid)
+      .maybeSingle();
+    $('cConsumables').value = Number(data?.consumables_flat_mad||0);
+    await loadMonthExpenses();
+    calcClosing();
+  };
+
+  $('cMonth').onchange = async () => {
+    await loadMonthExpenses();
+    calcClosing();
+  };
+}
+
+async function loadMonthExpenses(){
+  const pid = $('cProperty').value;
+  const m = $('cMonth').value;
+  if(!pid || !m) return;
+
+  const [y,mo] = m.split('-').map(Number);
+  const start = `${y}-${String(mo).padStart(2,'0')}-01`;
+  const end = new Date(y, mo, 0).toISOString().slice(0,10);
+
+  const { data } = await supabaseClient
+    .from('expenses')
+    .select('amount,owner_markup_rate')
+    .eq('property_id', pid)
+    .gte('expense_date', start)
+    .lte('expense_date', end)
+    .eq('bill_to_owner', true);
+
+  const total = (data||[]).reduce((s,x)=> s + Number(x.amount)*(1+Number(x.owner_markup_rate||0)), 0);
+  $('cExpenses').value = total.toFixed(2);
+}
+
+async function saveClosing(){
+  const pid = $('cProperty').value;
+  const m = $('cMonth').value;
+  if(!pid || !m){ $('closeMsg').textContent="Choisis un bien et un mois."; return; }
+
+  const [y,mo] = m.split('-').map(Number);
+  const start = `${y}-${String(mo).padStart(2,'0')}-01`;
+  const end = new Date(y, mo, 0).toISOString().slice(0,10);
+
+  const { housing, commission, consum, exp, net } = calcClosing();
+
+  $('closeMsg').textContent = "Enregistrement…";
+
+  const { error } = await supabaseClient.from('monthly_closings').upsert([{
+    property_id: pid,
+    period_start: start,
+    period_end: end,
+    status: 'locked',
+    housing_revenue_total: housing,
+    commission_rate: COMMISSION_RATE,
+    commission_amount: commission,
+    consumables_amount: consum,
+    billable_expenses_amount: exp,
+    net_owner_amount: net
+  }], { onConflict: 'property_id,period_start,period_end' });
+
+  if(error){
+    console.error(error);
+    $('closeMsg').textContent = "Erreur: " + error.message;
+    return;
+  }
+  $('closeMsg').textContent = "Clôture validée 🔒";
+}
+
+
+
+
+/*************************************************
  * WIRE UI
  *************************************************/
 function wire(){
@@ -615,6 +726,8 @@ function wire(){
     };
   }
 
+  
+
   // ===== Owners =====
   const ownerSearch = $('ownerSearch');
   if(ownerSearch){
@@ -634,6 +747,13 @@ function wire(){
     };
     
   }
+
+  // Closing
+$('btnCloseMonth') && ($('btnCloseMonth').onclick = saveClosing);
+['airbnbHousing','airbnbFees','bookingHousing','bookingFees','cConsumables'].forEach(id=>{
+  $(id) && ($(id).oninput = calcClosing);
+});
+
 
   // ===== Expenses V2 wiring =====
   const btnNewExpense = $('btnNewExpense');
@@ -683,7 +803,7 @@ async function boot(){
     // preload lists
   if($('tblProps')) await loadPropertiesList();
   if($('tblOwners')) await loadOwnersList();
-
+  if($('tab-closing')) await loadClosingDefaults();
 
   // Default month filter for expenses
   const fMonth = $('fMonth');
