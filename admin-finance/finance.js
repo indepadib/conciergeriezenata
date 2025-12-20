@@ -1087,6 +1087,8 @@ async function boot(){
   if($('tblProps')) await loadPropertiesList();
   if($('tblOwners')) await loadOwnersList();
   if($('tab-closing')) await loadClosingDefaults();
+  if($('tblToPay')) { await loadToPay(); await loadPaid(); }
+
 
   // Default month filter for expenses
   const fMonth = $('fMonth');
