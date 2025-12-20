@@ -877,6 +877,96 @@ async function ownerStatement(){
 }
 
 
+async function loadToPay(){
+  const tbody = $('tblToPay')?.querySelector('tbody');
+  const msg = $('toPayMsg');
+  if(!tbody) return;
+
+  msg && (msg.textContent = "Chargement…");
+
+  const { data, error } = await supabaseClient
+    .from('monthly_closings')
+    .select('id, net_owner_amount, period_start, properties(name, owners(full_name))')
+    .eq('status', 'locked')
+    .is('paid_at', null)
+    .order('period_start', { ascending:false })
+    .limit(200);
+
+  if(error){
+    console.error(error);
+    msg && (msg.textContent = "Erreur: " + error.message);
+    return;
+  }
+
+  const rows = data || [];
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td><b>${r.properties?.owners?.full_name || '—'}</b></td>
+      <td class="muted">${r.properties?.name || '—'}</td>
+      <td class="muted">${String(r.period_start).slice(0,7)}</td>
+      <td><b>${money(r.net_owner_amount)}</b></td>
+      <td class="row-actions">
+        <button class="iconbtn" data-paid="${r.id}">Marquer payé</button>
+      </td>
+    </tr>
+  `).join('') || `<tr><td colspan="5" class="muted">Rien à payer 🎉</td></tr>`;
+
+  // action
+  document.querySelectorAll('[data-paid]').forEach(btn => {
+    btn.onclick = async () => {
+      const ref = prompt("Référence paiement (optionnel) :") || null;
+      const { error: uerr } = await supabaseClient
+        .from('monthly_closings')
+        .update({ paid_at: new Date().toISOString(), paid_ref: ref })
+        .eq('id', btn.dataset.paid);
+
+      if(uerr){ alert("Erreur: " + uerr.message); return; }
+
+      await loadToPay();
+      await loadPaid();
+    };
+  });
+
+  msg && (msg.textContent = `${rows.length} paiement(s) en attente`);
+}
+
+async function loadPaid(){
+  const tbody = $('tblPaid')?.querySelector('tbody');
+  const msg = $('paidMsg');
+  if(!tbody) return;
+
+  msg && (msg.textContent = "Chargement…");
+
+  const { data, error } = await supabaseClient
+    .from('monthly_closings')
+    .select('id, net_owner_amount, period_start, paid_at, paid_ref, properties(name, owners(full_name))')
+    .eq('status', 'locked')
+    .not('paid_at', 'is', null)
+    .order('paid_at', { ascending:false })
+    .limit(200);
+
+  if(error){
+    console.error(error);
+    msg && (msg.textContent = "Erreur: " + error.message);
+    return;
+  }
+
+  const rows = data || [];
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td><b>${r.properties?.owners?.full_name || '—'}</b></td>
+      <td class="muted">${r.properties?.name || '—'}</td>
+      <td class="muted">${String(r.period_start).slice(0,7)}</td>
+      <td><b>${money(r.net_owner_amount)}</b></td>
+      <td class="muted">${(r.paid_at || '').slice(0,10)}</td>
+      <td class="muted">${r.paid_ref || '—'}</td>
+    </tr>
+  `).join('') || `<tr><td colspan="6" class="muted">Aucun historique</td></tr>`;
+
+  msg && (msg.textContent = `${rows.length} paiement(s) payés`);
+}
+
+
 
 
 /*************************************************
@@ -901,8 +991,13 @@ function wire(){
         await loadExpensesV2();
       }
       if(tab === 'properties') await loadPropertiesList();
-      if(tab === 'owners') await loadOwnersList();
+       if(tab === 'owners'){
+  await loadOwnersList();   // si tu l’as déjà
+  await loadToPay();
+  await loadPaid();
+}
     };
+    
     // ===== Biens =====
   const propSearch = $('propSearch');
   if(propSearch){
