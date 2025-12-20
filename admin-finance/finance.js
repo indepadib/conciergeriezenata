@@ -478,52 +478,70 @@ async function magicLink(){
     $('btnMagic') && ($('btnMagic').disabled = false);
   }
 }
-
 /*************************************************
  * WIRE UI
  *************************************************/
 function wire(){
-  // Tabs
+  // Auth buttons
+  const btnLogin = $('btnLogin');
+  const btnMagic = $('btnMagic');
+  if(btnLogin) btnLogin.onclick = loginEmailPassword;
+  if(btnMagic) btnMagic.onclick = magicLink;
+
+  // Tabs navigation
   document.querySelectorAll('.nav-item').forEach(btn => {
     btn.onclick = async () => {
-      setTab(btn.dataset.tab);
-      if(btn.dataset.tab === 'expenses'){
+      const tab = btn.dataset.tab;
+      setTab(tab);
+
+      // lazy-load expenses when opening tab
+      if(tab === 'expenses'){
         await loadExpenseProperties();
         await loadExpensesV2();
       }
     };
   });
 
-  // Global actions
-  $('btnReload') && ($('btnReload').onclick = async () => {
-    await loadExpenseProperties();
-    await loadExpensesV2();
-  });
-
-  $('btnLogout') && ($('btnLogout').onclick = async () => {
-    await supabaseClient.auth.signOut();
-    location.reload();
-  });
-
-  // Auth
-  $('btnLogin') && ($('btnLogin').onclick = loginEmailPassword);
-  $('btnMagic') && ($('btnMagic').onclick = magicLink);
+  // Global buttons (optional)
+  const btnLogout = $('btnLogout');
+  if(btnLogout){
+    btnLogout.onclick = async () => {
+      await supabaseClient.auth.signOut();
+      location.reload();
+    };
+  }
 
   // ===== Expenses V2 wiring =====
-  $('btnNewExpense') && ($('btnNewExpense').onclick = () => openExpenseModal(null));
-  document.querySelectorAll('[data-close="1"]').forEach(el => el.onclick = closeExpenseModal);
+  const btnNewExpense = $('btnNewExpense');
+  if(btnNewExpense) btnNewExpense.onclick = () => openExpenseModal(null);
 
-  $('btnSaveExpense') && ($('btnSaveExpense').onclick = saveExpense);
-  $('btnDeleteExpense') && ($('btnDeleteExpense').onclick = deleteExpense);
-
-  $('fProperty') && ($('fProperty').onchange = loadExpensesV2);
-  $('fMonth') && ($('fMonth').onchange = loadExpensesV2);
-  $('fBillable') && ($('fBillable').onchange = loadExpensesV2);
-  $('fSearch') && ($('fSearch').oninput = () => {
-    clearTimeout(window.__expT);
-    window.__expT = setTimeout(loadExpensesV2, 150);
+  document.querySelectorAll('[data-close="1"]').forEach(el => {
+    el.onclick = () => closeExpenseModal();
   });
 
+  const btnSaveExpense = $('btnSaveExpense');
+  if(btnSaveExpense) btnSaveExpense.onclick = saveExpense;
+
+  const btnDeleteExpense = $('btnDeleteExpense');
+  if(btnDeleteExpense) btnDeleteExpense.onclick = deleteExpense;
+
+  const fProperty = $('fProperty');
+  if(fProperty) fProperty.onchange = loadExpensesV2;
+
+  const fMonth = $('fMonth');
+  if(fMonth) fMonth.onchange = loadExpensesV2;
+
+  const fBillable = $('fBillable');
+  if(fBillable) fBillable.onchange = loadExpensesV2;
+
+  const fSearch = $('fSearch');
+  if(fSearch){
+    fSearch.oninput = () => {
+      clearTimeout(window.__expT);
+      window.__expT = setTimeout(loadExpensesV2, 150);
+    };
+  }
+}
 
 /*************************************************
  * BOOT
@@ -539,21 +557,27 @@ async function boot(){
 
   showApp(a.user);
 
-  // Default to Expenses tab setup if fields exist
-  if($('fMonth')){
+  // Default month filter for expenses
+  const fMonth = $('fMonth');
+  if(fMonth){
     const now = new Date();
-    $('fMonth').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    fMonth.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   }
 
-  // Load expenses essentials (safe even if tab hidden)
+  // preload expenses (safe even if tab hidden)
   await loadExpenseProperties();
   await loadExpensesV2();
 
-  // Set default tab if none
+  // Default tab
   const active = document.querySelector('.nav-item.active')?.dataset?.tab || 'overview';
   setTab(active);
 }
 
-// Start
-wire();
-boot();
+/*************************************************
+ * START
+ *************************************************/
+document.addEventListener('DOMContentLoaded', () => {
+  wire();
+  boot();
+});
+
