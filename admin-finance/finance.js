@@ -617,11 +617,14 @@ function calcClosing(){
   const aH = Number($('airbnbHousing').value||0);
   const bH = Number($('bookingHousing').value||0);
   const housing = aH + bH;
+  const cleaning = Number($('airbnbCleaning')?.value||0) + Number($('bookingCleaning')?.value||0);
+
+
 
   const consum = Number($('cConsumables').value||0);
   const exp = Number($('cExpenses').value||0);
   const commission = housing * COMMISSION_RATE;
-  const net = housing - commission - consum - exp;
+  const net = housing - commission - consum - exp-cleaning;
 
   $('revTotalMsg').textContent = `Total revenus logement : ${money(housing)}`;
   $('sHousing').textContent = money(housing);
@@ -629,6 +632,7 @@ function calcClosing(){
   $('sConsumables').textContent = `-${money(consum)}`;
   $('sExpenses').textContent = `-${money(exp)}`;
   $('sNet').textContent = money(net);
+  $('sCleaning').textContent = money(cleaning);
 
   return { housing, commission, consum, exp, net };
 }
