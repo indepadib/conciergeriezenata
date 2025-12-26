@@ -829,9 +829,10 @@ async function ownerStatement(){
   // property + owner
   const pRes = await supabaseClient
     .from('properties')
-    .select('id,name,owners(full_name,email)')
+    .select('id,name,owner_id,owners(full_name,email,phone)')
     .eq('id', pid)
     .single();
+  if(pRes.error) return alert("Erreur bien: " + pRes.error.message);
 
   // closing
   const cRes = await supabaseClient
@@ -841,6 +842,19 @@ async function ownerStatement(){
     .eq('period_start', start)
     .eq('period_end', end)
     .maybeSingle();
+  if(cRes.error) return alert("Erreur clôture: " + cRes.error.message);
+
+  const clo = cRes.data;
+  if(!clo) return alert("Aucune clôture trouvée pour ce mois. Valide d’abord la clôture.");
+
+  // platform payouts
+  const ppRes = await supabaseClient
+    .from('platform_payouts')
+    .select('platform,housing_revenue,platform_fees,cleaning_collected')
+    .eq('property_id', pid)
+    .eq('period_start', start)
+    .eq('period_end', end);
+  const payouts = ppRes.data || [];
 
   // expenses list with receipt
   const eRes = await supabaseClient
@@ -852,72 +866,211 @@ async function ownerStatement(){
     .order('expense_date', { ascending:true });
 
   const prop = pRes.data;
-  const clo = cRes.data;
+  const owner = prop?.owners || {};
   const expenses = (eRes.data||[]).filter(x=>x.bill_to_owner);
 
   const expTotal = expenses.reduce((s,x)=> s + Number(x.amount)*(1+Number(x.owner_markup_rate||0)), 0);
 
+  const air = payouts.find(x=>x.platform==='airbnb') || {};
+  const boo = payouts.find(x=>x.platform==='booking') || {};
+
+  const housingTotal = Number(clo.housing_revenue_total||0);
+  const cleaningTotal = Number(clo.cleaning_collected_total||0);
+  const feesTotal = Number(clo.platform_fees_total||0);
+
+  const logoUrl = "/assets/logo.png"; // <- change if needed
+
   const html = `
-  <html><head><meta charset="utf-8"/>
-  <title>Relevé propriétaire - ${prop?.name||''} - ${m}</title>
-  <style>
-    body{font-family:ui-sans-serif,system-ui,-apple-system; padding:24px; color:#0B1220}
-    h1{margin:0 0 6px 0}
-    .muted{color:#667085}
-    .box{border:1px solid #e5e7eb; border-radius:14px; padding:14px; margin:14px 0}
-    table{width:100%; border-collapse:collapse; margin-top:10px}
-    th,td{padding:10px; border-bottom:1px solid #eee; font-size:13px; text-align:left}
-    .right{text-align:right}
-    .sum{display:grid; gap:6px}
-    .row{display:flex; justify-content:space-between}
-    .total{font-size:18px; font-weight:800}
-  </style>
-  </head><body>
-    <h1>Relevé propriétaire</h1>
-    <div class="muted">${m} • ${prop?.name||''} • ${prop?.owners?.full_name||''}</div>
-
-    <div class="box">
-      <b>Résumé</b>
-      <div class="sum">
-        <div class="row"><span>Revenus logement</span><span>${money(clo?.housing_revenue_total||0)}</span></div>
-        <div class="row"><span>Commission Zenata</span><span>-${money(clo?.commission_amount||0)}</span></div>
-        <div class="row"><span>Consommables</span><span>-${money(clo?.consumables_amount||0)}</span></div>
-        <div class="row"><span>Dépenses</span><span>-${money(expTotal)}</span></div>
-        <hr/>
-        <div class="row total"><span>À verser</span><span>${money(clo?.net_owner_amount||0)}</span></div>
+  <html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Relevé propriétaire • ${prop?.name||''} • ${m}</title>
+    <style>
+      :root{
+        --ink:#0B1220;
+        --muted:#667085;
+        --line:#E5E7EB;
+        --card:#FFFFFF;
+        --bg:#F7F8FB;
+        --accent:#1D4ED8;
+      }
+      *{box-sizing:border-box}
+      body{
+        margin:0;
+        background:var(--bg);
+        color:var(--ink);
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      }
+      .page{max-width:900px; margin:0 auto; padding:28px}
+      .header{
+        display:flex; align-items:center; justify-content:space-between;
+        gap:14px; padding:16px 18px;
+        background:var(--card); border:1px solid var(--line); border-radius:18px;
+      }
+      .brand{display:flex; align-items:center; gap:12px}
+      .brand img{height:34px; width:auto}
+      .h1{font-size:18px; font-weight:900; margin:0}
+      .sub{font-size:12px; color:var(--muted); margin-top:2px}
+      .badge{
+        font-size:12px; padding:6px 10px; border-radius:999px;
+        border:1px solid var(--line); background:#fff;
+      }
+      .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px}
+      .card{
+        background:var(--card);
+        border:1px solid var(--line);
+        border-radius:18px;
+        padding:14px 16px;
+      }
+      .title{font-weight:900; margin:0 0 10px 0; font-size:14px}
+      .muted{color:var(--muted)}
+      .row{display:flex; justify-content:space-between; gap:12px; padding:6px 0}
+      .row b{font-variant-numeric: tabular-nums;}
+      hr{border:none; border-top:1px solid var(--line); margin:10px 0}
+      .total{
+        display:flex; justify-content:space-between; align-items:center;
+        font-weight:1000; font-size:18px;
+        padding-top:8px;
+      }
+      table{width:100%; border-collapse:collapse; margin-top:8px}
+      th,td{padding:10px; border-bottom:1px solid #EEF0F4; font-size:12.5px; text-align:left; vertical-align:top}
+      th{color:var(--muted); font-weight:800}
+      .right{text-align:right}
+      .pill{
+        display:inline-flex; align-items:center; gap:6px;
+        font-size:11px; padding:4px 8px; border-radius:999px;
+        border:1px solid var(--line);
+        color:var(--muted);
+      }
+      .note{font-size:12px; color:var(--muted); margin-top:10px}
+      .footer{margin-top:14px; font-size:11px; color:var(--muted); text-align:center}
+      @media print{
+        body{background:#fff}
+        .page{padding:0}
+        .card,.header{border:1px solid #ddd}
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="header">
+        <div class="brand">
+          <img src="${logoUrl}" onerror="this.style.display='none'"/>
+          <div>
+            <div class="h1">Relevé propriétaire</div>
+            <div class="sub">${m} • ${prop?.name||''}</div>
+          </div>
+        </div>
+        <div class="badge">Conciergerie Zenata</div>
       </div>
-    </div>
 
-    <div class="box">
-      <b>Dépenses refacturées</b>
-      <table>
-        <thead><tr>
-          <th>Date</th><th>Description</th><th class="right">Montant</th><th>Justif</th>
-        </tr></thead>
-        <tbody>
-        ${expenses.map(x=>{
-          const amt = Number(x.amount)*(1+Number(x.owner_markup_rate||0));
-          return `<tr>
-            <td>${x.expense_date||''}</td>
-            <td>${(x.description||'').replace(/</g,'&lt;')}</td>
-            <td class="right">${money(amt)}</td>
-            <td>${x.receipt_path ? '📎 (dans app)' : '—'}</td>
-          </tr>`;
-        }).join('') || `<tr><td colspan="4" class="muted">Aucune</td></tr>`}
-        </tbody>
-      </table>
-    </div>
+      <div class="grid2">
+        <div class="card">
+          <div class="title">Propriétaire</div>
+          <div><b>${owner.full_name || '—'}</b></div>
+          <div class="muted">${owner.email || '—'} • ${owner.phone || '—'}</div>
+          <div class="note">Période : ${start} → ${end}</div>
+        </div>
 
-    <div class="muted">Généré par Conciergerie Zenata</div>
-  </body></html>`;
+        <div class="card">
+          <div class="title">Résumé (clair)</div>
+          <div class="row"><span>Revenus logement</span><b>${money(housingTotal)}</b></div>
+          <div class="row"><span>Commission Zenata</span><b>-${money(clo.commission_amount||0)}</b></div>
+          <div class="row"><span>Consommables</span><b>-${money(clo.consumables_amount||0)}</b></div>
+          <div class="row"><span>Dépenses refacturées</span><b>-${money(expTotal)}</b></div>
+          <hr/>
+          <div class="total"><span>À verser au propriétaire</span><span>${money(clo.net_owner_amount||0)}</span></div>
+          <div class="note">Le ménage collecté n’est pas inclus dans le net (géré séparément).</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="title">Détail revenus plateformes</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Plateforme</th>
+              <th class="right">Revenu logement</th>
+              <th class="right">Ménage collecté</th>
+              <th class="right">Frais plateforme</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="pill">Airbnb</span></td>
+              <td class="right">${money(air.housing_revenue||0)}</td>
+              <td class="right">${money(air.cleaning_collected||0)}</td>
+              <td class="right">-${money(air.platform_fees||0)}</td>
+            </tr>
+            <tr>
+              <td><span class="pill">Booking</span></td>
+              <td class="right">${money(boo.housing_revenue||0)}</td>
+              <td class="right">${money(boo.cleaning_collected||0)}</td>
+              <td class="right">-${money(boo.platform_fees||0)}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <th>Total</th>
+              <th class="right">${money(housingTotal)}</th>
+              <th class="right">${money(cleaningTotal)}</th>
+              <th class="right">-${money(feesTotal)}</th>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="note">Cash collecté (logement + ménage) : <b>${money(housingTotal + cleaningTotal)}</b> (avant frais plateformes)</div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="title">Dépenses refacturées (détail)</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th class="right">Montant</th>
+              <th>Justificatif</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${
+              expenses.length
+              ? expenses.map(x=>{
+                  const amt = Number(x.amount)*(1+Number(x.owner_markup_rate||0));
+                  const has = x.receipt_path ? "📎 Oui" : "—";
+                  return `<tr>
+                    <td>${x.expense_date||''}</td>
+                    <td>${(x.description||'').replace(/</g,'&lt;')}</td>
+                    <td class="right">${money(amt)}</td>
+                    <td>${has}</td>
+                  </tr>`;
+                }).join('')
+              : `<tr><td colspan="4" class="muted">Aucune dépense refacturée</td></tr>`
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <th colspan="2">Total dépenses refacturées</th>
+              <th class="right">${money(expTotal)}</th>
+              <th></th>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="note">Les justificatifs sont disponibles dans l’espace admin (liens signés).</div>
+      </div>
+
+      <div class="footer">Généré par Conciergerie Zenata • ${new Date().toISOString().slice(0,10)}</div>
+    </div>
+    <script>window.onload=()=>{ setTimeout(()=>window.print(), 250); };</script>
+  </body>
+  </html>`;
 
   const w = window.open('', '_blank');
   w.document.open();
   w.document.write(html);
   w.document.close();
-  w.focus();
-  w.print();
 }
+
 
 
 async function loadToPay(){
