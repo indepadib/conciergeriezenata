@@ -982,7 +982,7 @@ async function ownerStatement(){
           <div class="row"><span>Ménages</span><b>-${money(cleaningTotal)}</b></div>
           <hr/>
           <div class="total"><span>À verser au propriétaire</span><span>${money(clo.net_owner_amount||0)}</span></div>
-          <div class="note">Le ménage collecté est inclus dans le net(facturé au propriétaire).</div>
+          <div class="note">Le ménage collecté est inclus dans le net(facturé au client).</div>
         </div>
       </div>
 
