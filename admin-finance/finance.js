@@ -982,7 +982,7 @@ async function ownerStatement(){
           <div class="row"><span>Ménages</span><b>-${money(cleaningTotal)}</b></div>
           <hr/>
           <div class="total"><span>À verser au propriétaire</span><span>${money(clo.net_owner_amount||0)}</span></div>
-          <div class="note">Le ménage collecté est inclus dans le net(facturé au client).</div>
+          <div class="note">Le ménage collecté est inclus dans le net(facturé au client). Les consommables ont été inclus pour  ce mois aux dépenses refacturées</div>
         </div>
       </div>
 
@@ -1020,7 +1020,7 @@ async function ownerStatement(){
             </tr>
           </tfoot>
         </table>
-        <div class="note">Cash collecté (logement + ménage) : <b>${money(housingTotal - cleaningTotal)}</b> (avant frais plateformes)</div>
+        <div class="note">Cash collecté (logement + ménage) : <b>${money(housingTotal)}</b> (avant frais plateformes)</div>
       </div>
 
       <div class="card" style="margin-top:14px">
