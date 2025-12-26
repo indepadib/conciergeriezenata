@@ -692,62 +692,110 @@ async function saveClosing(){
   const start = `${y}-${String(mo).padStart(2,'0')}-01`;
   const end = new Date(y, mo, 0).toISOString().slice(0,10);
 
+  // 0) Fetch owner_id from property (OBLIGATOIRE pour ton NOT NULL)
+  const pRes = await supabaseClient
+    .from('properties')
+    .select('owner_id')
+    .eq('id', pid)
+    .single();
+
+  if(pRes.error){
+    console.error(pRes.error);
+    $('closeMsg').textContent = "Erreur lecture bien: " + pRes.error.message;
+    return;
+  }
+  const ownerId = pRes.data?.owner_id;
+  if(!ownerId){
+    $('closeMsg').textContent = "Ce bien n’a pas de propriétaire (owner_id).";
+    return;
+  }
+
+  // Inputs revenus
   const aH = Number($('airbnbHousing').value||0);
   const aF = Number($('airbnbFees').value||0);
   const bH = Number($('bookingHousing').value||0);
   const bF = Number($('bookingFees').value||0);
-  const consum = Number($('cConsumables').value||0);
 
-  // dépenses refacturables auto (déjà dans cExpenses)
+  // (temp) ménage si tu l’ajoutes (voir section 2)
+  const aC = Number($('airbnbCleaning')?.value || 0);
+  const bC = Number($('bookingCleaning')?.value || 0);
+  const cleaningCollected = aC + bC;
+
+  // Déductions
+  const consum = Number($('cConsumables').value||0);
   const exp = Number($('cExpenses').value||0);
 
+  // Règle: commission sur logement uniquement (recommandé)
   const housing = aH + bH;
   const commission = housing * COMMISSION_RATE;
+
+  // Net propriétaire: logement - commission - consommables - dépenses
+  // (le ménage n'impacte pas le proprio si tu le gères à part)
   const net = housing - commission - consum - exp;
 
   $('closeMsg').textContent = "Enregistrement…";
 
-  // 1) Save platform payouts
+  // 1) Save platform payouts (si tu utilises platform_payouts)
   const pRows = [
-    { property_id: pid, platform:'airbnb', period_start:start, period_end:end, housing_revenue:aH, platform_fees:aF },
-    { property_id: pid, platform:'booking', period_start:start, period_end:end, housing_revenue:bH, platform_fees:bF },
+    { property_id: pid, platform:'airbnb', period_start:start, period_end:end, housing_revenue:aH, platform_fees:aF, cleaning_collected: aC },
+    { property_id: pid, platform:'booking', period_start:start, period_end:end, housing_revenue:bH, platform_fees:bF, cleaning_collected: bC },
   ];
 
-  let r = await supabaseClient.from('platform_payouts')
+  let r = await supabaseClient
+    .from('platform_payouts')
     .upsert(pRows, { onConflict:'property_id,platform,period_start,period_end' });
 
-  if(r.error){ console.error(r.error); $('closeMsg').textContent="Erreur revenus plateformes: "+r.error.message; return; }
+  if(r.error){
+    console.error(r.error);
+    $('closeMsg').textContent="Erreur revenus plateformes: "+r.error.message;
+    return;
+  }
 
   // 2) Save consumables override (ce mois)
-  r = await supabaseClient.from('consumables_overrides')
+  r = await supabaseClient
+    .from('consumables_overrides')
     .upsert([{ property_id: pid, period_start:start, period_end:end, amount: consum }], { onConflict:'property_id,period_start,period_end' });
 
-  if(r.error){ console.error(r.error); $('closeMsg').textContent="Erreur consommables: "+r.error.message; return; }
+  if(r.error){
+    console.error(r.error);
+    $('closeMsg').textContent="Erreur consommables: "+r.error.message;
+    return;
+  }
 
-  // 3) Upsert monthly closing (locked)
-  const up = await supabaseClient.from('monthly_closings')
+  // 3) Upsert monthly closing (LOCKED) + owner_id ✅
+  const up = await supabaseClient
+    .from('monthly_closings')
     .upsert([{
       property_id: pid,
+      owner_id: ownerId,                 // ✅ FIX
       period_start: start,
       period_end: end,
       status: 'locked',
+
       housing_revenue_total: housing,
+      cleaning_collected_total: cleaningCollected, // ✅ si colonne existe (sinon enlève)
       platform_fees_total: (aF + bF),
+
       commission_rate: COMMISSION_RATE,
       commission_amount: commission,
+
       consumables_amount: consum,
       billable_expenses_amount: exp,
+
       net_owner_amount: net
     }], { onConflict: 'property_id,period_start,period_end' })
     .select('id')
     .single();
 
-  if(up.error){ console.error(up.error); $('closeMsg').textContent="Erreur clôture: "+up.error.message; return; }
+  if(up.error){
+    console.error(up.error);
+    $('closeMsg').textContent="Erreur clôture: "+up.error.message;
+    return;
+  }
 
   const closingId = up.data.id;
 
-  // 4) Lock expenses in this month (billable only or all? => on lock all for integrity)
-  // On verrouille TOUTES les dépenses du mois pour éviter modifications après clôture
+  // 4) Lock expenses in this month
   const lock = await supabaseClient
     .from('expenses')
     .update({ locked: true, closing_id: closingId })
@@ -755,49 +803,13 @@ async function saveClosing(){
     .gte('expense_date', start)
     .lte('expense_date', end);
 
-  if(lock.error){ console.error(lock.error); $('closeMsg').textContent="Clôture OK mais lock dépenses KO: "+lock.error.message; return; }
+  if(lock.error){
+    console.error(lock.error);
+    $('closeMsg').textContent="Clôture OK mais lock dépenses KO: "+lock.error.message;
+    return;
+  }
 
   $('closeMsg').textContent = "Clôture validée 🔒";
-}
-
-async function loadClosingSaved(){
-  const pid = $('cProperty').value;
-  const m = $('cMonth').value;
-  if(!pid || !m) return;
-
-  const [y,mo] = m.split('-').map(Number);
-  const start = `${y}-${String(mo).padStart(2,'0')}-01`;
-  const end = new Date(y, mo, 0).toISOString().slice(0,10);
-
-  // Revenus plateformes
-  const { data: pp } = await supabaseClient
-    .from('platform_payouts')
-    .select('platform,housing_revenue,platform_fees')
-    .eq('property_id', pid)
-    .eq('period_start', start)
-    .eq('period_end', end);
-
-  const air = (pp||[]).find(x=>x.platform==='airbnb');
-  const boo = (pp||[]).find(x=>x.platform==='booking');
-
-  $('airbnbHousing').value = air?.housing_revenue ?? $('airbnbHousing').value ?? 0;
-  $('airbnbFees').value = air?.platform_fees ?? $('airbnbFees').value ?? 0;
-  $('bookingHousing').value = boo?.housing_revenue ?? $('bookingHousing').value ?? 0;
-  $('bookingFees').value = boo?.platform_fees ?? $('bookingFees').value ?? 0;
-
-  // Consommables override
-  const { data: co } = await supabaseClient
-    .from('consumables_overrides')
-    .select('amount')
-    .eq('property_id', pid)
-    .eq('period_start', start)
-    .eq('period_end', end)
-    .maybeSingle();
-
-  if(co?.amount != null) $('cConsumables').value = Number(co.amount || 0);
-
-  await loadMonthExpenses();
-  calcClosing();
 }
 
 async function ownerStatement(){
