@@ -878,6 +878,7 @@ async function ownerStatement(){
   const cleaningTotal = Number(clo.cleaning_collected_total||0);
   const feesTotal = Number(clo.platform_fees_total||0);
 
+
   const logoUrl = "/assets/logo.png"; // <- change if needed
 
   const html = `
@@ -978,6 +979,7 @@ async function ownerStatement(){
           <div class="row"><span>Commission Zenata</span><b>-${money(clo.commission_amount||0)}</b></div>
           <div class="row"><span>Consommables</span><b>-${money(clo.consumables_amount||0)}</b></div>
           <div class="row"><span>Dépenses refacturées</span><b>-${money(expTotal)}</b></div>
+          <div class="row"><span>Ménages</span><b>-${money(cleaningTotal)}</b></div>
           <hr/>
           <div class="total"><span>À verser au propriétaire</span><span>${money(clo.net_owner_amount||0)}</span></div>
           <div class="note">Le ménage collecté n’est pas inclus dans le net (géré séparément).</div>
