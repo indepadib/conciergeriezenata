@@ -631,8 +631,9 @@ function calcClosing(){
   $('sCommission').textContent = `-${money(commission)}`;
   $('sConsumables').textContent = `-${money(consum)}`;
   $('sExpenses').textContent = `-${money(exp)}`;
+  $('sCleaning').textContent = `-${money(cleaning)}`;
   $('sNet').textContent = money(net);
-  $('sCleaning').textContent = money(cleaning);
+  
 
   return { housing, commission, consum, exp, net };
 }
