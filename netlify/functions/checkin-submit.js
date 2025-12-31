@@ -3,10 +3,13 @@ const { sbAdmin, verifySession, uploadDataUrl } = require('./_checkin_common');
 exports.handler = async (event) => {
   try {
     const body = JSON.parse(event.body || '{}');
-    const { session, reservation_id, guests, is_moroccan_couple, documents, signature_png } = body;
+    const { session, reservation_id, guests, is_moroccan_couple, documents, signature_png,accepted_contract,accepted_contract_version } = body;
 
     if (!reservation_id) return { statusCode: 400, body: JSON.stringify({ error: 'Missing reservation_id' }) };
     verifySession(session, reservation_id);
+    if (!accepted_contract) {
+  return { statusCode: 400, body: JSON.stringify({ error: "Contrat non accepté." }) };
+}
 
     const sb = sbAdmin();
     const docsBucket = process.env.CHECKIN_DOCS_BUCKET || 'checkin-docs';
@@ -57,10 +60,16 @@ exports.handler = async (event) => {
     const { error: uErr } = await sb
       .from('checkin_reservations')
       .update({
-        status: 'submitted',
-        is_moroccan_couple: !!is_moroccan_couple,
-        submitted_at: new Date().toISOString()
-      })
+  status: 'submitted',
+  is_moroccan_couple: !!is_moroccan_couple,
+  submitted_at: new Date().toISOString(),
+
+  // ✅ AJOUTS
+  accepted_contract: true,
+  accepted_contract_at: new Date().toISOString(),
+  accepted_contract_version: accepted_contract_version || "v1",
+})
+
       .eq('id', reservation_id);
     if (uErr) throw uErr;
 
