@@ -201,18 +201,43 @@
               <div class="cz-upload">
                 <div class="cz-uploadHead">
                   <div class="cz-uploadTitle">Face 1</div>
-                  <div class="cz-uploadHint">Photo lisible</div>
+                  <div class="cz-uploadHint">Caméra ou fichier</div>
                 </div>
-                <input type="file" id="doc_front" class="cz-file" accept="image/*,.pdf" capture="environment"/>
+              
+                <div class="cz-uploadActions">
+                  <label class="cz-btn cz-btnGhost">
+                    Prendre une photo
+                    <input type="file" id="doc_front_camera" accept="image/*" capture="environment" hidden>
+                  </label>
+              
+                  <label class="cz-btn cz-btnGhost">
+                    Choisir un fichier
+                    <input type="file" id="doc_front_file" accept="image/*,.pdf" hidden>
+                  </label>
+                </div>
+              
+                <div class="cz-sub" id="doc_front_status"></div>
               </div>
 
-              <div class="cz-upload">
-                <div class="cz-uploadHead">
-                  <div class="cz-uploadTitle">Face 2</div>
-                  <div class="cz-uploadHint">Si nécessaire</div>
-                </div>
-                <input type="file" id="doc_back" class="cz-file" accept="image/*,.pdf" capture="environment"/>
+            <div class="cz-upload">
+              <div class="cz-uploadHead">
+                <div class="cz-uploadTitle">Face 2</div>
+                <div class="cz-uploadHint">Si nécessaire(pièce d'identité)</div>
               </div>
+            
+              <div class="cz-uploadActions">
+                <label class="cz-btn cz-btnGhost">
+                  Prendre une photo
+                  <input type="file" id="doc_front_camera" accept="image/*" capture="environment" hidden>
+                </label>
+            
+                <label class="cz-btn cz-btnGhost">
+                  Choisir un fichier
+                  <input type="file" id="doc_front_file" accept="image/*,.pdf" hidden>
+                </label>
+              </div>
+            
+              <div class="cz-sub" id="doc_front_status"></div>
             </div>
 
             <div class="cz-callout soft">
