@@ -197,37 +197,43 @@ function checkGeometry(w, h) {
   return null;
 }
 
-async function validateIdDocument(file) {
+async function validateIdDocumentSoft(file) {
   if (!file) throw new Error("La pièce d’identité est obligatoire.");
-  if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-    throw new Error("Format non autorisé.");
+
+  const isImage = file.type.startsWith('image/');
+  const isPdf = file.type === 'application/pdf';
+
+  if (!isImage && !isPdf) throw new Error("Format non autorisé (image ou PDF).");
+
+  // Hard block only if ridiculously small
+  if (file.size < 50 * 1024) {
+    throw new Error("Fichier trop léger. Merci de reprendre la photo ou choisir un fichier plus net.");
   }
 
-  // Size guardrails (avoid Netlify internal error)
-  const MAX_PDF_MB = 2;
-  const MAX_IMG_MB = 8;
+  // For PDFs: accept (manual check later)
+  if (isPdf) return { ok: true, warnings: ["PDF reçu, vérification manuelle possible."] };
 
-  if (file.type === 'application/pdf' && file.size > MAX_PDF_MB * 1024 * 1024) {
-    throw new Error(`PDF trop lourd (max ${MAX_PDF_MB}MB). Merci de prendre une photo.`);
+  // For images: do best-effort checks, but don't block
+  try {
+    const img = await loadImageToCanvas(file);
+    if (!img) return { ok: true, warnings: [] };
+
+    const w = img.width, h = img.height;
+    const warnings = [];
+
+    if (w < 700) warnings.push("Photo petite. Rapprochez la caméra.");
+    const { mean, variance } = analyzeBrightnessContrast(img.ctx, w, h);
+    if (mean < 50) warnings.push("Photo sombre. Allumez la lumière.");
+    if (mean > 230) warnings.push("Photo surexposée. Évitez le flash direct.");
+    if (variance < 250) warnings.push("Photo possiblement floue. Assurez-vous que le texte est lisible.");
+
+    return { ok: true, warnings };
+  } catch {
+    // Even if analysis fails, accept the file
+    return { ok: true, warnings: ["Impossible d’analyser la photo, mais le fichier est accepté."] };
   }
-  if (file.type.startsWith('image/') && file.size > MAX_IMG_MB * 1024 * 1024) {
-    throw new Error(`Image trop lourde (max ${MAX_IMG_MB}MB). Merci de reprendre la photo.`);
-  }
-
-  // PDF: server/manual check
-  if (file.type === 'application/pdf') return { status: "ok", note: "PDF reçu (vérification manuelle)." };
-
-  const img = await loadImageToCanvas(file);
-  const geoError = checkGeometry(img.width, img.height);
-  if (geoError) throw new Error(geoError);
-
-  const { mean, variance } = analyzeBrightnessContrast(img.ctx, img.width, img.height);
-  if (mean < 60) throw new Error("Image trop sombre. Merci de reprendre la photo.");
-  if (mean > 220) throw new Error("Image trop claire / surexposée.");
-  if (variance < 500) throw new Error("Image floue ou peu lisible.");
-
-  return { status: "ok", note: "Document conforme." };
 }
+
 
 /* ---------------- Signature ---------------- */
 
