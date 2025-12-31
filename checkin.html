@@ -16,7 +16,6 @@
 <body>
   <div class="cz-app">
 
-    <!-- Top bar -->
     <header class="cz-topbar">
       <a class="cz-logo" href="/" aria-label="Conciergerie Zenata">
         <span class="cz-logoMark"></span>
@@ -29,7 +28,6 @@
       </div>
     </header>
 
-    <!-- Progress -->
     <section class="cz-progressWrap" aria-label="Progression">
       <div class="cz-progressBar">
         <div class="cz-progressFill" id="progressFill" style="width:0%"></div>
@@ -42,7 +40,6 @@
       <div class="cz-stepPills" id="steps"></div>
     </section>
 
-    <!-- Main card -->
     <main class="cz-shell">
       <div class="cz-card">
 
@@ -71,7 +68,7 @@
           </div>
         </section>
 
-        <!-- CONSENT / WELCOME -->
+        <!-- CONSENT -->
         <section id="screen-consent" class="cz-screen cz-hide">
           <div class="cz-hero">
             <div class="cz-heroIcon">👋</div>
@@ -106,9 +103,7 @@
 
           <label class="cz-check">
             <input type="checkbox" id="consent"/>
-            <span>
-              J’accepte la collecte et le traitement de mes données pour la gestion du séjour et les obligations légales.
-            </span>
+            <span>J’accepte la collecte et le traitement de mes données pour la gestion du séjour et les obligations légales.</span>
           </label>
 
           <button class="cz-btn cz-btnPrimary" id="btnStart">Commencer</button>
@@ -197,47 +192,49 @@
               </div>
             </div>
 
+            <!-- Upload Face 1 / Face 2 -->
             <div class="cz-uploadGrid">
               <div class="cz-upload">
                 <div class="cz-uploadHead">
                   <div class="cz-uploadTitle">Face 1</div>
                   <div class="cz-uploadHint">Caméra ou fichier</div>
                 </div>
-              
+
                 <div class="cz-uploadActions">
                   <label class="cz-btn cz-btnGhost">
                     Prendre une photo
                     <input type="file" id="doc_front_camera" accept="image/*" capture="environment" hidden>
                   </label>
-              
+
                   <label class="cz-btn cz-btnGhost">
                     Choisir un fichier
                     <input type="file" id="doc_front_file" accept="image/*,.pdf" hidden>
                   </label>
                 </div>
-              
+
                 <div class="cz-sub" id="doc_front_status"></div>
               </div>
 
-            <div class="cz-upload">
-              <div class="cz-uploadHead">
-                <div class="cz-uploadTitle">Face 2</div>
-                <div class="cz-uploadHint">Si nécessaire(pièce d'identité)</div>
+              <div class="cz-upload">
+                <div class="cz-uploadHead">
+                  <div class="cz-uploadTitle">Face 2</div>
+                  <div class="cz-uploadHint">Optionnel</div>
+                </div>
+
+                <div class="cz-uploadActions">
+                  <label class="cz-btn cz-btnGhost">
+                    Prendre une photo
+                    <input type="file" id="doc_back_camera" accept="image/*" capture="environment" hidden>
+                  </label>
+
+                  <label class="cz-btn cz-btnGhost">
+                    Choisir un fichier
+                    <input type="file" id="doc_back_file" accept="image/*,.pdf" hidden>
+                  </label>
+                </div>
+
+                <div class="cz-sub" id="doc_back_status"></div>
               </div>
-            
-              <div class="cz-uploadActions">
-                <label class="cz-btn cz-btnGhost">
-                  Prendre une photo
-                  <input type="file" id="doc_front_camera" accept="image/*" capture="environment" hidden>
-                </label>
-            
-                <label class="cz-btn cz-btnGhost">
-                  Choisir un fichier
-                  <input type="file" id="doc_front_file" accept="image/*,.pdf" hidden>
-                </label>
-              </div>
-            
-              <div class="cz-sub" id="doc_front_status"></div>
             </div>
 
             <div class="cz-callout soft">
@@ -308,18 +305,14 @@
         <section id="screen-contract" class="cz-screen cz-hide">
           <div class="cz-hero compact">
             <h1 class="cz-h1">Contrat d’engagement</h1>
-            <p class="cz-sub">
-              Veuillez lire le contrat. Le bouton s’active uniquement après lecture complète.
-            </p>
+            <p class="cz-sub">Veuillez lire le contrat. Le bouton s’active uniquement après lecture complète.</p>
           </div>
 
           <div id="contractScroll" class="cz-contractScroll" role="region" aria-label="Contrat d’engagement">
             <article class="cz-contract">
               <header class="cz-contractHeader">
                 <h2>Règlement intérieur et engagement du voyageur</h2>
-                <p class="cz-contractMeta">
-                  Ce contrat s’applique à toute réservation gérée par Conciergerie Zenata.
-                </p>
+                <p class="cz-contractMeta">Ce contrat s’applique à toute réservation gérée par Conciergerie Zenata.</p>
               </header>
 
               <section>
@@ -405,9 +398,7 @@
         <section id="screen-sign" class="cz-screen cz-hide">
           <div class="cz-hero compact">
             <h1 class="cz-h1">Signature</h1>
-            <p class="cz-sub">
-              Presque terminé. Veuillez signer pour confirmer l’exactitude des informations.
-            </p>
+            <p class="cz-sub">Presque terminé. Veuillez signer pour confirmer l’exactitude des informations.</p>
           </div>
 
           <div class="cz-signWrap">
@@ -420,9 +411,7 @@
             <button class="cz-btn cz-btnPrimary" id="btnSubmit">Valider le check-in</button>
           </div>
 
-          <div class="cz-footnote">
-            Vos informations resteront confidentielles et utilisées uniquement pour le séjour.
-          </div>
+          <div class="cz-footnote">Vos informations resteront confidentielles et utilisées uniquement pour le séjour.</div>
         </section>
 
         <!-- DONE -->
