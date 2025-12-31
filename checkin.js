@@ -403,6 +403,37 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const sigPad = createSignaturePad('sig');
 
+   const contractScroll = document.getElementById('contractScroll');
+const acceptWrap = document.getElementById('contractAcceptWrap');
+const acceptCheckbox = document.getElementById('acceptContract');
+const btnToSignFromContract = document.getElementById('btnToSignFromContract');
+
+let contractScrolledToBottom = false;
+
+if (contractScroll) {
+  contractScroll.addEventListener('scroll', () => {
+    const nearBottom =
+      contractScroll.scrollTop + contractScroll.clientHeight >=
+      contractScroll.scrollHeight - 10;
+
+    if (nearBottom && !contractScrolledToBottom) {
+      contractScrolledToBottom = true;
+      acceptWrap.classList.remove('cz-disabled');
+      acceptCheckbox.disabled = false;
+    }
+  });
+}
+
+acceptCheckbox?.addEventListener('change', () => {
+  btnToSignFromContract.disabled = !acceptCheckbox.checked;
+});
+
+
+
+
+
+   
+
   $('btnClearSig').onclick = () => sigPad.clear();
 
   $('btnStart').onclick = () => {
@@ -437,13 +468,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       };
 
       await api('/.netlify/functions/checkin-save', {
-        session: state.session,
-        token: state.token,
-        reservation_id: state.reservation.id,
+  session: state.session,
+  step: "guest",
+  payload: {
+    reservation: {
+      id: state.reservation.id,
+      token: state.token, // au cas où ta function en a besoin
+    },
+    guests: [
+      {
         guest_index: state.currentGuestIndex,
-        guest: state.guests[state.currentGuestIndex],
+        ...state.guests[state.currentGuestIndex],
         documents: { id_front: front, id_back: back },
-      });
+      }
+    ]
+  }
+});
 
       renderGuestList();
       showScreen('group');
@@ -491,32 +531,6 @@ $('btnToSignFromContract').onclick = () => {
 
  $('btnToSign').onclick = () => {
   showScreen('contract');
-
-
-    const contractScroll = document.getElementById('contractScroll');
-const acceptWrap = document.getElementById('contractAcceptWrap');
-const acceptCheckbox = document.getElementById('acceptContract');
-const btnToSignFromContract = document.getElementById('btnToSignFromContract');
-
-let contractScrolledToBottom = false;
-
-if (contractScroll) {
-  contractScroll.addEventListener('scroll', () => {
-    const nearBottom =
-      contractScroll.scrollTop + contractScroll.clientHeight >=
-      contractScroll.scrollHeight - 10;
-
-    if (nearBottom && !contractScrolledToBottom) {
-      contractScrolledToBottom = true;
-      acceptWrap.classList.remove('cz-disabled');
-      acceptCheckbox.disabled = false;
-    }
-  });
-}
-
-acceptCheckbox?.addEventListener('change', () => {
-  btnToSignFromContract.disabled = !acceptCheckbox.checked;
-});
 
 
   // VERY IMPORTANT: canvas is visible only now
