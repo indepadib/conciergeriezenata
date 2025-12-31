@@ -52,7 +52,6 @@ function tokenFromUrl() {
 }
 
 function getReservationId() {
-  // Robust across formats
   return (
     state.reservation?.id ||
     state.reservation?.reservation_id ||
@@ -127,14 +126,18 @@ function fileToDataUrl(file) {
   });
 }
 
-// Compress images to avoid Netlify "Internal Error" (payload too big)
+/* ---------------- Image compression (critical) ----------------
+   - Beaucoup de téléphones créent des images énormes -> payload trop gros -> Netlify 500 "Internal Error".
+   - On compresse en JPEG pour éviter ça.
+*/
 async function imageFileToJpegDataUrl(file, { maxDim = 1600, quality = 0.78 } = {}) {
   if (!file) return null;
 
   if (file.type === 'application/pdf') {
-    // PDF: keep as-is (but size limited elsewhere)
+    // PDF: on laisse tel quel
     return await fileToDataUrl(file);
   }
+
   if (!file.type.startsWith('image/')) {
     return await fileToDataUrl(file);
   }
@@ -151,52 +154,17 @@ async function imageFileToJpegDataUrl(file, { maxDim = 1600, quality = 0.78 } = 
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
+
   const ctx = canvas.getContext('2d');
   ctx.drawImage(img, 0, 0, w, h);
 
   return canvas.toDataURL('image/jpeg', quality);
 }
 
-/* ---------------- Optional: lightweight ID validation ---------------- */
-
-async function loadImageToCanvas(file) {
-  if (!file?.type?.startsWith('image/')) return null;
-
-  const img = new Image();
-  img.src = URL.createObjectURL(file);
-  await img.decode();
-
-  const canvas = document.createElement('canvas');
-  canvas.width = img.width;
-  canvas.height = img.height;
-
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(img, 0, 0);
-
-  return { canvas, ctx, width: img.width, height: img.height };
-}
-
-function analyzeBrightnessContrast(ctx, w, h) {
-  const data = ctx.getImageData(0, 0, w, h).data;
-  let sum = 0, sumSq = 0, n = w * h;
-
-  for (let i = 0; i < data.length; i += 4) {
-    const v = (data[i] + data[i+1] + data[i+2]) / 3;
-    sum += v;
-    sumSq += v * v;
-  }
-  const mean = sum / n;
-  const variance = (sumSq / n) - (mean * mean);
-  return { mean, variance };
-}
-
-function checkGeometry(w, h) {
-  const ratio = w / h;
-  if (w < 900) return "Image trop petite (photo trop éloignée).";
-  if (ratio < 1.2 || ratio > 2.0) return "Cadrage incorrect. Merci de photographier la carte à l’horizontale.";
-  return null;
-}
-
+/* ---------------- Soft document validation ----------------
+   - On ne bloque pas les gens agressivement.
+   - On bloque seulement si fichier absent ou vraiment minuscule.
+*/
 async function validateIdDocumentSoft(file) {
   if (!file) throw new Error("La pièce d’identité est obligatoire.");
 
@@ -205,35 +173,13 @@ async function validateIdDocumentSoft(file) {
 
   if (!isImage && !isPdf) throw new Error("Format non autorisé (image ou PDF).");
 
-  // Hard block only if ridiculously small
   if (file.size < 50 * 1024) {
     throw new Error("Fichier trop léger. Merci de reprendre la photo ou choisir un fichier plus net.");
   }
 
-  // For PDFs: accept (manual check later)
-  if (isPdf) return { ok: true, warnings: ["PDF reçu, vérification manuelle possible."] };
-
-  // For images: do best-effort checks, but don't block
-  try {
-    const img = await loadImageToCanvas(file);
-    if (!img) return { ok: true, warnings: [] };
-
-    const w = img.width, h = img.height;
-    const warnings = [];
-
-    if (w < 700) warnings.push("Photo petite. Rapprochez la caméra.");
-    const { mean, variance } = analyzeBrightnessContrast(img.ctx, w, h);
-    if (mean < 50) warnings.push("Photo sombre. Allumez la lumière.");
-    if (mean > 230) warnings.push("Photo surexposée. Évitez le flash direct.");
-    if (variance < 250) warnings.push("Photo possiblement floue. Assurez-vous que le texte est lisible.");
-
-    return { ok: true, warnings };
-  } catch {
-    // Even if analysis fails, accept the file
-    return { ok: true, warnings: ["Impossible d’analyser la photo, mais le fichier est accepté."] };
-  }
+  // PDFs acceptés
+  return { ok: true };
 }
-
 
 /* ---------------- Signature ---------------- */
 
@@ -344,13 +290,13 @@ function renderGuestList() {
 function loadGuestToForm(i) {
   const g = state.guests[i] || {};
 
-  // ensure required ids exist (avoid silent null errors)
   [
     'guestIndexLabel',
     'g_last','g_first','g_sex','g_nationality','g_dob',
     'g_res_country','g_res_city','g_address',
     'g_id_type','g_id_number',
-    'doc_front','doc_back'
+    'doc_front_camera','doc_front_file',
+    'doc_back_camera','doc_back_file',
   ].forEach(id => must(id));
 
   must('guestIndexLabel').textContent = `${i+1}/${state.guests.length}`;
@@ -367,8 +313,13 @@ function loadGuestToForm(i) {
   must('g_id_number').value = g.id_number || '';
 
   // clear file inputs
-  must('doc_front').value = '';
-  must('doc_back').value = '';
+  must('doc_front_camera').value = '';
+  must('doc_front_file').value = '';
+  must('doc_back_camera').value = '';
+  must('doc_back_file').value = '';
+
+  if ($('doc_front_status')) $('doc_front_status').textContent = '';
+  if ($('doc_back_status')) $('doc_back_status').textContent = '';
 }
 
 function readGuestFromForm() {
@@ -414,7 +365,6 @@ async function init() {
       $('stayDates').value = `${state.reservation.arrival_date} → ${state.reservation.departure_date}`;
     }
 
-    // init guests
     state.guests = (initOut.guests?.length ? initOut.guests : [{ is_group_lead: true }]);
     state.currentGuestIndex = 0;
 
@@ -429,7 +379,6 @@ async function init() {
 /* ---------------- Main wiring ---------------- */
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Screens map
   SCREENS = {
     loading: $('screen-loading'),
     error: $('screen-error'),
@@ -478,6 +427,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // File pickers status
+  function bindFileStatus(inputId, statusId) {
+    const input = $(inputId);
+    const status = $(statusId);
+    if (!input || !status) return;
+    input.addEventListener('change', () => {
+      const f = input.files?.[0];
+      status.textContent = f ? `Sélectionné: ${f.name}` : '';
+    });
+  }
+  bindFileStatus('doc_front_camera', 'doc_front_status');
+  bindFileStatus('doc_front_file', 'doc_front_status');
+  bindFileStatus('doc_back_camera', 'doc_back_status');
+  bindFileStatus('doc_back_file', 'doc_back_status');
+
   // Consent -> Guest
   if ($('btnStart')) $('btnStart').onclick = () => {
     if (!$('consent')?.checked) return alert("Veuillez accepter avant de continuer.");
@@ -504,12 +468,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const guest = readGuestFromForm();
 
-      const frontFile = $('doc_front')?.files?.[0];
-      const backFile = $('doc_back')?.files?.[0] || null;
+      const frontFile =
+        $('doc_front_camera')?.files?.[0] ||
+        $('doc_front_file')?.files?.[0] ||
+        null;
 
-      await validateIdDocument(frontFile);
+      const backFile =
+        $('doc_back_camera')?.files?.[0] ||
+        $('doc_back_file')?.files?.[0] ||
+        null;
 
-      // Compress images to avoid Netlify internal error
+      await validateIdDocumentSoft(frontFile);
+
+      // compress
       const front = await imageFileToJpegDataUrl(frontFile, { maxDim: 1600, quality: 0.78 });
       const back = backFile ? await imageFileToJpegDataUrl(backFile, { maxDim: 1600, quality: 0.78 }) : null;
 
@@ -518,28 +489,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         ...guest
       };
 
-      // Backward-compatible payload (old + new)
       await api('/.netlify/functions/checkin-save', {
-        // old
         session: state.session,
         token: state.token,
         reservation_id: reservationId,
         guest_index: state.currentGuestIndex,
         guest: state.guests[state.currentGuestIndex],
         documents: { id_front: front, id_back: back },
-
-        // new (if function expects step/payload)
-        step: "guest",
-        payload: {
-          reservation_id: reservationId,
-          reservation: { id: reservationId },
-          guests: [{
-            guest_index: state.currentGuestIndex,
-            ...state.guests[state.currentGuestIndex],
-            docs: { id_front: front, id_back: back },
-            documents: { id_front: front, id_back: back },
-          }]
-        }
       });
 
       renderGuestList();
@@ -563,7 +519,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!state.guests.length) return alert("Ajoutez au moins un voyageur.");
     showScreen('couple');
 
-    // marriage UI
     if ($('isMoroccanCouple')) $('isMoroccanCouple').checked = !!state.isMoroccanCouple;
     const box = $('marriageBox');
     const hint = $('marriageHint');
@@ -583,7 +538,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Couple -> Contract
   if ($('btnToSign')) $('btnToSign').onclick = () => {
     showScreen('contract');
-    // reset contract gating each time entering contract
     contractScrolledToBottom = false;
     if (contractScroll) contractScroll.scrollTop = 0;
     if (acceptWrap) acceptWrap.classList.add('cz-disabled');
@@ -603,8 +557,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     state.acceptedContract = true;
     showScreen('sign');
-
-    // Resize canvas once visible
     sigPad.resize();
     requestAnimationFrame(() => sigPad.resize());
   };
@@ -634,18 +586,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         is_moroccan_couple: !!state.isMoroccanCouple,
         documents: { marriage_certificate: marriage },
         signature_png: state.signaturePngDataUrl,
-
-        // contract proof
         accepted_contract: true,
         accepted_contract_version: "v1",
       });
 
-      // instructions
       if ($('instructions')) {
         $('instructions').innerHTML = out.instructions_html || "<p>Instructions indisponibles pour le moment.</p>";
       }
 
-      // optional doc links (if your backend returns them)
       const links = [];
       if (out.receipt_pdf_url) links.push({ label: "Fiche (PDF)", url: out.receipt_pdf_url });
       if (out.files?.id_front_url) links.push({ label: "Pièce d’identité – Face 1", url: out.files.id_front_url });
@@ -667,6 +615,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
-  // Start
   await init();
 });
