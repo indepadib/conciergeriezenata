@@ -11,6 +11,7 @@ const $ = (id) => document.getElementById(id);
   guest: $('screen-guest'),
   group: $('screen-group'),
   couple: $('screen-couple'),
+  contract: $('screen-contract'),
   sign: $('screen-sign'),
   done: $('screen-done'),
 };
@@ -23,7 +24,8 @@ const STEPS = [
   { key: 'guest', label: 'Voyageur 1' },
   { key: 'group', label: 'Voyageurs' },
   { key: 'couple', label: 'Couple' },
-  { key: 'sign', label: 'Signature' },
+  { key: 'couple', label: 'Couple' },
+  { key: 'contract', label: 'Contract' },
   { key: 'done', label: 'Accès' },
 ];
 
@@ -394,6 +396,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     guest: $('screen-guest'),
     group: $('screen-group'),
     couple: $('screen-couple'),
+    contract:$('screen-contract'),
     sign: $('screen-sign'),
     done: $('screen-done'),
   };
@@ -475,8 +478,46 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   $('btnBackToGroup').onclick = () => showScreen('group');
 
- $('btnToSign').onclick = () => {
+      $('btnBackToCouple').onclick = () => showScreen('couple');
+
+$('btnToSignFromContract').onclick = () => {
+  if (!acceptCheckbox.checked) {
+    alert("Vous devez accepter le contrat pour continuer.");
+    return;
+  }
+  state.acceptedContract = true;
   showScreen('sign');
+};
+
+ $('btnToSign').onclick = () => {
+  showScreen('contract');
+
+
+    const contractScroll = document.getElementById('contractScroll');
+const acceptWrap = document.getElementById('contractAcceptWrap');
+const acceptCheckbox = document.getElementById('acceptContract');
+const btnToSignFromContract = document.getElementById('btnToSignFromContract');
+
+let contractScrolledToBottom = false;
+
+if (contractScroll) {
+  contractScroll.addEventListener('scroll', () => {
+    const nearBottom =
+      contractScroll.scrollTop + contractScroll.clientHeight >=
+      contractScroll.scrollHeight - 10;
+
+    if (nearBottom && !contractScrolledToBottom) {
+      contractScrolledToBottom = true;
+      acceptWrap.classList.remove('cz-disabled');
+      acceptCheckbox.disabled = false;
+    }
+  });
+}
+
+acceptCheckbox?.addEventListener('change', () => {
+  btnToSignFromContract.disabled = !acceptCheckbox.checked;
+});
+
 
   // VERY IMPORTANT: canvas is visible only now
   sigPad.resize();
