@@ -338,4 +338,77 @@ body{
   margin-bottom: 6px;
 }
 
+/* Contract */
+.cz-contractScroll{
+  max-height: 52vh;
+  overflow: auto;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 14px;
+  padding: 16px;
+  background: rgba(255,255,255,.7);
+}
+
+.cz-contract{
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  line-height: 1.55;
+}
+
+.cz-contractHeader h2{
+  margin: 0 0 6px 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.cz-contractMeta{
+  margin: 0 0 14px 0;
+  opacity: .8;
+  font-size: 13px;
+}
+
+.cz-contract section{
+  padding: 12px 0;
+  border-top: 1px dashed rgba(0,0,0,.08);
+}
+
+.cz-contract section:first-of-type{
+  border-top: 0;
+  padding-top: 0;
+}
+
+.cz-contract h3{
+  margin: 0 0 8px 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.cz-contract ul{
+  margin: 0;
+  padding-left: 18px;
+}
+
+.cz-contract li{
+  margin: 6px 0;
+}
+
+.cz-contractFooter{
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,.08);
+  opacity: .75;
+  font-size: 13px;
+}
+
+.cz-contractAccept{
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,.08);
+  background: rgba(255,255,255,.85);
+}
+
+.cz-disabled{
+  opacity: .6;
+  pointer-events: none;
+}
+
 
