@@ -5,11 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Check-in digital – Conciergerie Zenata</title>
 
-  <!-- Optional: keep your existing premium.css if you want -->
   <link rel="stylesheet" href="/assets/premium.css"/>
   <link rel="stylesheet" href="/checkin.css"/>
 
-  <!-- Optional: nicer font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -17,6 +15,7 @@
 
 <body>
   <div class="cz-app">
+
     <!-- Top bar -->
     <header class="cz-topbar">
       <a class="cz-logo" href="/" aria-label="Conciergerie Zenata">
@@ -37,10 +36,9 @@
       </div>
       <div class="cz-progressRow">
         <div class="cz-progressTitle" id="progressTitle">Préparation…</div>
-        <div class="cz-progressStep" id="progressStep">0/6</div>
+        <div class="cz-progressStep" id="progressStep">0/7</div>
       </div>
 
-      <!-- Keep steps for your JS (it fills #steps). We'll style it lightly -->
       <div class="cz-stepPills" id="steps"></div>
     </section>
 
@@ -205,7 +203,7 @@
                   <div class="cz-uploadTitle">Face 1</div>
                   <div class="cz-uploadHint">Photo lisible</div>
                 </div>
-                <input type="file" id="doc_front" class="cz-file" accept="image/*,.pdf"/>
+                <input type="file" id="doc_front" class="cz-file" accept="image/*,.pdf" capture="environment"/>
               </div>
 
               <div class="cz-upload">
@@ -213,13 +211,7 @@
                   <div class="cz-uploadTitle">Face 2</div>
                   <div class="cz-uploadHint">Si nécessaire</div>
                 </div>
-                <input
-                    type="file"
-                    id="doc_back"
-                    class="cz-file"
-                    accept="image/*,.pdf"
-                    capture="environment"
-                    />
+                <input type="file" id="doc_back" class="cz-file" accept="image/*,.pdf" capture="environment"/>
               </div>
             </div>
 
@@ -275,7 +267,7 @@
             <div class="cz-section">
               <div class="cz-sectionTitle">Acte de mariage <span id="marriageHint" class="cz-pill"></span></div>
               <div class="cz-upload single">
-                <input type="file" id="doc_marriage" class="cz-file" accept="image/*,.pdf"/>
+                <input type="file" id="doc_marriage" class="cz-file" accept="image/*,.pdf" capture="environment"/>
               </div>
               <div class="cz-footnote">Format photo ou PDF. Veuillez envoyer un document lisible.</div>
             </div>
@@ -287,143 +279,106 @@
           </div>
         </section>
 
-
         <!-- CONTRACT -->
-<section id="screen-contract" class="cz-screen cz-hide">
-  <div class="cz-hero compact">
-    <div class="cz-heroIcon">📄</div>
-    <h1 class="cz-h1">Contrat d’engagement</h1>
-    <p class="cz-sub">
-      La lecture et l’acceptation du contrat sont obligatoires pour accéder au logement.
-    </p>
-  </div>
+        <section id="screen-contract" class="cz-screen cz-hide">
+          <div class="cz-hero compact">
+            <h1 class="cz-h1">Contrat d’engagement</h1>
+            <p class="cz-sub">
+              Veuillez lire le contrat. Le bouton s’active uniquement après lecture complète.
+            </p>
+          </div>
 
-  <!-- Résumé visible -->
-  <div class="cz-callout">
-    <strong>Règles essentielles</strong>
-    <ul class="cz-listSimple">
-      <li>Accès réservé uniquement aux personnes déclarées</li>
-      <li>Couples non mariés interdits</li>
-      <li>Aucune drogue ou activité illégale</li>
-      <li>Aucune nuisance sonore ou trouble du voisinage</li>
-      <li>Respect de la propreté, du logement et de la sécurité</li>
-      <li>Tout manquement peut entraîner une expulsion immédiate sans remboursement</li>
-    </ul>
-  </div>
+          <div id="contractScroll" class="cz-contractScroll" role="region" aria-label="Contrat d’engagement">
+            <article class="cz-contract">
+              <header class="cz-contractHeader">
+                <h2>Règlement intérieur et engagement du voyageur</h2>
+                <p class="cz-contractMeta">
+                  Ce contrat s’applique à toute réservation gérée par Conciergerie Zenata.
+                </p>
+              </header>
 
-  <!-- Contrat scrollable -->
-  <div class="cz-contractBox">
-    <div
-      id="contractScroll"
-      class="cz-contractScroll"
-      aria-label="Contrat d’engagement"
-    >
-     <section id="screen-contract" class="cz-screen cz-hide">
-  <div class="cz-hero compact">
-    <h1 class="cz-h1">Contrat d’engagement</h1>
-    <p class="cz-sub">
-      Veuillez lire le contrat. Le bouton s’active uniquement après lecture complète.
-    </p>
-  </div>
+              <section>
+                <h3>1. Identité et accès au logement</h3>
+                <ul>
+                  <li>Le voyageur s’engage à fournir des informations exactes et une pièce d’identité lisible.</li>
+                  <li>Aucune personne non déclarée ne peut accéder au logement, même temporairement.</li>
+                  <li>Le voyageur est responsable de toute personne entrant dans le logement pendant le séjour.</li>
+                </ul>
+              </section>
 
-  <div id="contractScroll" class="cz-contractScroll" role="region" aria-label="Contrat d’engagement">
-    <article class="cz-contract">
-      <header class="cz-contractHeader">
-        <h2>Règlement intérieur et engagement du voyageur</h2>
-        <p class="cz-contractMeta">
-          Ce contrat s’applique à toute réservation gérée par Conciergerie Zenata.
-        </p>
-      </header>
+              <section>
+                <h3>2. Respect des lois et interdictions</h3>
+                <ul>
+                  <li>Interdiction totale de stupéfiants, drogues, substances illicites et activités illégales.</li>
+                  <li>Interdiction de toute activité contraire à l’ordre public ou aux lois en vigueur.</li>
+                  <li>Le logement ne doit pas être utilisé à des fins non autorisées (événement, tournage, etc.) sans accord écrit.</li>
+                </ul>
+              </section>
 
-      <section>
-        <h3>1. Identité et accès au logement</h3>
-        <ul>
-          <li>Le voyageur s’engage à fournir des informations exactes et une pièce d’identité lisible.</li>
-          <li>Aucune personne non déclarée ne peut accéder au logement, même temporairement.</li>
-          <li>Le voyageur est responsable de toute personne entrant dans le logement pendant le séjour.</li>
-        </ul>
-      </section>
+              <section>
+                <h3>3. Couples et conformité locale</h3>
+                <ul>
+                  <li>Selon le logement et la réglementation locale, un acte de mariage peut être requis.</li>
+                  <li>En cas d’exigence, l’absence du document peut entraîner un refus d’accès sans remboursement.</li>
+                </ul>
+              </section>
 
-      <section>
-        <h3>2. Respect des lois et interdictions</h3>
-        <ul>
-          <li>Interdiction totale de stupéfiants, drogues, substances illicites et activités illégales.</li>
-          <li>Interdiction de prostitution, d’activités contraires à l’ordre public ou aux lois en vigueur.</li>
-          <li>Le logement ne doit pas être utilisé à des fins professionnelles non autorisées, tournage ou événement sans accord écrit.</li>
-        </ul>
-      </section>
+              <section>
+                <h3>4. Nuisances, voisins et tranquillité</h3>
+                <ul>
+                  <li>Interdiction de nuisances sonores, musique forte ou comportements gênants.</li>
+                  <li>Respect strict de la copropriété, des voisins et des règles du bâtiment.</li>
+                  <li>En cas de plainte ou trouble, des agents peuvent intervenir et l’accès peut être retiré.</li>
+                </ul>
+              </section>
 
-      <section>
-        <h3>3. Couples et conformité locale</h3>
-        <ul>
-          <li>Les couples marocains peuvent être tenus de présenter un acte de mariage selon le logement et la réglementation locale.</li>
-          <li>En cas d’exigence, l’absence d’acte de mariage peut entraîner le refus d’accès sans remboursement.</li>
-        </ul>
-      </section>
+              <section>
+                <h3>5. Propreté, sécurité et dommages</h3>
+                <ul>
+                  <li>Le logement doit être maintenu propre et rendu dans un état correct.</li>
+                  <li>Toute dégradation, casse ou perte (clés, badges) sera facturée au voyageur.</li>
+                  <li>Interdiction de déplacer des meubles ou d’altérer les équipements sans accord.</li>
+                </ul>
+              </section>
 
-      <section>
-        <h3>4. Nuisances, voisins et tranquillité</h3>
-        <ul>
-          <li>Interdiction de nuisances sonores, musique forte ou comportements gênants.</li>
-          <li>Respect strict de la copropriété, des voisins et des règles du bâtiment.</li>
-          <li>En cas de plainte, des agents peuvent intervenir et l’accès peut être retiré.</li>
-        </ul>
-      </section>
+              <section>
+                <h3>6. Expulsion et absence de remboursement</h3>
+                <ul>
+                  <li>Tout manquement grave peut entraîner une expulsion immédiate sans remboursement.</li>
+                  <li>Le voyageur assume l’entière responsabilité des conséquences (intervention, pénalités, dommages, etc.).</li>
+                </ul>
+              </section>
 
-      <section>
-        <h3>5. Propreté, sécurité et dommages</h3>
-        <ul>
-          <li>Le logement doit être maintenu propre et rendu dans un état correct.</li>
-          <li>Toute dégradation, casse ou perte (clés, badges) sera facturée au voyageur.</li>
-          <li>Interdiction de déplacer des meubles ou d’altérer les équipements sans accord.</li>
-        </ul>
-      </section>
+              <section>
+                <h3>7. Acceptation et signature</h3>
+                <ul>
+                  <li>L’acceptation et la signature valent engagement contractuel.</li>
+                  <li>Le voyageur reconnaît avoir lu, compris et accepté l’ensemble des clauses.</li>
+                </ul>
+              </section>
 
-      <section>
-        <h3>6. Expulsion et absence de remboursement</h3>
-        <ul>
-          <li>Tout manquement grave peut entraîner l’expulsion immédiate sans remboursement.</li>
-          <li>Le voyageur assume l’entière responsabilité des conséquences (pénalités plateforme, intervention, dommages).</li>
-        </ul>
-      </section>
+              <footer class="cz-contractFooter">
+                <p>Fin du contrat.</p>
+              </footer>
+            </article>
+          </div>
 
-      <section>
-        <h3>7. Acceptation et signature</h3>
-        <ul>
-          <li>L’acceptation et la signature valent engagement contractuel.</li>
-          <li>Le voyageur reconnaît avoir lu, compris et accepté l’ensemble des clauses.</li>
-        </ul>
-      </section>
+          <div id="contractAcceptWrap" class="cz-contractAccept cz-disabled">
+            <label class="cz-check big">
+              <input type="checkbox" id="acceptContract" disabled />
+              <span>J’ai lu et j’accepte le contrat d’engagement.</span>
+            </label>
 
-      <footer class="cz-contractFooter">
-        <p>Fin du contrat.</p>
-      </footer>
-    </article>
-  </div>
-
-  <!-- Validation -->
-  <label class="cz-check big cz-disabled" id="contractAcceptWrap">
-    <input type="checkbox" id="acceptContract" disabled />
-    <span>
-      J’ai lu, compris et j’accepte l’intégralité du contrat d’engagement et du règlement intérieur.
-    </span>
-  </label>
-
-  <div class="cz-actions">
-    <button class="cz-btn cz-btnGhost" id="btnBackToCouple">Retour</button>
-    <button class="cz-btn cz-btnPrimary" id="btnToSignFromContract" disabled>
-      Continuer
-    </button>
-  </div>
-</section>
-
-
-        <!-- -->
+            <div class="cz-actions">
+              <button class="cz-btn cz-btnGhost" id="btnBackToCouple">Retour</button>
+              <button class="cz-btn cz-btnPrimary" id="btnToSignFromContract" disabled>Continuer</button>
+            </div>
+          </div>
+        </section>
 
         <!-- SIGN -->
         <section id="screen-sign" class="cz-screen cz-hide">
           <div class="cz-hero compact">
-            <div class="cz-heroIcon">✍️</div>
             <h1 class="cz-h1">Signature</h1>
             <p class="cz-sub">
               Presque terminé. Veuillez signer pour confirmer l’exactitude des informations.
@@ -448,7 +403,6 @@
         <!-- DONE -->
         <section id="screen-done" class="cz-screen cz-hide">
           <div class="cz-hero">
-            <div class="cz-heroIcon success">✅</div>
             <h1 class="cz-h1">Check-in complété</h1>
             <p class="cz-sub">Bienvenue ! Voici vos informations d’arrivée.</p>
           </div>
@@ -461,17 +415,13 @@
             <div id="instructions" class="cz-instructions"></div>
           </div>
 
-         <div class="cz-instructionsCard" style="margin-top:14px">
-        <div class="cz-instructionsHead">
-          <div class="cz-instructionsTitle">Documents</div>
-          <div class="cz-pill">Téléchargement</div>
-        </div>
-
-  <div id="docLinks" class="cz-docLinks">
-    <!-- rempli par JS -->
-  </div>
-</div>
-
+          <div class="cz-instructionsCard" style="margin-top:14px">
+            <div class="cz-instructionsHead">
+              <div class="cz-instructionsTitle">Documents</div>
+              <div class="cz-pill">Téléchargement</div>
+            </div>
+            <div id="docLinks" class="cz-docLinks"></div>
+          </div>
 
           <div class="cz-callout soft">
             <strong>Besoin d’aide ?</strong>
@@ -492,14 +442,14 @@
   </div>
 
   <script>
-    // Lightweight progress mapping (UI only). No backend change.
     window.__czProgress = {
-      consent: { i: 1, t: "Bienvenue" },
-      guest:   { i: 2, t: "Voyageur" },
-      group:   { i: 3, t: "Voyageurs" },
-      couple:  { i: 4, t: "Infos complémentaires" },
-      sign:    { i: 5, t: "Signature" },
-      done:    { i: 6, t: "Terminé" }
+      consent:   { i: 1, t: "Bienvenue" },
+      guest:     { i: 2, t: "Voyageur" },
+      group:     { i: 3, t: "Voyageurs" },
+      couple:    { i: 4, t: "Infos complémentaires" },
+      contract:  { i: 5, t: "Contrat" },
+      sign:      { i: 6, t: "Signature" },
+      done:      { i: 7, t: "Terminé" }
     };
   </script>
 
