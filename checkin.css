@@ -300,3 +300,42 @@ body{
 }
 .cz-docBtn span{font-weight:600;color:rgba(17,24,39,.75)}
 
+.cz-contractBox {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+  margin-top: 16px;
+}
+
+.cz-contractScroll {
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 16px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.cz-contractScroll h3 {
+  margin-top: 16px;
+  font-size: 15px;
+}
+
+.cz-contractScroll p {
+  margin: 8px 0;
+}
+
+.cz-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.cz-listSimple {
+  padding-left: 18px;
+  margin: 8px 0 0;
+}
+
+.cz-listSimple li {
+  margin-bottom: 6px;
+}
+
+
