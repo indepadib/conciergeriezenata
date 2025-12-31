@@ -41,6 +41,13 @@ let state = {
   signaturePngDataUrl: null,
 };
 
+function getReservationId() {
+  return state.reservation?.id
+    || state.reservation?.reservation_id
+    || state.reservation?.reservationId
+    || null;
+}
+
 function tokenFromUrl() {
   // support /checkin/<token> (via redirect) ou ?t=<token>
   const path = location.pathname || '';
@@ -472,7 +479,12 @@ acceptCheckbox?.addEventListener('change', () => {
   step: "guest",
   payload: {
     reservation: {
-      id: state.reservation.id,
+      id: const reservationId = getReservationId();
+if (!reservationId) {
+  console.error("Reservation object =", state.reservation);
+  alert("Erreur: reservation_id introuvable. Recharge le lien de check-in.");
+  return;
+},
       token: state.token, // au cas où ta function en a besoin
     },
     guests: [
@@ -546,7 +558,12 @@ $('btnToSignFromContract').onclick = () => {
       const out = await api('/.netlify/functions/checkin-submit', {
         session: state.session,
         token: state.token,
-        reservation_id: state.reservation.id,
+        reservation_id: const reservationId = getReservationId();
+if (!reservationId) {
+  console.error("Reservation object =", state.reservation);
+  alert("Erreur: reservation_id introuvable. Recharge le lien de check-in.");
+  return;
+},
         guests: state.guests,
         is_moroccan_couple: !!state.isMoroccanCouple,
         documents: { marriage_certificate: marriage },
