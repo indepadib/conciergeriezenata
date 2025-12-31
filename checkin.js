@@ -536,6 +536,8 @@ acceptCheckbox?.addEventListener('change', () => {
         guests: state.guests,
         is_moroccan_couple: !!state.isMoroccanCouple,
         documents: { marriage_certificate: marriage },
+         accepted_contract: true,
+        accepted_contract_version: "v1",
         signature_png: state.signaturePngDataUrl,
       });
 
