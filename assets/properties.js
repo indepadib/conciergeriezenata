@@ -1,9 +1,13 @@
+// Vitrine des biens affichés sur la landing page.
+// Les photos sont récupérées automatiquement depuis Airbnb via une fonction Netlify.
+// Si Airbnb bloque la récupération, le site affichera un message de secours dans la carte.
+
 window.ZENATA_PROPERTIES = [
   {
     title: "Appartement premium Zenata 1",
     location: "Zenata Éco-Cité",
     description: "Appartement géré par Conciergerie Zenata, prêt pour les séjours courts et moyens.",
-    image: "design-interieur-moderne-interieur.jpg",
+    image: "",
     guests: 4,
     bedrooms: 1,
     beds: 2,
@@ -15,7 +19,7 @@ window.ZENATA_PROPERTIES = [
     title: "Appartement premium Zenata 2",
     location: "Zenata Éco-Cité",
     description: "Bien optimisé pour la location courte durée, avec check-in fluide et suivi professionnel.",
-    image: "oreiller-confortable-sur-le-balcon-exterieur.jpg",
+    image: "",
     guests: 4,
     bedrooms: 1,
     beds: 2,
@@ -27,7 +31,7 @@ window.ZENATA_PROPERTIES = [
     title: "Appartement moderne Zenata 3",
     location: "Zenata / Mohammedia",
     description: "Annonce active, logement présenté proprement et accompagné par notre équipe.",
-    image: "retraite-cotiere-avec-siege-a-la-fenetre.jpg",
+    image: "",
     guests: 4,
     bedrooms: 1,
     beds: 2,
@@ -39,7 +43,7 @@ window.ZENATA_PROPERTIES = [
     title: "Séjour confortable Zenata 4",
     location: "Zenata Éco-Cité",
     description: "Logement en gestion avec assistance voyageurs, ménage professionnel et visibilité Airbnb.",
-    image: "design-interieur-moderne-interieur.jpg",
+    image: "",
     guests: 4,
     bedrooms: 1,
     beds: 2,
@@ -51,7 +55,7 @@ window.ZENATA_PROPERTIES = [
     title: "Appartement géré Zenata 5",
     location: "Zenata / Casablanca-Est",
     description: "Bien représenté par Conciergerie Zenata avec une approche orientée occupation et qualité.",
-    image: "oreiller-confortable-sur-le-balcon-exterieur.jpg",
+    image: "",
     guests: 4,
     bedrooms: 1,
     beds: 2,
@@ -60,10 +64,10 @@ window.ZENATA_PROPERTIES = [
     bookingUrl: ""
   },
   {
-    title: "Appartement premium Zenata 6",
+    title: "Location courte durée Zenata 6",
     location: "Zenata Éco-Cité",
-    description: "Appartement visible sur Airbnb, suivi par Conciergerie Zenata.",
-    image: "retraite-cotiere-avec-siege-a-la-fenetre.jpg",
+    description: "Appartement visible sur Airbnb, suivi et préparé pour une expérience voyageur soignée.",
+    image: "",
     guests: 4,
     bedrooms: 1,
     beds: 2,
