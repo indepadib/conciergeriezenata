@@ -68,8 +68,8 @@ const QUICK_EXPENSE_ITEMS = [
 
 let nightRows = [];
 
-function renderQuickExpenses(){
-  const box = $('quickExpenseGrid');
+function renderQuickExpenseGrid(targetId = 'quickExpenseGrid'){
+  const box = $(targetId);
   if(!box) return;
   const groups = QUICK_EXPENSE_ITEMS.reduce((acc, item) => {
     (acc[item.category] ||= []).push(item);
@@ -79,25 +79,32 @@ function renderQuickExpenses(){
     <div class="quick-group">
       <div class="quick-title">${escapeHtml(cat)}</div>
       ${items.map((it, idx) => {
-        const key = `${cat}-${idx}`.replace(/[^a-z0-9]/gi,'_');
-        const valueAttr = it.defaultAmount ? ` value="${Number(it.defaultAmount)}"` : '';
         const placeholder = it.hint || '0';
+        const valueAttr = it.defaultAmount ? ` value="${Number(it.defaultAmount)}"` : '';
         return `<div class="quick-row">
           <span>${escapeHtml(it.label)} <small>${escapeHtml(placeholder)}</small></span>
-          <input data-qexp-desc="${escapeHtml(it.label)}" type="number" step="0.01" placeholder="${escapeHtml(placeholder)}"${valueAttr} />
+          <input data-qexp-desc="${escapeHtml(it.label)}" data-qexp-target="${escapeHtml(targetId)}" type="number" step="0.01" placeholder="${escapeHtml(placeholder)}"${valueAttr} />
         </div>`;
       }).join('')}
     </div>
   `).join('');
 }
 
-async function saveQuickExpenses(){
-  const pid = $('cProperty')?.value;
-  const m = $('cMonth')?.value;
-  if(!pid || !m){ $('quickExpenseMsg').textContent = 'Choisis un bien et un mois.'; return; }
+function renderQuickExpenses(){
+  renderQuickExpenseGrid('quickExpenseGrid');
+  renderQuickExpenseGrid('quickExpenseGridExpenses');
+}
+
+async function saveQuickExpenses(source = 'closing'){
+  const isExpensesTab = source === 'expenses';
+  const pid = isExpensesTab ? $('fProperty')?.value : $('cProperty')?.value;
+  const m = isExpensesTab ? $('fMonth')?.value : $('cMonth')?.value;
+  const msgEl = isExpensesTab ? $('quickExpenseMsgExpenses') : $('quickExpenseMsg');
+  const target = isExpensesTab ? 'quickExpenseGridExpenses' : 'quickExpenseGrid';
+  if(!pid || !m){ if(msgEl) msgEl.textContent = 'Choisis un bien et un mois.'; return; }
   const r = monthRange(m);
   if(!r) return;
-  const inputs = [...document.querySelectorAll('[data-qexp-desc]')];
+  const inputs = [...document.querySelectorAll(`[data-qexp-target="${target}"]`)];
   const rows = inputs
     .map(input => ({ description: input.dataset.qexpDesc, amount: Number(input.value || 0) }))
     .filter(x => x.amount > 0)
@@ -110,15 +117,15 @@ async function saveQuickExpenses(){
       owner_markup_rate: 0,
       locked: false
     }));
-  if(!rows.length){ $('quickExpenseMsg').textContent = 'Aucun montant renseigné.'; return; }
-  $('quickExpenseMsg').textContent = 'Enregistrement…';
+  if(!rows.length){ if(msgEl) msgEl.textContent = 'Aucun montant renseigné.'; return; }
+  if(msgEl) msgEl.textContent = 'Enregistrement…';
   const { error } = await supabaseClient.from('expenses').insert(rows);
-  if(error){ $('quickExpenseMsg').textContent = 'Erreur: ' + error.message; return; }
+  if(error){ if(msgEl) msgEl.textContent = 'Erreur: ' + error.message; return; }
   inputs.forEach(i => i.value = '');
-  await loadMonthExpenses();
-  calcClosing();
+  if(typeof loadMonthExpenses === 'function') await loadMonthExpenses();
+  if(typeof calcClosing === 'function') calcClosing();
   if(typeof loadExpensesV2 === 'function') await loadExpensesV2();
-  $('quickExpenseMsg').textContent = `${rows.length} dépense(s) ajoutée(s) ✅`;
+  if(msgEl) msgEl.textContent = `${rows.length} dépense(s) ajoutée(s) ✅`;
 }
 
 function renderNightRows(){
@@ -1514,7 +1521,8 @@ $('btnCloseMonth') && ($('btnCloseMonth').onclick = saveClosing);
   $('btnEmailOwner') && ($('btnEmailOwner').onclick = prepareOwnerEmail);
   $('btnAddNight') && ($('btnAddNight').onclick = addNightRow);
   $('btnSaveNights') && ($('btnSaveNights').onclick = async () => { syncPlatformTotalsFromNights(); await saveReservationsDetail(); });
-  $('btnSaveQuickExpenses') && ($('btnSaveQuickExpenses').onclick = saveQuickExpenses);
+  $('btnSaveQuickExpenses') && ($('btnSaveQuickExpenses').onclick = () => saveQuickExpenses('closing'));
+  $('btnSaveQuickExpensesExpenses') && ($('btnSaveQuickExpensesExpenses').onclick = () => saveQuickExpenses('expenses'));
 
 
 
@@ -1579,6 +1587,7 @@ async function boot(){
 
   // preload expenses (safe even if tab hidden)
   await loadExpenseProperties();
+  renderQuickExpenses();
   await loadExpensesV2();
 
   // Default tab

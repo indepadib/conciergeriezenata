@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Finance — Conciergerie Zenata</title>
-  <link rel="stylesheet" href="./finance.css?v=3"/>
+  <link rel="stylesheet" href="./finance.css"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -184,7 +184,61 @@
         </div>
       </div>
 
+      <div class="mini-platform">
+        <h4>Hors plateforme / direct</h4>
+        <div class="grid3 compact-grid">
+          <div class="field">
+            <label>Revenu logement</label>
+            <input id="directHousing" type="number" step="0.01" placeholder="Ex: 3200"/>
+          </div>
+          <div class="field">
+            <label>Frais / remise</label>
+            <input id="directFees" type="number" step="0.01" placeholder="0"/>
+          </div>
+          <div class="field">
+            <label>Ménage collecté</label>
+            <input id="directCleaning" type="number" step="0.01" placeholder="0"/>
+          </div>
+        </div>
+      </div>
+
       <div class="muted" id="revTotalMsg"></div>
+    </div>
+
+    <!-- STEP 2B -->
+    <div class="card">
+      <div class="card-head-inline">
+        <div>
+          <h3>2 bis) Détail des nuitées</h3>
+          <div class="hint">Ajoute chaque réservation : du ... au ..., plateforme, montant et ménage. Ça donne un relevé propriétaire beaucoup plus clair.</div>
+        </div>
+        <button id="btnAddNight" class="btn">+ Nuitée</button>
+      </div>
+
+      <div class="tablewrap soft-wrap">
+        <table class="table" id="tblNights">
+          <thead>
+            <tr>
+              <th>Plateforme</th>
+              <th>Du</th>
+              <th>Au</th>
+              <th>Montant logement</th>
+              <th>Ménage</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="night-kpis">
+        <div><span>Nuits</span><b id="nightTotal">0</b></div>
+        <div><span>Réservations</span><b id="bookingCount">0</b></div>
+        <div><span>Prix moyen / nuit</span><b id="adrValue">—</b></div>
+      </div>
+      <div class="actions">
+        <button id="btnSaveNights" class="btn">Enregistrer le détail des nuitées</button>
+        <span id="nightMsg" class="muted"></span>
+      </div>
     </div>
 
     <!-- STEP 3 -->
@@ -201,6 +255,18 @@
           <input id="cExpenses" type="number" step="0.01" disabled/>
         </div>
       </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head-inline">
+        <div>
+          <h3>3 bis) Dépenses rapides du mois</h3>
+          <div class="hint">Tous les consommables/dépenses fréquentes sont déjà listés. Tu remplis seulement les montants concernés.</div>
+        </div>
+        <button id="btnSaveQuickExpenses" class="btn">Enregistrer les lignes remplies</button>
+      </div>
+      <div id="quickExpenseGrid" class="quick-expense-grid"></div>
+      <div id="quickExpenseMsg" class="muted"></div>
     </div>
 
     <!-- STEP 4 -->
@@ -221,6 +287,7 @@
     <div class="actions">
       <button id="btnCloseMonth" class="btn btn-primary">Valider la clôture du mois</button>
       <button id="btnOwnerStatement" class="btn">Télécharger relevé propriétaire</button>
+      <button id="btnEmailOwner" class="btn">Préparer l’envoi propriétaire</button>
       <button id="btnMarkPaid" class="btn">Marquer comme payé</button>
       <span id="closeMsg" class="muted"></span>
     </div>
@@ -260,6 +327,20 @@
           <option value="not_billable">Non refacturée</option>
         </select>
       </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="card quick-expense-panel">
+      <div class="card-head-inline">
+        <div>
+          <h3>Dépenses rapides du mois</h3>
+          <div class="hint">Sélectionne le bien et le mois ci-dessus, puis remplis seulement les montants concernés. Netflix reste vide si non facturé.</div>
+        </div>
+        <button id="btnSaveQuickExpensesExpenses" class="btn btn-primary">Enregistrer les dépenses du mois</button>
+      </div>
+      <div id="quickExpenseGridExpenses" class="quick-expense-grid"></div>
+      <div id="quickExpenseMsgExpenses" class="muted"></div>
     </div>
 
     <div class="divider"></div>

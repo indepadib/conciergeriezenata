@@ -194,3 +194,7 @@ input:focus, select:focus{border-color: rgba(122,167,255,.5)}
 .quick-row small{display:block; margin-top:2px; color:#8a9a9a; font-size:.78rem; font-weight:700}
 #tblNights input,#tblNights select{min-width:120px; padding:8px 10px; border-radius:12px}
 @media (max-width:900px){.quick-expense-grid{grid-template-columns:1fr}.night-kpis{grid-template-columns:1fr}.card-head-inline{flex-direction:column}.quick-row{grid-template-columns:1fr}}
+
+/* V3 - dépenses rapides directement dans l'onglet Dépenses */
+.quick-expense-panel{margin-top:18px; border-color:rgba(130,166,255,.35); background:linear-gradient(180deg, rgba(130,166,255,.06), rgba(255,255,255,.02));}
+.quick-expense-panel h3{margin:0;}
