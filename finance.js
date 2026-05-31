@@ -1,0 +1,1699 @@
+// =============================
+//  CZ Finance - Admin (MVP v1)
+// =============================
+
+// 1) Configure supabaseClient
+const supabase_URL = "https://ojgchrqtvkwzhjvwwftd.supabase.co";
+const supabase_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qZ2NocnF0dmt3emhqdnd3ZnRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2OTMxODEsImV4cCI6MjA3NTI2OTE4MX0.Ok7fj3QUs28Q8dOiNy6caSBmjcUmjFrZgmIvAnzJZ00";
+/*************************************************
+ * Finance Admin — finance.js (FULL)
+ * - Supabase Auth + Admin gate (admin_users)
+ * - Tabs navigation
+ * - Expenses V2 (CRUD + receipt upload/download)
+ *************************************************/
+
+// IMPORTANT: keep supabase library loaded via CDN in index.html
+// <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+const supabaseClient = window.supabase.createClient(supabase_URL, supabase_ANON_KEY);
+
+const $ = (id) => document.getElementById(id);
+
+function money(v){
+  const n = Number(v || 0);
+  return n.toLocaleString('fr-MA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " MAD";
+}
+
+function monthRange(yyyyMm){
+  const [y, m] = (yyyyMm || "").split('-').map(Number);
+  if(!y || !m) return null;
+  const start = new Date(y, m - 1, 1);
+  const end = new Date(y, m, 0);
+  return { start: start.toISOString().slice(0,10), end: end.toISOString().slice(0,10) };
+}
+
+function escapeHtml(v){
+  return String(v ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+
+function nightsBetween(start, end){
+  if(!start || !end) return 0;
+  const a = new Date(start + 'T00:00:00');
+  const b = new Date(end + 'T00:00:00');
+  const d = Math.round((b - a) / 86400000);
+  return Math.max(0, d);
+}
+
+const QUICK_EXPENSE_ITEMS = [
+  { label:'Netflix', category:'Abonnements', hint:'0 ou 25 DH' },
+  { label:'Liquide vaisselle', category:'Cuisine', hint:'0–20 DH' },
+  { label:'Éponge', category:'Cuisine', hint:'0–5 DH' },
+  { label:'Essuie-tout', category:'Cuisine', hint:'0–10 DH' },
+  { label:'Liquide machine à laver', category:'Linge', hint:'0–25 DH' },
+  { label:'Clinex', category:'Accueil', hint:'0–20 DH' },
+  { label:'Eau de javel', category:'Ménage', hint:'0–10 DH' },
+  { label:'Eau Sanicroix', category:'Ménage', hint:'0–12 DH' },
+  { label:'Bouteilles d’eau', category:'Accueil', hint:'0–25 DH' },
+  { label:'Capsules', category:'Accueil', hint:'0–35 DH' },
+  { label:'Bonbons', category:'Accueil', hint:'0–15 DH' },
+  { label:'Chocolat', category:'Accueil', hint:'0–15 DH' },
+  { label:'Fruits', category:'Accueil', hint:'0–20 DH' },
+  { label:'Papier toilette', category:'Salle de bain', hint:'0–25 DH' },
+  { label:'Gel douche', category:'Salle de bain', hint:'0–30 DH' },
+  { label:'Shampoing', category:'Salle de bain', hint:'0–30 DH' },
+  { label:'Savon mains', category:'Salle de bain', hint:'0–20 DH' },
+  { label:'Sac poubelle', category:'Cuisine', hint:'0–20 DH' },
+  { label:'Serpillère', category:'Ménage', hint:'0–30 DH' },
+  { label:'Torchon', category:'Cuisine', hint:'0–25 DH' }
+];
+
+function getQuickConsumableLinesFromClosingInputs(){
+  const inputs = [...document.querySelectorAll('[data-qexp-target="quickExpenseGrid"]')];
+  return inputs
+    .map(input => {
+      const description = input.dataset.qexpDesc || '';
+      const amount = Number(input.value || 0);
+      const item = QUICK_EXPENSE_ITEMS.find(x => x.label === description) || {};
+      return { description, category: item.category || 'Consommables', amount };
+    })
+    .filter(x => x.description && x.amount > 0);
+}
+
+
+function consumableStorageKey(pid, start, end){
+  return `cz_consumable_lines_${pid}_${start}_${end}`;
+}
+
+function saveConsumableLinesLocal(pid, start, end, lines){
+  try{
+    localStorage.setItem(consumableStorageKey(pid,start,end), JSON.stringify(lines || []));
+  } catch(e){ console.warn('localStorage consommables indisponible', e); }
+}
+
+function loadConsumableLinesLocal(pid, start, end){
+  try{
+    const raw = localStorage.getItem(consumableStorageKey(pid,start,end));
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch(e){ return []; }
+}
+
+async function saveConsumableLines(pid, start, end){
+  const lines = getQuickConsumableLinesFromClosingInputs();
+
+  // Remplace le détail du mois pour éviter les doublons si on revalide la clôture.
+  const del = await supabaseClient
+    .from('consumable_lines')
+    .delete()
+    .eq('property_id', pid)
+    .eq('period_start', start)
+    .eq('period_end', end);
+
+  if(del.error) return { error: del.error, saved: 0 };
+  if(!lines.length) return { error: null, saved: 0 };
+
+  const rows = lines.map(x => ({
+    property_id: pid,
+    period_start: start,
+    period_end: end,
+    category: x.category,
+    description: x.description,
+    amount: Number(x.amount || 0)
+  }));
+
+  const ins = await supabaseClient.from('consumable_lines').insert(rows);
+  if(ins.error) return { error: ins.error, saved: 0 };
+  return { error: null, saved: rows.length };
+}
+
+let nightRows = [];
+
+function renderQuickExpenseGrid(targetId = 'quickExpenseGrid'){
+  const box = $(targetId);
+  if(!box) return;
+  const groups = QUICK_EXPENSE_ITEMS.reduce((acc, item) => {
+    (acc[item.category] ||= []).push(item);
+    return acc;
+  }, {});
+  box.innerHTML = Object.entries(groups).map(([cat, items]) => `
+    <div class="quick-group">
+      <div class="quick-title">${escapeHtml(cat)}</div>
+      ${items.map((it, idx) => {
+        const placeholder = it.hint || '0';
+        const valueAttr = it.defaultAmount ? ` value="${Number(it.defaultAmount)}"` : '';
+        return `<div class="quick-row">
+          <span>${escapeHtml(it.label)} <small>${escapeHtml(placeholder)}</small></span>
+          <input data-qexp-desc="${escapeHtml(it.label)}" data-qexp-target="${escapeHtml(targetId)}" type="number" step="0.01" placeholder="${escapeHtml(placeholder)}"${valueAttr} />
+        </div>`;
+      }).join('')}
+    </div>
+  `).join('');
+}
+
+function renderQuickExpenses(){
+  renderQuickExpenseGrid('quickExpenseGrid');
+  renderQuickExpenseGrid('quickExpenseGridExpenses');
+}
+
+async function saveQuickExpenses(source = 'closing'){
+  const isExpensesTab = source === 'expenses';
+  const pid = isExpensesTab ? $('fProperty')?.value : $('cProperty')?.value;
+  const m = isExpensesTab ? $('fMonth')?.value : $('cMonth')?.value;
+  const msgEl = isExpensesTab ? $('quickExpenseMsgExpenses') : $('quickExpenseMsg');
+  const target = isExpensesTab ? 'quickExpenseGridExpenses' : 'quickExpenseGrid';
+  if(!pid || !m){ if(msgEl) msgEl.textContent = 'Choisis un bien et un mois.'; return; }
+  const r = monthRange(m);
+  if(!r) return;
+
+  const inputs = [...document.querySelectorAll(`[data-qexp-target="${target}"]`)];
+  const filled = inputs
+    .map(input => ({ description: input.dataset.qexpDesc, amount: Number(input.value || 0) }))
+    .filter(x => x.amount > 0);
+
+  if(!filled.length){ if(msgEl) msgEl.textContent = 'Aucun montant renseigné.'; return; }
+
+  // Dans l'écran Clôture, ces lignes sont des consommables du mois.
+  // Elles alimentent le champ "Consommables" ET sont sauvegardées en détail
+  // pour que le relevé propriétaire affiche chaque ligne.
+  if(!isExpensesTab){
+    const total = filled.reduce((s, x) => s + Number(x.amount || 0), 0);
+    const detailedLines = getQuickConsumableLinesFromClosingInputs();
+    saveConsumableLinesLocal(pid, r.start, r.end, detailedLines);
+
+    const input = $('cConsumables');
+    if(input) input.value = total.toFixed(2);
+    if(typeof calcClosing === 'function') calcClosing();
+
+    if(msgEl) msgEl.textContent = 'Sauvegarde du détail consommables…';
+    const saved = await saveConsumableLines(pid, r.start, r.end);
+    if(saved.error){
+      console.warn('Détail consommables non sauvegardé:', saved.error);
+      if(msgEl) msgEl.textContent = `Total consommables reporté: ${money(total)} ✅, mais détail non sauvegardé dans Supabase: ${saved.error.message}`;
+      return;
+    }
+
+    if(msgEl) msgEl.textContent = `Total consommables reporté: ${money(total)} ✅ — ${saved.saved} ligne(s) détaillée(s) sauvegardée(s). Clique ensuite sur Valider la clôture.`;
+    return;
+  }
+
+  // Dans l'onglet Dépenses, les lignes rapides restent des dépenses refacturables.
+  const rows = filled.map(x => ({
+    property_id: pid,
+    expense_date: r.end,
+    description: x.description,
+    amount: x.amount,
+    bill_to_owner: true,
+    owner_markup_rate: 0,
+    locked: false
+  }));
+
+  if(msgEl) msgEl.textContent = 'Enregistrement…';
+  const { error } = await supabaseClient.from('expenses').insert(rows);
+  if(error){ if(msgEl) msgEl.textContent = 'Erreur: ' + error.message; return; }
+  inputs.forEach(i => i.value = '');
+  if(typeof loadMonthExpenses === 'function') await loadMonthExpenses();
+  if(typeof calcClosing === 'function') calcClosing();
+  if(typeof loadExpensesV2 === 'function') await loadExpensesV2();
+  if(msgEl) msgEl.textContent = `${rows.length} dépense(s) ajoutée(s) ✅`;
+}
+
+function renderNightRows(){
+  const tbody = $('tblNights')?.querySelector('tbody');
+  if(!tbody) return;
+  tbody.innerHTML = nightRows.map((r, i) => `
+    <tr>
+      <td>
+        <select data-night-field="platform" data-night-index="${i}">
+          <option value="airbnb" ${r.platform==='airbnb'?'selected':''}>Airbnb</option>
+          <option value="booking" ${r.platform==='booking'?'selected':''}>Booking</option>
+          <option value="direct" ${r.platform==='direct'?'selected':''}>Hors plateforme</option>
+          <option value="other" ${r.platform==='other'?'selected':''}>Autre</option>
+        </select>
+      </td>
+      <td><input data-night-field="checkin" data-night-index="${i}" type="date" value="${r.checkin||''}" /></td>
+      <td><input data-night-field="checkout" data-night-index="${i}" type="date" value="${r.checkout||''}" /></td>
+      <td><input data-night-field="housing_amount" data-night-index="${i}" type="number" step="0.01" value="${r.housing_amount ?? ''}" /></td>
+      <td><input data-night-field="cleaning_amount" data-night-index="${i}" type="number" step="0.01" value="${r.cleaning_amount ?? ''}" /></td>
+      <td><button class="iconbtn" data-remove-night="${i}">✕</button></td>
+    </tr>
+  `).join('') || `<tr><td colspan="6" class="muted">Aucune nuitée. Clique sur “+ Nuitée”.</td></tr>`;
+
+  document.querySelectorAll('[data-night-field]').forEach(el => {
+    el.oninput = el.onchange = () => {
+      const idx = Number(el.dataset.nightIndex);
+      const field = el.dataset.nightField;
+      nightRows[idx][field] = ['housing_amount','cleaning_amount'].includes(field) ? Number(el.value || 0) : el.value;
+      updateNightStats();
+    };
+  });
+  document.querySelectorAll('[data-remove-night]').forEach(btn => {
+    btn.onclick = () => { nightRows.splice(Number(btn.dataset.removeNight), 1); renderNightRows(); updateNightStats(); };
+  });
+  updateNightStats();
+}
+
+function addNightRow(){
+  const m = $('cMonth')?.value;
+  const defaultStart = m ? `${m}-01` : new Date().toISOString().slice(0,10);
+  nightRows.push({ platform:'airbnb', checkin:defaultStart, checkout:'', housing_amount:0, cleaning_amount:0 });
+  renderNightRows();
+}
+
+function updateNightStats(){
+  const nights = nightRows.reduce((s,r)=>s+nightsBetween(r.checkin, r.checkout),0);
+  const housing = nightRows.reduce((s,r)=>s+Number(r.housing_amount||0),0);
+  if($('nightTotal')) $('nightTotal').textContent = String(nights);
+  if($('bookingCount')) $('bookingCount').textContent = String(nightRows.length);
+  if($('adrValue')) $('adrValue').textContent = nights ? money(housing/nights) : '—';
+}
+
+async function loadReservationsDetail(){
+  const pid = $('cProperty')?.value;
+  const m = $('cMonth')?.value;
+  if(!pid || !m) return;
+  const r = monthRange(m);
+  $('nightMsg') && ($('nightMsg').textContent = '');
+  const { data, error } = await supabaseClient
+    .from('reservation_nights')
+    .select('id,platform,checkin,checkout,housing_amount,cleaning_amount')
+    .eq('property_id', pid)
+    .gte('checkin', r.start)
+    .lte('checkin', r.end)
+    .order('checkin', { ascending:true });
+  if(error){
+    console.warn('reservation_nights not ready:', error.message);
+    nightRows = [];
+    renderNightRows();
+    if($('nightMsg')) $('nightMsg').textContent = 'Table reservation_nights absente. Lance le SQL fourni pour activer la sauvegarde.';
+    return;
+  }
+  nightRows = (data || []).map(x => ({...x}));
+  renderNightRows();
+}
+
+async function saveReservationsDetail(){
+  const pid = $('cProperty')?.value;
+  const m = $('cMonth')?.value;
+  if(!pid || !m){ $('nightMsg').textContent = 'Choisis un bien et un mois.'; return; }
+  const range = monthRange(m);
+  const clean = nightRows.filter(r => r.checkin && r.checkout).map(r => ({
+    property_id: pid,
+    platform: r.platform || 'airbnb',
+    checkin: r.checkin,
+    checkout: r.checkout,
+    nights: nightsBetween(r.checkin, r.checkout),
+    housing_amount: Number(r.housing_amount||0),
+    cleaning_amount: Number(r.cleaning_amount||0)
+  }));
+  $('nightMsg').textContent = 'Enregistrement…';
+  const del = await supabaseClient.from('reservation_nights')
+    .delete()
+    .eq('property_id', pid)
+    .gte('checkin', range.start)
+    .lte('checkin', range.end);
+  if(del.error){ $('nightMsg').textContent = 'Erreur table reservation_nights: ' + del.error.message; return; }
+  if(clean.length){
+    const ins = await supabaseClient.from('reservation_nights').insert(clean);
+    if(ins.error){ $('nightMsg').textContent = 'Erreur: ' + ins.error.message; return; }
+  }
+  $('nightMsg').textContent = 'Détail des nuitées enregistré ✅';
+}
+
+function syncPlatformTotalsFromNights(){
+  if(!nightRows.length) return;
+  const sums = nightRows.reduce((acc,r)=>{
+    const k = r.platform || 'other';
+    acc[k] ||= {h:0,c:0};
+    acc[k].h += Number(r.housing_amount||0);
+    acc[k].c += Number(r.cleaning_amount||0);
+    return acc;
+  }, {});
+  if(sums.airbnb){ $('airbnbHousing') && ($('airbnbHousing').value = sums.airbnb.h.toFixed(2)); $('airbnbCleaning') && ($('airbnbCleaning').value = sums.airbnb.c.toFixed(2)); }
+  if(sums.booking){ $('bookingHousing') && ($('bookingHousing').value = sums.booking.h.toFixed(2)); $('bookingCleaning') && ($('bookingCleaning').value = sums.booking.c.toFixed(2)); }
+  if(sums.direct){ $('directHousing') && ($('directHousing').value = sums.direct.h.toFixed(2)); $('directCleaning') && ($('directCleaning').value = sums.direct.c.toFixed(2)); }
+  calcClosing();
+}
+
+async function prepareOwnerEmail(){
+  const pid = $('cProperty')?.value;
+  const m = $('cMonth')?.value;
+  if(!pid || !m) return alert('Choisis un bien et un mois.');
+  const pRes = await supabaseClient.from('properties').select('name,owners(full_name,email)').eq('id', pid).single();
+  if(pRes.error) return alert('Erreur bien: ' + pRes.error.message);
+  const email = pRes.data?.owners?.email;
+  if(!email) return alert('Ce propriétaire n’a pas d’email renseigné.');
+  const subject = encodeURIComponent(`Relevé propriétaire ${pRes.data.name || ''} - ${m}`);
+  const body = encodeURIComponent(`Bonjour ${pRes.data?.owners?.full_name || ''},\n\nVous trouverez ci-joint le relevé propriétaire du mois ${m}.\n\nBien cordialement,\nConciergerie Zenata`);
+  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+}
+
+/*************************************************
+ * AUTH / ADMIN
+ *************************************************/
+async function ensureAdmin(){
+  const { data: userRes, error: userErr } = await supabaseClient.auth.getUser();
+  const user = userRes?.user;
+
+  if (userErr || !user) return { ok:false, reason:"no_user" };
+
+  const { data, error } = await supabaseClient
+    .from('admin_users')
+    .select('user_id, role')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("admin_users select error:", error);
+    return { ok:false, reason:"admin_check_failed", error };
+  }
+  if (!data) return { ok:false, reason:"not_admin" };
+
+  return { ok:true, user, role: data.role };
+}
+
+function showLogin(msg=""){
+  $('app')?.classList.add('hidden');
+  $('login')?.classList.remove('hidden');
+  if($('authMsg')) $('authMsg').textContent = msg;
+}
+
+function showApp(user){
+  $('login')?.classList.add('hidden');
+  $('app')?.classList.remove('hidden');
+  if($('whoami')) $('whoami').textContent = user?.email || "admin";
+}
+
+/*************************************************
+ * NAV
+ *************************************************/
+function setTab(tab){
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.nav-item[data-tab="${tab}"]`)?.classList.add('active');
+
+  document.querySelectorAll('.tab').forEach(t => t.classList.add('hidden'));
+  $(`tab-${tab}`)?.classList.remove('hidden');
+
+  const titles = {
+    overview: ["Résumé", "Les chiffres importants, sans jargon."],
+    properties: ["Biens", "Tout est géré par bien : dépenses, consommables, clôture."],
+    expenses: ["Dépenses", "Ajoute une dépense en 10 secondes. Justificatif optionnel. 🔒 si mois verrouillé."],
+    closing: ["Clôture du mois", "Choisir → vérifier → clôturer → verrouiller."],
+    owners: ["Propriétaires", "Qui doit recevoir combien."],
+    cash: ["Trésorerie", "Combien on a en banque et d’où ça vient."],
+    settings: ["Réglages", "Règles simples. Pas de complexité inutile."]
+  };
+
+  const t = titles[tab] || ["Finance", ""];
+  if($('pageTitle')) $('pageTitle').textContent = t[0];
+  if($('pageSub')) $('pageSub').textContent = t[1];
+}
+
+/*************************************************
+ * BASIC DATA LOADERS (minimal)
+ * (Tu peux garder tes versions existantes si tu veux)
+ *************************************************/
+async function loadPropertiesDropdown(selectId){
+  const el = $(selectId);
+  if(!el) return;
+
+  const { data, error } = await supabaseClient
+    .from('properties')
+    .select('id,name')
+    .order('name', { ascending:true })
+    .limit(500);
+
+  if(error){ console.error(error); return; }
+  el.innerHTML = (data||[]).map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+}
+
+/*************************************************
+ * EXPENSES V2 (CRUD + receipts)
+ *************************************************/
+let EXP_PROPS = [];
+let editingExpenseId = null;
+let editingReceiptPath = null;
+let editingLocked = false;
+
+function fmtDate(d){ return d || "—"; }
+function pillYesNo(v){
+  return v ? `<span class="pill yes">Oui</span>` : `<span class="pill no">Non</span>`;
+}
+function pillLock(v){
+  return v ? `<span class="pill lock">🔒 Verrouillé</span>` : ``;
+}
+function propNameById(id){
+  return (EXP_PROPS.find(p => p.id === id)?.name) || "—";
+}
+
+async function loadExpenseProperties(){
+  const { data, error } = await supabaseClient
+    .from('properties')
+    .select('id,name')
+    .order('name', { ascending:true })
+    .limit(500);
+
+  if(error){ console.error(error); return; }
+  EXP_PROPS = data || [];
+
+  const opts = EXP_PROPS.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+  if($('fProperty')) $('fProperty').innerHTML = `<option value="all">Tous</option>` + opts;
+  if($('mProperty')) $('mProperty').innerHTML = opts;
+}
+
+function openExpenseModal(row=null){
+  $('expModal')?.classList.remove('hidden');
+  if($('mMsg')) $('mMsg').textContent = "";
+
+  const today = new Date().toISOString().slice(0,10);
+
+  if($('mDate')) $('mDate').value = row?.expense_date || today;
+  if($('mAmount')) $('mAmount').value = row?.amount ?? "";
+  if($('mDesc')) $('mDesc').value = row?.description ?? "";
+  if($('mBillToOwner')) $('mBillToOwner').value = String(row?.bill_to_owner ?? true);
+  if($('mMarkup')) $('mMarkup').value = row?.owner_markup_rate ?? 0;
+  if($('mFile')) $('mFile').value = "";
+
+  if(row){
+    editingExpenseId = row.id;
+    editingReceiptPath = row.receipt_path || null;
+    editingLocked = !!row.locked;
+
+    if($('modalTitle')) $('modalTitle').textContent = "Modifier une dépense";
+    $('btnDeleteExpense')?.classList.toggle('hidden', editingLocked);
+    if($('mProperty')) $('mProperty').value = row.property_id;
+  } else {
+    editingExpenseId = null;
+    editingReceiptPath = null;
+    editingLocked = false;
+
+    if($('modalTitle')) $('modalTitle').textContent = "Ajouter une dépense";
+    $('btnDeleteExpense')?.classList.add('hidden');
+
+    // default property from filter
+    const fp = $('fProperty')?.value;
+    if(fp && fp !== 'all' && $('mProperty')) $('mProperty').value = fp;
+  }
+}
+
+function closeExpenseModal(){
+  $('expModal')?.classList.add('hidden');
+  editingExpenseId = null;
+  editingReceiptPath = null;
+  editingLocked = false;
+}
+
+async function uploadReceipt(propertyId, expenseId, file){
+  const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
+  const path = `expenses/${propertyId}/${expenseId}.${ext}`;
+
+  const { error } = await supabaseClient
+    .storage
+    .from('expenses-receipts')
+    .upload(path, file, { upsert: true });
+
+  if(error) throw error;
+  return path;
+}
+
+async function downloadReceipt(path){
+  const { data, error } = await supabaseClient
+    .storage
+    .from('expenses-receipts')
+    .createSignedUrl(path, 60);
+
+  if(error) throw error;
+  window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+}
+
+async function loadExpensesV2(){
+  const msg = $('expListMsg');
+  if(msg) msg.textContent = "Chargement…";
+
+  const fProp = $('fProperty')?.value || "all";
+  const fMonth = $('fMonth')?.value || "";
+  const fSearch = ($('fSearch')?.value || "").trim().toLowerCase();
+  const fBillable = $('fBillable')?.value || "all";
+
+  let q = supabaseClient
+    .from('expenses')
+    .select('id,property_id,expense_date,description,amount,bill_to_owner,owner_markup_rate,receipt_path,locked')
+    .order('expense_date', { ascending:false })
+    .limit(300);
+
+  if(fProp !== 'all') q = q.eq('property_id', fProp);
+
+  const r = fMonth ? monthRange(fMonth) : null;
+  if(r) q = q.gte('expense_date', r.start).lte('expense_date', r.end);
+
+  if(fBillable === 'billable') q = q.eq('bill_to_owner', true);
+  if(fBillable === 'not_billable') q = q.eq('bill_to_owner', false);
+
+  const { data, error } = await q;
+  if(error){
+    console.error(error);
+    if(msg) msg.textContent = "Erreur chargement: " + error.message;
+    return;
+  }
+
+  let rows = data || [];
+  if(fSearch){
+    rows = rows.filter(r =>
+      (r.description||"").toLowerCase().includes(fSearch) ||
+      propNameById(r.property_id).toLowerCase().includes(fSearch)
+    );
+  }
+
+  const tbody = $('tblExpensesV2')?.querySelector('tbody');
+  if(!tbody) return;
+
+  tbody.innerHTML = rows.map(r => {
+    const hasReceipt = !!r.receipt_path;
+    const lock = !!r.locked;
+    return `
+      <tr class="${lock ? 'lockedRow':''}">
+        <td>${fmtDate(r.expense_date)}</td>
+        <td class="muted">${propNameById(r.property_id)}</td>
+        <td>
+          <b>${r.description || '—'}</b>
+          ${pillLock(lock)}
+        </td>
+        <td><b>${money(r.amount)}</b></td>
+        <td>${pillYesNo(!!r.bill_to_owner)}</td>
+        <td>
+          ${hasReceipt ? `<button class="iconbtn" data-dl="${encodeURIComponent(r.receipt_path)}">📎</button>` : `<span class="muted">—</span>`}
+        </td>
+        <td>
+          <div class="row-actions">
+            <button class="iconbtn" data-edit="${r.id}">⋮</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('') || `<tr><td colspan="7" class="muted">Aucune dépense</td></tr>`;
+
+  // download
+  document.querySelectorAll('[data-dl]').forEach(btn => {
+    btn.onclick = async () => {
+      try { await downloadReceipt(decodeURIComponent(btn.dataset.dl)); }
+      catch(e){ alert("Erreur téléchargement: " + (e?.message||e)); }
+    };
+  });
+
+  // edit
+  const map = new Map(rows.map(r => [r.id, r]));
+  document.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.onclick = () => openExpenseModal(map.get(btn.dataset.edit));
+  });
+
+  if(msg) msg.textContent = `${rows.length} dépense(s)`;
+}
+
+async function saveExpense(){
+  const propertyId = $('mProperty')?.value;
+  const expenseDate = $('mDate')?.value;
+  const amount = Number($('mAmount')?.value || 0);
+  const description = ($('mDesc')?.value || "").trim();
+  const billToOwner = ($('mBillToOwner')?.value || "true") === "true";
+  const markup = Number($('mMarkup')?.value || 0);
+  const file = $('mFile')?.files?.[0] || null;
+
+  const mMsg = $('mMsg');
+  if(!propertyId){ if(mMsg) mMsg.textContent = "Choisis un bien."; return; }
+  if(!expenseDate){ if(mMsg) mMsg.textContent = "Choisis une date."; return; }
+  if(!(amount > 0)){ if(mMsg) mMsg.textContent = "Montant invalide."; return; }
+  if(!description){ if(mMsg) mMsg.textContent = "Ajoute une description."; return; }
+
+  if(mMsg) mMsg.textContent = "Enregistrement…";
+
+  try {
+    if(editingExpenseId){
+      if(editingLocked){
+        if(mMsg) mMsg.textContent = "Cette dépense est verrouillée (mois clôturé).";
+        return;
+      }
+
+      const { error: e1 } = await supabaseClient
+        .from('expenses')
+        .update({
+          property_id: propertyId,
+          expense_date: expenseDate,
+          amount,
+          description,
+          bill_to_owner: billToOwner,
+          owner_markup_rate: markup
+        })
+        .eq('id', editingExpenseId);
+
+      if(e1) throw e1;
+
+      if(file){
+        const path = await uploadReceipt(propertyId, editingExpenseId, file);
+        const { error: e2 } = await supabaseClient
+          .from('expenses')
+          .update({ receipt_path: path })
+          .eq('id', editingExpenseId);
+        if(e2) throw e2;
+        editingReceiptPath = path;
+      }
+
+      if(mMsg) mMsg.textContent = "Modifié ✅";
+    } else {
+      const { data, error: e1 } = await supabaseClient
+        .from('expenses')
+        .insert([{
+          property_id: propertyId,
+          expense_date: expenseDate,
+          amount,
+          description,
+          bill_to_owner: billToOwner,
+          owner_markup_rate: markup
+        }])
+        .select('id')
+        .single();
+
+      if(e1) throw e1;
+
+      const expenseId = data.id;
+
+      if(file){
+        const path = await uploadReceipt(propertyId, expenseId, file);
+        const { error: e2 } = await supabaseClient
+          .from('expenses')
+          .update({ receipt_path: path })
+          .eq('id', expenseId);
+        if(e2) throw e2;
+      }
+
+      if(mMsg) mMsg.textContent = "Ajouté ✅";
+    }
+
+    await loadExpensesV2();
+    setTimeout(closeExpenseModal, 200);
+
+  } catch (e){
+    console.error(e);
+    if(mMsg) mMsg.textContent = "Erreur: " + (e?.message || e);
+  }
+}
+
+async function deleteExpense(){
+  const mMsg = $('mMsg');
+  if(!editingExpenseId) return;
+  if(editingLocked){ if(mMsg) mMsg.textContent = "Dépense verrouillée: suppression impossible."; return; }
+
+  const ok = confirm("Supprimer cette dépense ? (action irréversible)");
+  if(!ok) return;
+
+  if(mMsg) mMsg.textContent = "Suppression…";
+
+  try {
+    if(editingReceiptPath){
+      await supabaseClient.storage.from('expenses-receipts').remove([editingReceiptPath]);
+    }
+
+    const { error } = await supabaseClient
+      .from('expenses')
+      .delete()
+      .eq('id', editingExpenseId);
+
+    if(error) throw error;
+
+    if(mMsg) mMsg.textContent = "Supprimé ✅";
+    await loadExpensesV2();
+    setTimeout(closeExpenseModal, 200);
+
+  } catch (e){
+    console.error(e);
+    if(mMsg) mMsg.textContent = "Erreur: " + (e?.message || e);
+  }
+}
+
+/*************************************************
+ * LOGIN ACTIONS
+ *************************************************/
+let loginInFlight = false;
+
+async function loginEmailPassword(){
+  if(loginInFlight) return;
+  loginInFlight = true;
+
+  const email = $('authEmail')?.value?.trim();
+  const password = $('authPassword')?.value;
+
+  if($('authMsg')) $('authMsg').textContent = "Connexion…";
+  $('btnLogin') && ($('btnLogin').disabled = true);
+  $('btnMagic') && ($('btnMagic').disabled = true);
+
+  try {
+    const res = await supabaseClient.auth.signInWithPassword({ email, password });
+    if(res?.error){
+      console.error(res.error);
+      if($('authMsg')) $('authMsg').textContent = "Erreur: " + res.error.message;
+      return;
+    }
+    if($('authMsg')) $('authMsg').textContent = "Connecté ✅";
+    await boot();
+  } catch (e){
+    console.error(e);
+    if($('authMsg')) $('authMsg').textContent = "Erreur: " + (e?.message || e);
+  } finally {
+    loginInFlight = false;
+    $('btnLogin') && ($('btnLogin').disabled = false);
+    $('btnMagic') && ($('btnMagic').disabled = false);
+  }
+}
+
+let otpInFlight = false;
+
+async function magicLink(){
+  if(otpInFlight) return;
+  otpInFlight = true;
+
+  const email = $('authEmail')?.value?.trim();
+  if(!email){ if($('authMsg')) $('authMsg').textContent = "Entre ton email."; otpInFlight=false; return; }
+
+  if($('authMsg')) $('authMsg').textContent = "Envoi du lien…";
+  $('btnLogin') && ($('btnLogin').disabled = true);
+  $('btnMagic') && ($('btnMagic').disabled = true);
+
+  try {
+    const { error } = await supabaseClient.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href }
+    });
+    if(error){
+      console.error(error);
+      if($('authMsg')) $('authMsg').textContent = "Erreur: " + error.message;
+      return;
+    }
+    if($('authMsg')) $('authMsg').textContent = "Lien envoyé ✅ (si SMTP configuré).";
+  } finally {
+    otpInFlight = false;
+    $('btnLogin') && ($('btnLogin').disabled = false);
+    $('btnMagic') && ($('btnMagic').disabled = false);
+  }
+}
+
+/*************************************************
+ * PROPERTIES (Biens)
+ *************************************************/
+async function loadPropertiesList(){
+  const tbody = $('tblProps')?.querySelector('tbody');
+  const msg = $('propsMsg');
+  if(msg) msg.textContent = "Chargement…";
+  if(!tbody) return;
+
+  const q = ($('propSearch')?.value || "").trim().toLowerCase();
+
+  // On prend aussi owner via relation si possible
+  const { data, error } = await supabaseClient
+    .from('properties')
+    .select('id,name,owner_id,owners(full_name,email)')
+    .order('name', { ascending:true })
+    .limit(500);
+
+  if(error){
+    console.error(error);
+    if(msg) msg.textContent = "Erreur: " + error.message;
+    return;
+  }
+
+  let rows = data || [];
+  if(q) rows = rows.filter(p => (p.name||"").toLowerCase().includes(q));
+
+  tbody.innerHTML = rows.map(p => `
+    <tr>
+      <td><b>${p.name || "—"}</b></td>
+      <td class="muted">${p.owners?.full_name || "—"}</td>
+      <td class="row-actions">
+        <button class="iconbtn" data-prop-exp="${p.id}">Dépenses</button>
+        <button class="iconbtn" data-prop-close="${p.id}">Clôturer</button>
+      </td>
+    </tr>
+  `).join('') || `<tr><td colspan="3" class="muted">Aucun bien</td></tr>`;
+
+  // Actions
+  document.querySelectorAll('[data-prop-exp]').forEach(b => {
+    b.onclick = async () => {
+      setTab('expenses');
+      $('fProperty').value = b.dataset.propExp;
+      await loadExpensesV2();
+    };
+  });
+
+  document.querySelectorAll('[data-prop-close]').forEach(b => {
+    b.onclick = () => {
+      setTab('closing');
+      // Si tu as un select property dans closing :
+      if($('selProperty')) $('selProperty').value = b.dataset.propClose;
+      // previewClosing si tu l’as
+      if(typeof previewClosing === 'function') previewClosing();
+    };
+  });
+
+  if(msg) msg.textContent = `${rows.length} bien(s)`;
+}
+
+async function loadDashboard(){
+  const now = new Date();
+  const m = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const start = `${m}-01`;
+  const end = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+
+  const { data } = await supabaseClient
+    .from('monthly_closings')
+    .select('housing_revenue_total, commission_amount, net_owner_amount')
+    .gte('period_start', start)
+    .lte('period_end', end)
+    .eq('status','locked');
+
+  const rows = data || [];
+  const housing = rows.reduce((s,x)=>s+Number(x.housing_revenue_total||0),0);
+  const commission = rows.reduce((s,x)=>s+Number(x.commission_amount||0),0);
+  const toPay = rows.reduce((s,x)=>s+Number(x.net_owner_amount||0),0);
+  const margin = commission;
+
+  $('kpiHousing').textContent = money(housing);
+  $('kpiCommission').textContent = money(commission);
+  $('kpiToPay').textContent = money(toPay);
+  $('kpiMargin').textContent = money(margin);
+}
+
+
+/*************************************************
+ * OWNERS (Propriétaires)
+ *************************************************/
+async function loadOwnersList(){
+  const tbody = $('tblOwners')?.querySelector('tbody');
+  const msg = $('ownersMsg');
+  if(msg) msg.textContent = "Chargement…";
+  if(!tbody) return;
+
+  const q = ($('ownerSearch')?.value || "").trim().toLowerCase();
+
+  const { data, error } = await supabaseClient
+    .from('owners')
+    .select('id,full_name,email,phone,created_at')
+    .order('created_at', { ascending:false })
+    .limit(500);
+
+  if(error){
+    console.error(error);
+    if(msg) msg.textContent = "Erreur: " + error.message;
+    return;
+  }
+
+  let rows = data || [];
+  if(q){
+    rows = rows.filter(o =>
+      (o.full_name||"").toLowerCase().includes(q) ||
+      (o.email||"").toLowerCase().includes(q) ||
+      (o.phone||"").toLowerCase().includes(q)
+    );
+  }
+
+  tbody.innerHTML = rows.map(o => `
+    <tr>
+      <td><b>${o.full_name || "—"}</b></td>
+      <td class="muted">${o.email || "—"}</td>
+      <td class="muted">${o.phone || "—"}</td>
+    </tr>
+  `).join('') || `<tr><td colspan="3" class="muted">Aucun propriétaire</td></tr>`;
+
+  if(msg) msg.textContent = `${rows.length} propriétaire(s)`;
+}
+
+/*************************************************
+ * CLOSING – UX + LOGIC
+ *************************************************/
+const COMMISSION_RATE = 0.20;
+
+function calcClosing(){
+  const aH = Number($('airbnbHousing').value||0);
+  const bH = Number($('bookingHousing').value||0);
+  const dH = Number($('directHousing')?.value||0);
+  const housing = aH + bH + dH;
+  const cleaning = Number($('airbnbCleaning')?.value||0) + Number($('bookingCleaning')?.value||0) + Number($('directCleaning')?.value||0);
+
+
+
+  const consum = Number($('cConsumables').value||0);
+  const exp = Number($('cExpenses').value||0);
+  const commission = housing * COMMISSION_RATE;
+  const net = housing - commission - consum - exp-cleaning;
+
+  $('revTotalMsg').textContent = `Total revenus logement : ${money(housing)}`;
+  $('sHousing').textContent = money(housing);
+  $('sCommission').textContent = `-${money(commission)}`;
+  $('sConsumables').textContent = `-${money(consum)}`;
+  $('sExpenses').textContent = `-${money(exp)}`;
+  $('sCleaning').textContent = `-${money(cleaning)}`;
+  $('sNet').textContent = money(net);
+  
+
+  return { housing, commission, consum, exp, net };
+}
+
+async function loadClosingDefaults(){
+  // properties dropdown
+  await loadExpenseProperties(); // déjà existant → remplit EXP_PROPS
+  $('cProperty').innerHTML = EXP_PROPS.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+
+  // month default
+  const now = new Date();
+  $('cMonth').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+  // consommables forfait du bien
+  $('cProperty').onchange = async () => {
+    const pid = $('cProperty').value;
+    const { data } = await supabaseClient
+      .from('finance_settings')
+      .select('consumables_flat_mad')
+      .eq('property_id', pid)
+      .maybeSingle();
+    $('cConsumables').value = Number(data?.consumables_flat_mad||0);
+    await loadMonthExpenses();
+    await loadReservationsDetail();
+    calcClosing();
+  };
+
+  $('cMonth').onchange = async () => {
+    await loadMonthExpenses();
+    await loadReservationsDetail();
+    calcClosing();
+    if(typeof loadClosingSaved === 'function') await loadClosingSaved();
+  };
+
+  renderQuickExpenses();
+  renderNightRows();
+  await loadReservationsDetail();
+}
+
+async function loadMonthExpenses(){
+  const pid = $('cProperty').value;
+  const m = $('cMonth').value;
+  if(!pid || !m) return;
+
+  const [y,mo] = m.split('-').map(Number);
+  const start = `${y}-${String(mo).padStart(2,'0')}-01`;
+  const end = new Date(y, mo, 0).toISOString().slice(0,10);
+
+  const { data } = await supabaseClient
+    .from('expenses')
+    .select('amount,owner_markup_rate')
+    .eq('property_id', pid)
+    .gte('expense_date', start)
+    .lte('expense_date', end)
+    .eq('bill_to_owner', true);
+
+  const total = (data||[]).reduce((s,x)=> s + Number(x.amount)*(1+Number(x.owner_markup_rate||0)), 0);
+  $('cExpenses').value = total.toFixed(2);
+}
+
+async function saveClosing(){
+  const pid = $('cProperty').value;
+  const m = $('cMonth').value;
+  if(!pid || !m){ $('closeMsg').textContent="Choisis un bien et un mois."; return; }
+
+  const [y,mo] = m.split('-').map(Number);
+  const start = `${y}-${String(mo).padStart(2,'0')}-01`;
+  const end = new Date(y, mo, 0).toISOString().slice(0,10);
+
+  // 0) Fetch owner_id from property (OBLIGATOIRE pour ton NOT NULL)
+  const pRes = await supabaseClient
+    .from('properties')
+    .select('owner_id')
+    .eq('id', pid)
+    .single();
+
+  if(pRes.error){
+    console.error(pRes.error);
+    $('closeMsg').textContent = "Erreur lecture bien: " + pRes.error.message;
+    return;
+  }
+  const ownerId = pRes.data?.owner_id;
+  if(!ownerId){
+    $('closeMsg').textContent = "Ce bien n’a pas de propriétaire (owner_id).";
+    return;
+  }
+
+  // Inputs revenus
+  const aH = Number($('airbnbHousing').value||0);
+  const aF = Number($('airbnbFees').value||0);
+  const bH = Number($('bookingHousing').value||0);
+  const bF = Number($('bookingFees').value||0);
+  const dH = Number($('directHousing')?.value||0);
+  const dF = Number($('directFees')?.value||0);
+
+  const aC = Number($('airbnbCleaning')?.value || 0);
+  const bC = Number($('bookingCleaning')?.value || 0);
+  const dC = Number($('directCleaning')?.value || 0);
+  const cleaningCollected = aC + bC + dC;
+
+  // Déductions
+  const consum = Number($('cConsumables').value||0);
+  const exp = Number($('cExpenses').value||0);
+
+  // Règle: commission sur logement uniquement (recommandé)
+  const housing = aH + bH + dH;
+  const commission = housing * COMMISSION_RATE;
+
+  // Net propriétaire: logement - commission - consommables - dépenses
+  // (le ménage n'impacte pas le proprio si tu le gères à part)
+  const net = housing - commission - consum - exp-cleaningCollected;
+
+  $('closeMsg').textContent = "Enregistrement…";
+
+  // 1) Save platform payouts (si tu utilises platform_payouts)
+  const pRows = [
+    { property_id: pid, platform:'airbnb', period_start:start, period_end:end, housing_revenue:aH, platform_fees:aF, cleaning_collected: aC },
+    { property_id: pid, platform:'booking', period_start:start, period_end:end, housing_revenue:bH, platform_fees:bF, cleaning_collected: bC },
+    { property_id: pid, platform:'direct', period_start:start, period_end:end, housing_revenue:dH, platform_fees:dF, cleaning_collected: dC },
+  ];
+
+  let r = await supabaseClient
+    .from('platform_payouts')
+    .upsert(pRows, { onConflict:'property_id,platform,period_start,period_end' });
+
+  if(r.error){
+    console.error(r.error);
+    $('closeMsg').textContent="Erreur revenus plateformes: "+r.error.message;
+    return;
+  }
+
+  // 2) Save consumables override (ce mois)
+  r = await supabaseClient
+    .from('consumables_overrides')
+    .upsert([{ property_id: pid, period_start:start, period_end:end, amount: consum }], { onConflict:'property_id,period_start,period_end' });
+
+  if(r.error){
+    console.error(r.error);
+    $('closeMsg').textContent="Erreur consommables: "+r.error.message;
+    return;
+  }
+
+  // 2 bis) Save consumables detail lines, used in owner statement.
+  // If the SQL table is not created yet, the closing continues but the statement will only show total.
+  let consumableLinesWarning = "";
+  const consLines = await saveConsumableLines(pid, start, end);
+  if(consLines.error){
+    console.warn('Détail consommables non sauvegardé:', consLines.error);
+    consumableLinesWarning = " — détail consommables non sauvegardé (lancer le SQL consumable_lines).";
+  }
+
+  // 3) Upsert monthly closing (LOCKED) + owner_id ✅
+  const up = await supabaseClient
+    .from('monthly_closings')
+    .upsert([{
+      property_id: pid,
+      owner_id: ownerId,                 // ✅ FIX
+      period_start: start,
+      period_end: end,
+      status: 'locked',
+
+      housing_revenue_total: housing,
+      cleaning_collected_total: cleaningCollected, // ✅ si colonne existe (sinon enlève)
+      platform_fees_total: (aF + bF + dF),
+
+      commission_rate: COMMISSION_RATE,
+      commission_amount: commission,
+
+      consumables_amount: consum,
+      billable_expenses_amount: exp,
+
+      net_owner_amount: net
+    }], { onConflict: 'property_id,period_start,period_end' })
+    .select('id')
+    .single();
+
+  if(up.error){
+    console.error(up.error);
+    $('closeMsg').textContent="Erreur clôture: "+up.error.message;
+    return;
+  }
+
+  const closingId = up.data.id;
+
+  // 4) Lock expenses in this month
+  const lock = await supabaseClient
+    .from('expenses')
+    .update({ locked: true, closing_id: closingId })
+    .eq('property_id', pid)
+    .gte('expense_date', start)
+    .lte('expense_date', end);
+
+  if(lock.error){
+    console.error(lock.error);
+    $('closeMsg').textContent="Clôture OK mais lock dépenses KO: "+lock.error.message;
+    return;
+  }
+
+  $('closeMsg').textContent = "Clôture validée 🔒" + (consumableLinesWarning || "");
+}
+
+async function ownerStatement(){
+  const pid = $('cProperty').value;
+  const m = $('cMonth').value;
+  if(!pid || !m) return alert("Choisis un bien et un mois.");
+
+  const [y,mo] = m.split('-').map(Number);
+  const start = `${y}-${String(mo).padStart(2,'0')}-01`;
+  const end = new Date(y, mo, 0).toISOString().slice(0,10);
+
+  const platformLabel = (v) => ({
+    airbnb: 'Airbnb',
+    booking: 'Booking',
+    direct: 'Hors plateforme',
+    other: 'Autre'
+  }[v] || v || '—');
+
+  const percent = (v) => `${Math.round(Number(v || 0) * 100)}%`;
+
+  // property + owner
+  const pRes = await supabaseClient
+    .from('properties')
+    .select('id,name,owner_id,owners(full_name,email,phone)')
+    .eq('id', pid)
+    .single();
+  if(pRes.error) return alert("Erreur bien: " + pRes.error.message);
+
+  // closing
+  const cRes = await supabaseClient
+    .from('monthly_closings')
+    .select('*')
+    .eq('property_id', pid)
+    .eq('period_start', start)
+    .eq('period_end', end)
+    .maybeSingle();
+  if(cRes.error) return alert("Erreur clôture: " + cRes.error.message);
+
+  const clo = cRes.data;
+  if(!clo) return alert("Aucune clôture trouvée pour ce mois. Valide d’abord la clôture.");
+
+  // platform payouts
+  const ppRes = await supabaseClient
+    .from('platform_payouts')
+    .select('platform,housing_revenue,platform_fees,cleaning_collected')
+    .eq('property_id', pid)
+    .eq('period_start', start)
+    .eq('period_end', end);
+  const payouts = ppRes.data || [];
+
+  // expenses list with receipt
+  const eRes = await supabaseClient
+    .from('expenses')
+    .select('expense_date,description,amount,owner_markup_rate,receipt_path,bill_to_owner')
+    .eq('property_id', pid)
+    .gte('expense_date', start)
+    .lte('expense_date', end)
+    .order('expense_date', { ascending:true });
+
+  const prop = pRes.data;
+  const owner = prop?.owners || {};
+  const expenses = (eRes.data||[]).filter(x=>x.bill_to_owner);
+  const expTotal = expenses.reduce((s,x)=> s + Number(x.amount)*(1+Number(x.owner_markup_rate||0)), 0);
+
+  let reservations = [];
+  try {
+    const nRes = await supabaseClient
+      .from('reservation_nights')
+      .select('platform,checkin,checkout,nights,housing_amount,cleaning_amount')
+      .eq('property_id', pid)
+      .gte('checkin', start)
+      .lte('checkin', end)
+      .order('checkin', { ascending:true });
+    reservations = nRes.data || [];
+  } catch(e) { reservations = []; }
+
+  let consumableLines = [];
+  try {
+    const consRes = await supabaseClient
+      .from('consumable_lines')
+      .select('category,description,amount')
+      .eq('property_id', pid)
+      .eq('period_start', start)
+      .eq('period_end', end)
+      .order('category', { ascending:true })
+      .order('description', { ascending:true });
+    consumableLines = consRes.data || [];
+  } catch(e) { consumableLines = []; }
+
+  // Fallback 1: if the detail was just filled in the page but not saved in SQL yet.
+  if(!consumableLines.length){
+    const liveLines = getQuickConsumableLinesFromClosingInputs();
+    if(liveLines.length) consumableLines = liveLines;
+  }
+
+  // Fallback 2: detail saved locally when clicking "Reporter dans consommables".
+  // Useful if Supabase schema cache was late or before the closing was re-opened.
+  if(!consumableLines.length){
+    const localLines = loadConsumableLinesLocal(pid, start, end);
+    if(localLines.length) consumableLines = localLines;
+  }
+
+  // Last fallback: keep transparency even without line-level detail.
+  if(!consumableLines.length && Number(clo.consumables_amount || 0) > 0){
+    consumableLines = [{ category:'Consommables', description:'Total consommables du mois — détail non sauvegardé', amount:Number(clo.consumables_amount || 0) }];
+  }
+
+  const nightsTotal = reservations.reduce((s,x)=>s+Number(x.nights||0),0);
+  const bookingsTotal = reservations.length;
+  const housingTotal = Number(clo.housing_revenue_total||0);
+  const cleaningTotal = Number(clo.cleaning_collected_total||0);
+  const feesTotal = Number(clo.platform_fees_total||0);
+  const commissionAmount = Number(clo.commission_amount || 0);
+  const consumablesTotal = Number(clo.consumables_amount || 0);
+  const netOwner = Number(clo.net_owner_amount || 0);
+  const avgNight = nightsTotal ? housingTotal / nightsTotal : 0;
+  const ownerYield = housingTotal ? netOwner / housingTotal : 0;
+  const totalDeductions = commissionAmount + consumablesTotal + expTotal + cleaningTotal;
+
+  const platforms = ['airbnb','booking','direct','other'];
+  const platformRows = platforms.map(platform => {
+    const row = payouts.find(x => x.platform === platform) || {};
+    return {
+      platform,
+      label: platformLabel(platform),
+      housing: Number(row.housing_revenue || 0),
+      cleaning: Number(row.cleaning_collected || 0),
+      fees: Number(row.platform_fees || 0)
+    };
+  }).filter(x => x.housing || x.cleaning || x.fees || ['airbnb','booking','direct'].includes(x.platform));
+
+  const consumablesByCategory = consumableLines.reduce((acc, x) => {
+    const cat = x.category || 'Consommables';
+    acc[cat] = (acc[cat] || 0) + Number(x.amount || 0);
+    return acc;
+  }, {});
+
+  const logoUrl = "/assets/logo.png";
+
+  const html = `
+  <html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Relevé propriétaire • ${escapeHtml(prop?.name||'')} • ${m}</title>
+    <style>
+      :root{
+        --ink:#101828;
+        --muted:#667085;
+        --line:#E4E7EC;
+        --soft:#F9FAFB;
+        --card:#FFFFFF;
+        --green:#0F766E;
+        --green2:#ECFDF3;
+        --gold:#B7791F;
+        --red:#B42318;
+      }
+      *{box-sizing:border-box}
+      body{margin:0;background:#F5F7FA;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;}
+      .page{max-width:980px;margin:0 auto;padding:28px}
+      .hero{background:linear-gradient(135deg,#0B1220,#12312D);color:#fff;border-radius:24px;padding:24px;display:flex;justify-content:space-between;gap:18px;align-items:flex-start;box-shadow:0 18px 50px rgba(16,24,40,.14)}
+      .brand{display:flex;align-items:center;gap:14px}.brand img{height:42px;max-width:130px;object-fit:contain}.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.72;font-weight:800}.h1{font-size:26px;line-height:1.05;font-weight:950;margin-top:6px}.hero-meta{text-align:right;font-size:13px;opacity:.88}.hero-meta b{display:block;color:#fff;font-size:16px;margin-bottom:4px}.pill{display:inline-flex;align-items:center;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:800;margin-top:10px}
+      .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}.kpi{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px}.kpi span{font-size:12px;color:var(--muted);font-weight:750}.kpi b{display:block;font-size:20px;margin-top:6px;letter-spacing:-.02em}.kpi.main{background:var(--green2);border-color:#A7F3D0}.kpi.main b{color:var(--green)}
+      .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px}.title{font-weight:950;margin:0 0 12px 0;font-size:15px}.muted{color:var(--muted)}.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px dashed #EEF0F4}.row:last-child{border-bottom:0}.row b{font-variant-numeric:tabular-nums}.negative{color:var(--red)}.positive{color:var(--green)}.total{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:14px;border-radius:16px;background:#101828;color:#fff;font-weight:950;font-size:18px}.formula{font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px;background:var(--soft);border:1px solid #EEF0F4;border-radius:14px;padding:10px}
+      table{width:100%;border-collapse:collapse;margin-top:8px}th,td{padding:10px;border-bottom:1px solid #EEF0F4;font-size:12.5px;text-align:left;vertical-align:top}th{color:var(--muted);font-weight:900;background:#FCFCFD}.right{text-align:right}.tag{display:inline-flex;align-items:center;font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:#fff;color:#475467;font-weight:800}.section{margin-top:14px}.note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5}.mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.mini{background:var(--soft);border:1px solid #EEF0F4;border-radius:14px;padding:10px}.mini span{display:block;font-size:11px;color:var(--muted);font-weight:800}.mini b{display:block;margin-top:4px}.footer{margin-top:14px;font-size:11px;color:var(--muted);text-align:center}
+      @media(max-width:800px){.kpis{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}.hero{display:block}.hero-meta{text-align:left;margin-top:14px}.mini-grid{grid-template-columns:1fr}}
+      @media print{body{background:#fff}.page{padding:0}.hero{box-shadow:none;border-radius:0}.card,.kpi{break-inside:avoid}.section{break-inside:avoid}}
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="hero">
+        <div class="brand">
+          <img src="${logoUrl}" onerror="this.style.display='none'"/>
+          <div>
+            <div class="eyebrow">Conciergerie Zenata</div>
+            <div class="h1">Relevé propriétaire</div>
+            <div style="opacity:.8;margin-top:6px">${escapeHtml(prop?.name||'')} • ${m}</div>
+          </div>
+        </div>
+        <div class="hero-meta">
+          <b>${escapeHtml(owner.full_name || 'Propriétaire')}</b>
+          <div>${escapeHtml(owner.email || '—')}</div>
+          <div>${escapeHtml(owner.phone || '—')}</div>
+          <div class="pill">Période ${start} → ${end}</div>
+        </div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi main"><span>À verser au propriétaire</span><b>${money(netOwner)}</b></div>
+        <div class="kpi"><span>Revenus logement</span><b>${money(housingTotal)}</b></div>
+        <div class="kpi"><span>Nuitées réservées</span><b>${nightsTotal || '—'}</b></div>
+        <div class="kpi"><span>Prix moyen / nuit</span><b>${nightsTotal ? money(avgNight) : '—'}</b></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="title">Synthèse financière</div>
+          <div class="row"><span>Revenus logement</span><b class="positive">${money(housingTotal)}</b></div>
+          <div class="row"><span>Commission Zenata (${percent(clo.commission_rate)})</span><b class="negative">-${money(commissionAmount)}</b></div>
+          <div class="row"><span>Consommables</span><b class="negative">-${money(consumablesTotal)}</b></div>
+          <div class="row"><span>Dépenses refacturées</span><b class="negative">-${money(expTotal)}</b></div>
+          <div class="row"><span>Ménages collectés</span><b class="negative">-${money(cleaningTotal)}</b></div>
+          <div class="total"><span>Net propriétaire</span><span>${money(netOwner)}</span></div>
+          <div class="formula">Calcul : revenus logement - commission - consommables - dépenses refacturées - ménages collectés.</div>
+        </div>
+
+        <div class="card">
+          <div class="title">Dashboard opérationnel</div>
+          <div class="mini-grid">
+            <div class="mini"><span>Réservations</span><b>${bookingsTotal || '—'}</b></div>
+            <div class="mini"><span>Nuitées</span><b>${nightsTotal || '—'}</b></div>
+            <div class="mini"><span>Rendement net</span><b>${housingTotal ? percent(ownerYield) : '—'}</b></div>
+            <div class="mini"><span>Frais plateforme</span><b>${money(feesTotal)}</b></div>
+            <div class="mini"><span>Total déductions</span><b>${money(totalDeductions)}</b></div>
+            <div class="mini"><span>Ménage</span><b>${money(cleaningTotal)}</b></div>
+          </div>
+          <div class="note">Ce relevé détaille les revenus, nuitées, consommables et dépenses refacturées du mois.</div>
+        </div>
+      </div>
+
+      <div class="card section">
+        <div class="title">Détail revenus plateformes</div>
+        <table>
+          <thead><tr><th>Plateforme</th><th class="right">Logement</th><th class="right">Ménage collecté</th><th class="right">Frais plateforme</th></tr></thead>
+          <tbody>
+            ${platformRows.map(x => `<tr>
+              <td><span class="tag">${escapeHtml(x.label)}</span></td>
+              <td class="right">${money(x.housing)}</td>
+              <td class="right">${money(x.cleaning)}</td>
+              <td class="right">${money(x.fees)}</td>
+            </tr>`).join('')}
+          </tbody>
+          <tfoot><tr><th>Total</th><th class="right">${money(housingTotal)}</th><th class="right">${money(cleaningTotal)}</th><th class="right">${money(feesTotal)}</th></tr></tfoot>
+        </table>
+      </div>
+
+      <div class="card section">
+        <div class="title">Détail des nuitées</div>
+        <table>
+          <thead><tr><th>Plateforme</th><th>Du</th><th>Au</th><th class="right">Nuits</th><th class="right">Logement</th><th class="right">Ménage</th></tr></thead>
+          <tbody>
+            ${reservations.length ? reservations.map(x => `<tr>
+              <td><span class="tag">${escapeHtml(platformLabel(x.platform))}</span></td>
+              <td>${x.checkin || ''}</td>
+              <td>${x.checkout || ''}</td>
+              <td class="right">${Number(x.nights||0)}</td>
+              <td class="right">${money(x.housing_amount||0)}</td>
+              <td class="right">${money(x.cleaning_amount||0)}</td>
+            </tr>`).join('') : `<tr><td colspan="6" class="muted">Détail des nuitées non renseigné.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card section">
+        <div class="title">Détail des consommables</div>
+        ${Object.keys(consumablesByCategory).length ? `
+          <div class="mini-grid" style="margin-bottom:10px">
+            ${Object.entries(consumablesByCategory).map(([cat,total]) => `<div class="mini"><span>${escapeHtml(cat)}</span><b>${money(total)}</b></div>`).join('')}
+          </div>` : ''}
+        <table>
+          <thead><tr><th>Catégorie</th><th>Description</th><th class="right">Montant</th></tr></thead>
+          <tbody>
+            ${consumableLines.length ? consumableLines.map(x => `<tr>
+              <td><span class="tag">${escapeHtml(x.category || 'Consommables')}</span></td>
+              <td>${escapeHtml(x.description || '')}</td>
+              <td class="right">${money(x.amount || 0)}</td>
+            </tr>`).join('') : `<tr><td colspan="3" class="muted">Aucun détail consommable renseigné.</td></tr>`}
+          </tbody>
+          <tfoot><tr><th colspan="2">Total consommables</th><th class="right">${money(consumablesTotal)}</th></tr></tfoot>
+        </table>
+        <div class="note">Le total consommables est déduit du net propriétaire. Le détail provient des lignes saisies dans “Dépenses rapides du mois” côté clôture.</div>
+      </div>
+
+      <div class="card section">
+        <div class="title">Dépenses refacturées</div>
+        <table>
+          <thead><tr><th>Date</th><th>Description</th><th class="right">Montant refacturé</th><th>Justificatif</th></tr></thead>
+          <tbody>
+            ${expenses.length ? expenses.map(x=>{
+              const amt = Number(x.amount)*(1+Number(x.owner_markup_rate||0));
+              return `<tr>
+                <td>${x.expense_date||''}</td>
+                <td>${escapeHtml(x.description||'')}</td>
+                <td class="right">${money(amt)}</td>
+                <td>${x.receipt_path ? '📎 Oui' : '—'}</td>
+              </tr>`;
+            }).join('') : `<tr><td colspan="4" class="muted">Aucune dépense refacturée.</td></tr>`}
+          </tbody>
+          <tfoot><tr><th colspan="2">Total dépenses refacturées</th><th class="right">${money(expTotal)}</th><th></th></tr></tfoot>
+        </table>
+      </div>
+
+      <div class="footer">Généré par Conciergerie Zenata • ${new Date().toISOString().slice(0,10)}</div>
+    </div>
+    <script>window.onload=()=>{ setTimeout(()=>window.print(), 250); };</script>
+  </body>
+  </html>`;
+
+  const w = window.open('', '_blank');
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+}
+
+
+async function loadToPay(){
+  const tbody = $('tblToPay')?.querySelector('tbody');
+  const msg = $('toPayMsg');
+  if(!tbody) return;
+
+  msg && (msg.textContent = "Chargement…");
+
+  const { data, error } = await supabaseClient
+    .from('monthly_closings')
+    .select('id, net_owner_amount, period_start, properties(name, owners(full_name))')
+    .eq('status', 'locked')
+    .is('paid_at', null)
+    .order('period_start', { ascending:false })
+    .limit(200);
+
+  if(error){
+    console.error(error);
+    msg && (msg.textContent = "Erreur: " + error.message);
+    return;
+  }
+
+  const rows = data || [];
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td><b>${r.properties?.owners?.full_name || '—'}</b></td>
+      <td class="muted">${r.properties?.name || '—'}</td>
+      <td class="muted">${String(r.period_start).slice(0,7)}</td>
+      <td><b>${money(r.net_owner_amount)}</b></td>
+      <td class="row-actions">
+        <button class="iconbtn" data-paid="${r.id}">Marquer payé</button>
+      </td>
+    </tr>
+  `).join('') || `<tr><td colspan="5" class="muted">Rien à payer 🎉</td></tr>`;
+
+  // action
+  document.querySelectorAll('[data-paid]').forEach(btn => {
+    btn.onclick = async () => {
+      const ref = prompt("Référence paiement (optionnel) :") || null;
+      const { error: uerr } = await supabaseClient
+        .from('monthly_closings')
+        .update({ paid_at: new Date().toISOString(), paid_ref: ref })
+        .eq('id', btn.dataset.paid);
+
+      if(uerr){ alert("Erreur: " + uerr.message); return; }
+
+      await loadToPay();
+      await loadPaid();
+    };
+  });
+
+  msg && (msg.textContent = `${rows.length} paiement(s) en attente`);
+}
+
+async function loadPaid(){
+  const tbody = $('tblPaid')?.querySelector('tbody');
+  const msg = $('paidMsg');
+  if(!tbody) return;
+
+  msg && (msg.textContent = "Chargement…");
+
+  const { data, error } = await supabaseClient
+    .from('monthly_closings')
+    .select('id, net_owner_amount, period_start, paid_at, paid_ref, properties(name, owners(full_name))')
+    .eq('status', 'locked')
+    .not('paid_at', 'is', null)
+    .order('paid_at', { ascending:false })
+    .limit(200);
+
+  if(error){
+    console.error(error);
+    msg && (msg.textContent = "Erreur: " + error.message);
+    return;
+  }
+
+  const rows = data || [];
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td><b>${r.properties?.owners?.full_name || '—'}</b></td>
+      <td class="muted">${r.properties?.name || '—'}</td>
+      <td class="muted">${String(r.period_start).slice(0,7)}</td>
+      <td><b>${money(r.net_owner_amount)}</b></td>
+      <td class="muted">${(r.paid_at || '').slice(0,10)}</td>
+      <td class="muted">${r.paid_ref || '—'}</td>
+    </tr>
+  `).join('') || `<tr><td colspan="6" class="muted">Aucun historique</td></tr>`;
+
+  msg && (msg.textContent = `${rows.length} paiement(s) payés`);
+}
+
+
+
+
+/*************************************************
+ * WIRE UI
+ *************************************************/
+function wire(){
+  // Auth buttons
+  const btnLogin = $('btnLogin');
+  const btnMagic = $('btnMagic');
+  if(btnLogin) btnLogin.onclick = loginEmailPassword;
+  if(btnMagic) btnMagic.onclick = magicLink;
+  
+  // Tabs navigation
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.onclick = async () => {
+      const tab = btn.dataset.tab;
+      setTab(tab);
+
+      // lazy-load expenses when opening tab
+      if(tab === 'expenses'){
+        await loadExpenseProperties();
+        await loadExpensesV2();
+      }
+      if(tab === 'properties') await loadPropertiesList();
+       if(tab === 'owners'){
+  await loadOwnersList();   // si tu l’as déjà
+  await loadToPay();
+  await loadPaid();
+}
+    };
+    
+    // ===== Biens =====
+  const propSearch = $('propSearch');
+  if(propSearch){
+    propSearch.oninput = () => {
+      clearTimeout(window.__psT);
+      window.__psT = setTimeout(loadPropertiesList, 150);
+    };
+  }
+
+  
+
+  // ===== Owners =====
+  const ownerSearch = $('ownerSearch');
+  if(ownerSearch){
+    ownerSearch.oninput = () => {
+      clearTimeout(window.__osT);
+      window.__osT = setTimeout(loadOwnersList, 150);
+    };
+  }
+  });
+
+  // Global buttons (optional)
+  const btnLogout = $('btnLogout');
+  if(btnLogout){
+    btnLogout.onclick = async () => {
+      await supabaseClient.auth.signOut();
+      location.reload();
+    };
+    
+  }
+
+  // Closing
+$('btnCloseMonth') && ($('btnCloseMonth').onclick = saveClosing);
+['airbnbHousing','airbnbFees','airbnbCleaning','bookingHousing','bookingFees','bookingCleaning','directHousing','directFees','directCleaning','cConsumables'].forEach(id=>{
+  $(id) && ($(id).oninput = calcClosing);
+});
+  $('btnOwnerStatement') && ($('btnOwnerStatement').onclick = ownerStatement);
+  $('btnEmailOwner') && ($('btnEmailOwner').onclick = prepareOwnerEmail);
+  $('btnAddNight') && ($('btnAddNight').onclick = addNightRow);
+  $('btnSaveNights') && ($('btnSaveNights').onclick = async () => { syncPlatformTotalsFromNights(); await saveReservationsDetail(); });
+  $('btnSaveQuickExpenses') && ($('btnSaveQuickExpenses').onclick = () => saveQuickExpenses('closing'));
+  $('btnSaveQuickExpensesExpenses') && ($('btnSaveQuickExpensesExpenses').onclick = () => saveQuickExpenses('expenses'));
+
+
+
+  // ===== Expenses V2 wiring =====
+  const btnNewExpense = $('btnNewExpense');
+  if(btnNewExpense) btnNewExpense.onclick = () => openExpenseModal(null);
+
+  document.querySelectorAll('[data-close="1"]').forEach(el => {
+    el.onclick = () => closeExpenseModal();
+  });
+
+  const btnSaveExpense = $('btnSaveExpense');
+  if(btnSaveExpense) btnSaveExpense.onclick = saveExpense;
+
+  const btnDeleteExpense = $('btnDeleteExpense');
+  if(btnDeleteExpense) btnDeleteExpense.onclick = deleteExpense;
+
+  const fProperty = $('fProperty');
+  if(fProperty) fProperty.onchange = loadExpensesV2;
+
+  const fMonth = $('fMonth');
+  if(fMonth) fMonth.onchange = loadExpensesV2;
+
+  const fBillable = $('fBillable');
+  if(fBillable) fBillable.onchange = loadExpensesV2;
+
+  const fSearch = $('fSearch');
+  if(fSearch){
+    fSearch.oninput = () => {
+      clearTimeout(window.__expT);
+      window.__expT = setTimeout(loadExpensesV2, 150);
+    };
+  }
+}
+
+/*************************************************
+ * BOOT
+ *************************************************/
+async function boot(){
+  const a = await ensureAdmin();
+
+  if(!a.ok){
+    if(a.reason === "no_user") return showLogin("");
+    if(a.reason === "admin_check_failed") return showLogin("Erreur lecture admin_users (RLS).");
+    return showLogin("Accès refusé : tu n’es pas admin (table admin_users).");
+  }
+
+  showApp(a.user);
+    // preload lists
+  if($('tblProps')) await loadPropertiesList();
+  if($('tblOwners')) await loadOwnersList();
+  if($('tab-closing')) await loadClosingDefaults();
+  if($('tblToPay')) { await loadToPay(); await loadPaid(); }
+
+
+  // Default month filter for expenses
+  const fMonth = $('fMonth');
+  if(fMonth){
+    const now = new Date();
+    fMonth.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  }
+
+  // preload expenses (safe even if tab hidden)
+  await loadExpenseProperties();
+  renderQuickExpenses();
+  await loadExpensesV2();
+
+  // Default tab
+  const active = document.querySelector('.nav-item.active')?.dataset?.tab || 'overview';
+  setTab(active);
+}
+
+/*************************************************
+ * START
+ *************************************************/
+document.addEventListener('DOMContentLoaded', () => {
+  wire();
+  boot();
+});
+
