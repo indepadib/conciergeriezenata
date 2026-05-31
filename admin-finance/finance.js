@@ -66,6 +66,46 @@ const QUICK_EXPENSE_ITEMS = [
   { label:'Torchon', category:'Cuisine', hint:'0–25 DH' }
 ];
 
+function getQuickConsumableLinesFromClosingInputs(){
+  const inputs = [...document.querySelectorAll('[data-qexp-target="quickExpenseGrid"]')];
+  return inputs
+    .map(input => {
+      const description = input.dataset.qexpDesc || '';
+      const amount = Number(input.value || 0);
+      const item = QUICK_EXPENSE_ITEMS.find(x => x.label === description) || {};
+      return { description, category: item.category || 'Consommables', amount };
+    })
+    .filter(x => x.description && x.amount > 0);
+}
+
+async function saveConsumableLines(pid, start, end){
+  const lines = getQuickConsumableLinesFromClosingInputs();
+
+  // Remplace le détail du mois pour éviter les doublons si on revalide la clôture.
+  const del = await supabaseClient
+    .from('consumable_lines')
+    .delete()
+    .eq('property_id', pid)
+    .eq('period_start', start)
+    .eq('period_end', end);
+
+  if(del.error) return { error: del.error, saved: 0 };
+  if(!lines.length) return { error: null, saved: 0 };
+
+  const rows = lines.map(x => ({
+    property_id: pid,
+    period_start: start,
+    period_end: end,
+    category: x.category,
+    description: x.description,
+    amount: Number(x.amount || 0)
+  }));
+
+  const ins = await supabaseClient.from('consumable_lines').insert(rows);
+  if(ins.error) return { error: ins.error, saved: 0 };
+  return { error: null, saved: rows.length };
+}
+
 let nightRows = [];
 
 function renderQuickExpenseGrid(targetId = 'quickExpenseGrid'){
@@ -1020,6 +1060,15 @@ async function saveClosing(){
     return;
   }
 
+  // 2 bis) Save consumables detail lines, used in owner statement.
+  // If the SQL table is not created yet, the closing continues but the statement will only show total.
+  let consumableLinesWarning = "";
+  const consLines = await saveConsumableLines(pid, start, end);
+  if(consLines.error){
+    console.warn('Détail consommables non sauvegardé:', consLines.error);
+    consumableLinesWarning = " — détail consommables non sauvegardé (lancer le SQL consumable_lines).";
+  }
+
   // 3) Upsert monthly closing (LOCKED) + owner_id ✅
   const up = await supabaseClient
     .from('monthly_closings')
@@ -1067,7 +1116,7 @@ async function saveClosing(){
     return;
   }
 
-  $('closeMsg').textContent = "Clôture validée 🔒";
+  $('closeMsg').textContent = "Clôture validée 🔒" + (consumableLinesWarning || "");
 }
 
 async function ownerStatement(){
@@ -1078,6 +1127,15 @@ async function ownerStatement(){
   const [y,mo] = m.split('-').map(Number);
   const start = `${y}-${String(mo).padStart(2,'0')}-01`;
   const end = new Date(y, mo, 0).toISOString().slice(0,10);
+
+  const platformLabel = (v) => ({
+    airbnb: 'Airbnb',
+    booking: 'Booking',
+    direct: 'Hors plateforme',
+    other: 'Autre'
+  }[v] || v || '—');
+
+  const percent = (v) => `${Math.round(Number(v || 0) * 100)}%`;
 
   // property + owner
   const pRes = await supabaseClient
@@ -1121,12 +1179,7 @@ async function ownerStatement(){
   const prop = pRes.data;
   const owner = prop?.owners || {};
   const expenses = (eRes.data||[]).filter(x=>x.bill_to_owner);
-
   const expTotal = expenses.reduce((s,x)=> s + Number(x.amount)*(1+Number(x.owner_markup_rate||0)), 0);
-
-  const air = payouts.find(x=>x.platform==='airbnb') || {};
-  const boo = payouts.find(x=>x.platform==='booking') || {};
-  const dir = payouts.find(x=>x.platform==='direct') || {};
 
   let reservations = [];
   try {
@@ -1140,226 +1193,213 @@ async function ownerStatement(){
     reservations = nRes.data || [];
   } catch(e) { reservations = []; }
 
+  let consumableLines = [];
+  try {
+    const consRes = await supabaseClient
+      .from('consumable_lines')
+      .select('category,description,amount')
+      .eq('property_id', pid)
+      .eq('period_start', start)
+      .eq('period_end', end)
+      .order('category', { ascending:true })
+      .order('description', { ascending:true });
+    consumableLines = consRes.data || [];
+  } catch(e) { consumableLines = []; }
+
+  // Fallback: if the detail was just filled in the page but not saved in SQL yet.
+  if(!consumableLines.length){
+    const liveLines = getQuickConsumableLinesFromClosingInputs();
+    if(liveLines.length) consumableLines = liveLines;
+  }
+
+  // Last fallback: keep transparency even without line-level detail.
+  if(!consumableLines.length && Number(clo.consumables_amount || 0) > 0){
+    consumableLines = [{ category:'Consommables', description:'Total consommables du mois', amount:Number(clo.consumables_amount || 0) }];
+  }
+
   const nightsTotal = reservations.reduce((s,x)=>s+Number(x.nights||0),0);
   const bookingsTotal = reservations.length;
-
   const housingTotal = Number(clo.housing_revenue_total||0);
   const cleaningTotal = Number(clo.cleaning_collected_total||0);
   const feesTotal = Number(clo.platform_fees_total||0);
+  const commissionAmount = Number(clo.commission_amount || 0);
+  const consumablesTotal = Number(clo.consumables_amount || 0);
+  const netOwner = Number(clo.net_owner_amount || 0);
+  const avgNight = nightsTotal ? housingTotal / nightsTotal : 0;
+  const ownerYield = housingTotal ? netOwner / housingTotal : 0;
+  const totalDeductions = commissionAmount + consumablesTotal + expTotal + cleaningTotal;
 
+  const platforms = ['airbnb','booking','direct','other'];
+  const platformRows = platforms.map(platform => {
+    const row = payouts.find(x => x.platform === platform) || {};
+    return {
+      platform,
+      label: platformLabel(platform),
+      housing: Number(row.housing_revenue || 0),
+      cleaning: Number(row.cleaning_collected || 0),
+      fees: Number(row.platform_fees || 0)
+    };
+  }).filter(x => x.housing || x.cleaning || x.fees || ['airbnb','booking','direct'].includes(x.platform));
 
-  const logoUrl = "/assets/logo.png"; // <- change if needed
+  const consumablesByCategory = consumableLines.reduce((acc, x) => {
+    const cat = x.category || 'Consommables';
+    acc[cat] = (acc[cat] || 0) + Number(x.amount || 0);
+    return acc;
+  }, {});
+
+  const logoUrl = "/assets/logo.png";
 
   const html = `
   <html>
   <head>
     <meta charset="utf-8"/>
-    <title>Relevé propriétaire • ${prop?.name||''} • ${m}</title>
+    <title>Relevé propriétaire • ${escapeHtml(prop?.name||'')} • ${m}</title>
     <style>
       :root{
-        --ink:#0B1220;
+        --ink:#101828;
         --muted:#667085;
-        --line:#E5E7EB;
+        --line:#E4E7EC;
+        --soft:#F9FAFB;
         --card:#FFFFFF;
-        --bg:#F7F8FB;
-        --accent:#1D4ED8;
+        --green:#0F766E;
+        --green2:#ECFDF3;
+        --gold:#B7791F;
+        --red:#B42318;
       }
       *{box-sizing:border-box}
-      body{
-        margin:0;
-        background:var(--bg);
-        color:var(--ink);
-        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      }
-      .page{max-width:900px; margin:0 auto; padding:28px}
-      .header{
-        display:flex; align-items:center; justify-content:space-between;
-        gap:14px; padding:16px 18px;
-        background:var(--card); border:1px solid var(--line); border-radius:18px;
-      }
-      .brand{display:flex; align-items:center; gap:12px}
-      .brand img{height:34px; width:auto}
-      .h1{font-size:18px; font-weight:900; margin:0}
-      .sub{font-size:12px; color:var(--muted); margin-top:2px}
-      .badge{
-        font-size:12px; padding:6px 10px; border-radius:999px;
-        border:1px solid var(--line); background:#fff;
-      }
-      .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px}
-      .card{
-        background:var(--card);
-        border:1px solid var(--line);
-        border-radius:18px;
-        padding:14px 16px;
-      }
-      .title{font-weight:900; margin:0 0 10px 0; font-size:14px}
-      .muted{color:var(--muted)}
-      .row{display:flex; justify-content:space-between; gap:12px; padding:6px 0}
-      .row b{font-variant-numeric: tabular-nums;}
-      hr{border:none; border-top:1px solid var(--line); margin:10px 0}
-      .total{
-        display:flex; justify-content:space-between; align-items:center;
-        font-weight:1000; font-size:18px;
-        padding-top:8px;
-      }
-      table{width:100%; border-collapse:collapse; margin-top:8px}
-      th,td{padding:10px; border-bottom:1px solid #EEF0F4; font-size:12.5px; text-align:left; vertical-align:top}
-      th{color:var(--muted); font-weight:800}
-      .right{text-align:right}
-      .pill{
-        display:inline-flex; align-items:center; gap:6px;
-        font-size:11px; padding:4px 8px; border-radius:999px;
-        border:1px solid var(--line);
-        color:var(--muted);
-      }
-      .note{font-size:12px; color:var(--muted); margin-top:10px}
-      .footer{margin-top:14px; font-size:11px; color:var(--muted); text-align:center}
-      @media print{
-        body{background:#fff}
-        .page{padding:0}
-        .card,.header{border:1px solid #ddd}
-      }
+      body{margin:0;background:#F5F7FA;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;}
+      .page{max-width:980px;margin:0 auto;padding:28px}
+      .hero{background:linear-gradient(135deg,#0B1220,#12312D);color:#fff;border-radius:24px;padding:24px;display:flex;justify-content:space-between;gap:18px;align-items:flex-start;box-shadow:0 18px 50px rgba(16,24,40,.14)}
+      .brand{display:flex;align-items:center;gap:14px}.brand img{height:42px;max-width:130px;object-fit:contain}.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.72;font-weight:800}.h1{font-size:26px;line-height:1.05;font-weight:950;margin-top:6px}.hero-meta{text-align:right;font-size:13px;opacity:.88}.hero-meta b{display:block;color:#fff;font-size:16px;margin-bottom:4px}.pill{display:inline-flex;align-items:center;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:800;margin-top:10px}
+      .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}.kpi{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px}.kpi span{font-size:12px;color:var(--muted);font-weight:750}.kpi b{display:block;font-size:20px;margin-top:6px;letter-spacing:-.02em}.kpi.main{background:var(--green2);border-color:#A7F3D0}.kpi.main b{color:var(--green)}
+      .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px}.title{font-weight:950;margin:0 0 12px 0;font-size:15px}.muted{color:var(--muted)}.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px dashed #EEF0F4}.row:last-child{border-bottom:0}.row b{font-variant-numeric:tabular-nums}.negative{color:var(--red)}.positive{color:var(--green)}.total{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:14px;border-radius:16px;background:#101828;color:#fff;font-weight:950;font-size:18px}.formula{font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px;background:var(--soft);border:1px solid #EEF0F4;border-radius:14px;padding:10px}
+      table{width:100%;border-collapse:collapse;margin-top:8px}th,td{padding:10px;border-bottom:1px solid #EEF0F4;font-size:12.5px;text-align:left;vertical-align:top}th{color:var(--muted);font-weight:900;background:#FCFCFD}.right{text-align:right}.tag{display:inline-flex;align-items:center;font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:#fff;color:#475467;font-weight:800}.section{margin-top:14px}.note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5}.mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.mini{background:var(--soft);border:1px solid #EEF0F4;border-radius:14px;padding:10px}.mini span{display:block;font-size:11px;color:var(--muted);font-weight:800}.mini b{display:block;margin-top:4px}.footer{margin-top:14px;font-size:11px;color:var(--muted);text-align:center}
+      @media(max-width:800px){.kpis{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}.hero{display:block}.hero-meta{text-align:left;margin-top:14px}.mini-grid{grid-template-columns:1fr}}
+      @media print{body{background:#fff}.page{padding:0}.hero{box-shadow:none;border-radius:0}.card,.kpi{break-inside:avoid}.section{break-inside:avoid}}
     </style>
   </head>
   <body>
     <div class="page">
-      <div class="header">
+      <div class="hero">
         <div class="brand">
           <img src="${logoUrl}" onerror="this.style.display='none'"/>
           <div>
+            <div class="eyebrow">Conciergerie Zenata</div>
             <div class="h1">Relevé propriétaire</div>
-            <div class="sub">${m} • ${prop?.name||''}</div>
+            <div style="opacity:.8;margin-top:6px">${escapeHtml(prop?.name||'')} • ${m}</div>
           </div>
         </div>
-        <div class="badge">Conciergerie Zenata</div>
+        <div class="hero-meta">
+          <b>${escapeHtml(owner.full_name || 'Propriétaire')}</b>
+          <div>${escapeHtml(owner.email || '—')}</div>
+          <div>${escapeHtml(owner.phone || '—')}</div>
+          <div class="pill">Période ${start} → ${end}</div>
+        </div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi main"><span>À verser au propriétaire</span><b>${money(netOwner)}</b></div>
+        <div class="kpi"><span>Revenus logement</span><b>${money(housingTotal)}</b></div>
+        <div class="kpi"><span>Nuitées réservées</span><b>${nightsTotal || '—'}</b></div>
+        <div class="kpi"><span>Prix moyen / nuit</span><b>${nightsTotal ? money(avgNight) : '—'}</b></div>
       </div>
 
       <div class="grid2">
         <div class="card">
-          <div class="title">Propriétaire</div>
-          <div><b>${owner.full_name || '—'}</b></div>
-          <div class="muted">${owner.email || '—'} • ${owner.phone || '—'}</div>
-          <div class="note">Période : ${start} → ${end}</div>
+          <div class="title">Synthèse financière</div>
+          <div class="row"><span>Revenus logement</span><b class="positive">${money(housingTotal)}</b></div>
+          <div class="row"><span>Commission Zenata (${percent(clo.commission_rate)})</span><b class="negative">-${money(commissionAmount)}</b></div>
+          <div class="row"><span>Consommables</span><b class="negative">-${money(consumablesTotal)}</b></div>
+          <div class="row"><span>Dépenses refacturées</span><b class="negative">-${money(expTotal)}</b></div>
+          <div class="row"><span>Ménages collectés</span><b class="negative">-${money(cleaningTotal)}</b></div>
+          <div class="total"><span>Net propriétaire</span><span>${money(netOwner)}</span></div>
+          <div class="formula">Calcul : revenus logement - commission - consommables - dépenses refacturées - ménages collectés.</div>
         </div>
 
         <div class="card">
-          <div class="title">Dashboard du mois</div>
-          <div class="row"><span>Réservations</span><b>${bookingsTotal || '—'}</b></div>
-          <div class="row"><span>Nuitées</span><b>${nightsTotal || '—'}</b></div>
-          <div class="row"><span>Prix moyen / nuit</span><b>${nightsTotal ? money(housingTotal/nightsTotal) : '—'}</b></div>
-          <div class="row"><span>Commission</span><b>${Math.round(Number(clo.commission_rate||0)*100)}%</b></div>
+          <div class="title">Dashboard opérationnel</div>
+          <div class="mini-grid">
+            <div class="mini"><span>Réservations</span><b>${bookingsTotal || '—'}</b></div>
+            <div class="mini"><span>Nuitées</span><b>${nightsTotal || '—'}</b></div>
+            <div class="mini"><span>Rendement net</span><b>${housingTotal ? percent(ownerYield) : '—'}</b></div>
+            <div class="mini"><span>Frais plateforme</span><b>${money(feesTotal)}</b></div>
+            <div class="mini"><span>Total déductions</span><b>${money(totalDeductions)}</b></div>
+            <div class="mini"><span>Ménage</span><b>${money(cleaningTotal)}</b></div>
+          </div>
+          <div class="note">Ce relevé détaille les revenus, nuitées, consommables et dépenses refacturées du mois.</div>
         </div>
       </div>
 
-      <div class="grid2" style="margin-top:14px">
-        <div class="card">
-          <div class="title">Résumé (clair)</div>
-          <div class="row"><span>Revenus logement</span><b>${money(housingTotal)}</b></div>
-          <div class="row"><span>Commission Zenata</span><b>-${money(clo.commission_amount||0)}</b></div>
-          <div class="row"><span>Consommables</span><b>-${money(clo.consumables_amount||0)}</b></div>
-          <div class="row"><span>Dépenses refacturées</span><b>-${money(expTotal)}</b></div>
-          <div class="row"><span>Ménages</span><b>-${money(cleaningTotal)}</b></div>
-          <hr/>
-          <div class="total"><span>À verser au propriétaire</span><span>${money(clo.net_owner_amount||0)}</span></div>
-          <div class="note">Le ménage collecté est inclus dans le net(facturé au client). Les consommables ont été inclus pour  ce mois aux dépenses refacturées</div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:14px">
+      <div class="card section">
         <div class="title">Détail revenus plateformes</div>
         <table>
-          <thead>
-            <tr>
-              <th>Plateforme</th>
-              <th class="right">Revenu logement</th>
-              <th class="right">Ménage collecté</th>
-              <th class="right">Frais plateforme</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Plateforme</th><th class="right">Logement</th><th class="right">Ménage collecté</th><th class="right">Frais plateforme</th></tr></thead>
           <tbody>
-            <tr>
-              <td><span class="pill">Airbnb</span></td>
-              <td class="right">${money(air.housing_revenue||0)}</td>
-              <td class="right">-${money(air.cleaning_collected||0)}</td>
-              <td class="right">-${money(air.platform_fees||0)}</td>
-            </tr>
-            <tr>
-              <td><span class="pill">Booking</span></td>
-              <td class="right">${money(boo.housing_revenue||0)}</td>
-              <td class="right">-${money(boo.cleaning_collected||0)}</td>
-              <td class="right">-${money(boo.platform_fees||0)}</td>
-            </tr>
-            <tr>
-              <td><span class="pill">Hors plateforme</span></td>
-              <td class="right">${money(dir.housing_revenue||0)}</td>
-              <td class="right">-${money(dir.cleaning_collected||0)}</td>
-              <td class="right">-${money(dir.platform_fees||0)}</td>
-            </tr>
+            ${platformRows.map(x => `<tr>
+              <td><span class="tag">${escapeHtml(x.label)}</span></td>
+              <td class="right">${money(x.housing)}</td>
+              <td class="right">${money(x.cleaning)}</td>
+              <td class="right">${money(x.fees)}</td>
+            </tr>`).join('')}
           </tbody>
-          <tfoot>
-            <tr>
-              <th>Total</th>
-              <th class="right">${money(housingTotal)}</th>
-              <th class="right">-${money(cleaningTotal)}</th>
-              <th class="right">-${money(feesTotal)}</th>
-            </tr>
-          </tfoot>
+          <tfoot><tr><th>Total</th><th class="right">${money(housingTotal)}</th><th class="right">${money(cleaningTotal)}</th><th class="right">${money(feesTotal)}</th></tr></tfoot>
         </table>
-        <div class="note">Cash collecté (logement + ménage) : <b>${money(housingTotal)}</b> (avant frais plateformes)</div>
       </div>
 
-      <div class="card" style="margin-top:14px">
+      <div class="card section">
         <div class="title">Détail des nuitées</div>
         <table>
-          <thead><tr><th>Plateforme</th><th>Du</th><th>Au</th><th class="right">Nuits</th><th class="right">Montant</th></tr></thead>
+          <thead><tr><th>Plateforme</th><th>Du</th><th>Au</th><th class="right">Nuits</th><th class="right">Logement</th><th class="right">Ménage</th></tr></thead>
           <tbody>
             ${reservations.length ? reservations.map(x => `<tr>
-              <td><span class="pill">${escapeHtml(x.platform || '—')}</span></td>
+              <td><span class="tag">${escapeHtml(platformLabel(x.platform))}</span></td>
               <td>${x.checkin || ''}</td>
               <td>${x.checkout || ''}</td>
               <td class="right">${Number(x.nights||0)}</td>
               <td class="right">${money(x.housing_amount||0)}</td>
-            </tr>`).join('') : `<tr><td colspan="5" class="muted">Détail des nuitées non renseigné</td></tr>`}
+              <td class="right">${money(x.cleaning_amount||0)}</td>
+            </tr>`).join('') : `<tr><td colspan="6" class="muted">Détail des nuitées non renseigné.</td></tr>`}
           </tbody>
         </table>
       </div>
 
-      <div class="card" style="margin-top:14px">
-        <div class="title">Dépenses refacturées (détail)</div>
+      <div class="card section">
+        <div class="title">Détail des consommables</div>
+        ${Object.keys(consumablesByCategory).length ? `
+          <div class="mini-grid" style="margin-bottom:10px">
+            ${Object.entries(consumablesByCategory).map(([cat,total]) => `<div class="mini"><span>${escapeHtml(cat)}</span><b>${money(total)}</b></div>`).join('')}
+          </div>` : ''}
         <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Description</th>
-              <th class="right">Montant</th>
-              <th>Justificatif</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Catégorie</th><th>Description</th><th class="right">Montant</th></tr></thead>
           <tbody>
-            ${
-              expenses.length
-              ? expenses.map(x=>{
-                  const amt = Number(x.amount)*(1+Number(x.owner_markup_rate||0));
-                  const has = x.receipt_path ? "📎 Oui" : "—";
-                  return `<tr>
-                    <td>${x.expense_date||''}</td>
-                    <td>${(x.description||'').replace(/</g,'&lt;')}</td>
-                    <td class="right">${money(amt)}</td>
-                    <td>${has}</td>
-                  </tr>`;
-                }).join('')
-              : `<tr><td colspan="4" class="muted">Aucune dépense refacturée</td></tr>`
-            }
+            ${consumableLines.length ? consumableLines.map(x => `<tr>
+              <td><span class="tag">${escapeHtml(x.category || 'Consommables')}</span></td>
+              <td>${escapeHtml(x.description || '')}</td>
+              <td class="right">${money(x.amount || 0)}</td>
+            </tr>`).join('') : `<tr><td colspan="3" class="muted">Aucun détail consommable renseigné.</td></tr>`}
           </tbody>
-          <tfoot>
-            <tr>
-              <th colspan="2">Total dépenses refacturées</th>
-              <th class="right">${money(expTotal)}</th>
-              <th></th>
-            </tr>
-          </tfoot>
+          <tfoot><tr><th colspan="2">Total consommables</th><th class="right">${money(consumablesTotal)}</th></tr></tfoot>
         </table>
-        <div class="note">Les justificatifs sont disponibles dans l’espace admin (liens signés).</div>
+        <div class="note">Le total consommables est déduit du net propriétaire. Le détail provient des lignes saisies dans “Dépenses rapides du mois” côté clôture.</div>
+      </div>
+
+      <div class="card section">
+        <div class="title">Dépenses refacturées</div>
+        <table>
+          <thead><tr><th>Date</th><th>Description</th><th class="right">Montant refacturé</th><th>Justificatif</th></tr></thead>
+          <tbody>
+            ${expenses.length ? expenses.map(x=>{
+              const amt = Number(x.amount)*(1+Number(x.owner_markup_rate||0));
+              return `<tr>
+                <td>${x.expense_date||''}</td>
+                <td>${escapeHtml(x.description||'')}</td>
+                <td class="right">${money(amt)}</td>
+                <td>${x.receipt_path ? '📎 Oui' : '—'}</td>
+              </tr>`;
+            }).join('') : `<tr><td colspan="4" class="muted">Aucune dépense refacturée.</td></tr>`}
+          </tbody>
+          <tfoot><tr><th colspan="2">Total dépenses refacturées</th><th class="right">${money(expTotal)}</th><th></th></tr></tfoot>
+        </table>
       </div>
 
       <div class="footer">Généré par Conciergerie Zenata • ${new Date().toISOString().slice(0,10)}</div>
@@ -1373,7 +1413,6 @@ async function ownerStatement(){
   w.document.write(html);
   w.document.close();
 }
-
 
 
 async function loadToPay(){
