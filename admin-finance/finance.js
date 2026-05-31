@@ -104,6 +104,7 @@ async function saveQuickExpenses(source = 'closing'){
   if(!pid || !m){ if(msgEl) msgEl.textContent = 'Choisis un bien et un mois.'; return; }
   const r = monthRange(m);
   if(!r) return;
+
   const inputs = [...document.querySelectorAll(`[data-qexp-target="${target}"]`)];
   const filled = inputs
     .map(input => ({ description: input.dataset.qexpDesc, amount: Number(input.value || 0) }))
@@ -112,16 +113,17 @@ async function saveQuickExpenses(source = 'closing'){
   if(!filled.length){ if(msgEl) msgEl.textContent = 'Aucun montant renseigné.'; return; }
 
   // Dans l'écran Clôture, ces lignes sont des consommables du mois.
-  // Elles doivent alimenter le champ "Consommables", pas "Dépenses refacturables".
+  // Elles doivent alimenter le champ "Consommables", pas créer des dépenses refacturables.
   if(!isExpensesTab){
     const total = filled.reduce((s, x) => s + Number(x.amount || 0), 0);
-    $('cConsumables').value = total.toFixed(2);
-    calcClosing();
+    const input = $('cConsumables');
+    if(input) input.value = total.toFixed(2);
+    if(typeof calcClosing === 'function') calcClosing();
     if(msgEl) msgEl.textContent = `Total consommables reporté: ${money(total)} ✅. Clique ensuite sur Valider la clôture.`;
     return;
   }
 
-  // Dans l'onglet Dépenses, on garde le comportement historique : insertion en dépenses refacturables.
+  // Dans l'onglet Dépenses, les lignes rapides restent des dépenses refacturables.
   const rows = filled.map(x => ({
     property_id: pid,
     expense_date: r.end,
@@ -141,6 +143,726 @@ async function saveQuickExpenses(source = 'closing'){
   if(typeof loadExpensesV2 === 'function') await loadExpensesV2();
   if(msgEl) msgEl.textContent = `${rows.length} dépense(s) ajoutée(s) ✅`;
 }
+
+function renderNightRows(){
+  const tbody = $('tblNights')?.querySelector('tbody');
+  if(!tbody) return;
+  tbody.innerHTML = nightRows.map((r, i) => `
+    <tr>
+      <td>
+        <select data-night-field="platform" data-night-index="${i}">
+          <option value="airbnb" ${r.platform==='airbnb'?'selected':''}>Airbnb</option>
+          <option value="booking" ${r.platform==='booking'?'selected':''}>Booking</option>
+          <option value="direct" ${r.platform==='direct'?'selected':''}>Hors plateforme</option>
+          <option value="other" ${r.platform==='other'?'selected':''}>Autre</option>
+        </select>
+      </td>
+      <td><input data-night-field="checkin" data-night-index="${i}" type="date" value="${r.checkin||''}" /></td>
+      <td><input data-night-field="checkout" data-night-index="${i}" type="date" value="${r.checkout||''}" /></td>
+      <td><input data-night-field="housing_amount" data-night-index="${i}" type="number" step="0.01" value="${r.housing_amount ?? ''}" /></td>
+      <td><input data-night-field="cleaning_amount" data-night-index="${i}" type="number" step="0.01" value="${r.cleaning_amount ?? ''}" /></td>
+      <td><button class="iconbtn" data-remove-night="${i}">✕</button></td>
+    </tr>
+  `).join('') || `<tr><td colspan="6" class="muted">Aucune nuitée. Clique sur “+ Nuitée”.</td></tr>`;
+
+  document.querySelectorAll('[data-night-field]').forEach(el => {
+    el.oninput = el.onchange = () => {
+      const idx = Number(el.dataset.nightIndex);
+      const field = el.dataset.nightField;
+      nightRows[idx][field] = ['housing_amount','cleaning_amount'].includes(field) ? Number(el.value || 0) : el.value;
+      updateNightStats();
+    };
+  });
+  document.querySelectorAll('[data-remove-night]').forEach(btn => {
+    btn.onclick = () => { nightRows.splice(Number(btn.dataset.removeNight), 1); renderNightRows(); updateNightStats(); };
+  });
+  updateNightStats();
+}
+
+function addNightRow(){
+  const m = $('cMonth')?.value;
+  const defaultStart = m ? `${m}-01` : new Date().toISOString().slice(0,10);
+  nightRows.push({ platform:'airbnb', checkin:defaultStart, checkout:'', housing_amount:0, cleaning_amount:0 });
+  renderNightRows();
+}
+
+function updateNightStats(){
+  const nights = nightRows.reduce((s,r)=>s+nightsBetween(r.checkin, r.checkout),0);
+  const housing = nightRows.reduce((s,r)=>s+Number(r.housing_amount||0),0);
+  if($('nightTotal')) $('nightTotal').textContent = String(nights);
+  if($('bookingCount')) $('bookingCount').textContent = String(nightRows.length);
+  if($('adrValue')) $('adrValue').textContent = nights ? money(housing/nights) : '—';
+}
+
+async function loadReservationsDetail(){
+  const pid = $('cProperty')?.value;
+  const m = $('cMonth')?.value;
+  if(!pid || !m) return;
+  const r = monthRange(m);
+  $('nightMsg') && ($('nightMsg').textContent = '');
+  const { data, error } = await supabaseClient
+    .from('reservation_nights')
+    .select('id,platform,checkin,checkout,housing_amount,cleaning_amount')
+    .eq('property_id', pid)
+    .gte('checkin', r.start)
+    .lte('checkin', r.end)
+    .order('checkin', { ascending:true });
+  if(error){
+    console.warn('reservation_nights not ready:', error.message);
+    nightRows = [];
+    renderNightRows();
+    if($('nightMsg')) $('nightMsg').textContent = 'Table reservation_nights absente. Lance le SQL fourni pour activer la sauvegarde.';
+    return;
+  }
+  nightRows = (data || []).map(x => ({...x}));
+  renderNightRows();
+}
+
+async function saveReservationsDetail(){
+  const pid = $('cProperty')?.value;
+  const m = $('cMonth')?.value;
+  if(!pid || !m){ $('nightMsg').textContent = 'Choisis un bien et un mois.'; return; }
+  const range = monthRange(m);
+  const clean = nightRows.filter(r => r.checkin && r.checkout).map(r => ({
+    property_id: pid,
+    platform: r.platform || 'airbnb',
+    checkin: r.checkin,
+    checkout: r.checkout,
+    nights: nightsBetween(r.checkin, r.checkout),
+    housing_amount: Number(r.housing_amount||0),
+    cleaning_amount: Number(r.cleaning_amount||0)
+  }));
+  $('nightMsg').textContent = 'Enregistrement…';
+  const del = await supabaseClient.from('reservation_nights')
+    .delete()
+    .eq('property_id', pid)
+    .gte('checkin', range.start)
+    .lte('checkin', range.end);
+  if(del.error){ $('nightMsg').textContent = 'Erreur table reservation_nights: ' + del.error.message; return; }
+  if(clean.length){
+    const ins = await supabaseClient.from('reservation_nights').insert(clean);
+    if(ins.error){ $('nightMsg').textContent = 'Erreur: ' + ins.error.message; return; }
+  }
+  $('nightMsg').textContent = 'Détail des nuitées enregistré ✅';
+}
+
+function syncPlatformTotalsFromNights(){
+  if(!nightRows.length) return;
+  const sums = nightRows.reduce((acc,r)=>{
+    const k = r.platform || 'other';
+    acc[k] ||= {h:0,c:0};
+    acc[k].h += Number(r.housing_amount||0);
+    acc[k].c += Number(r.cleaning_amount||0);
+    return acc;
+  }, {});
+  if(sums.airbnb){ $('airbnbHousing') && ($('airbnbHousing').value = sums.airbnb.h.toFixed(2)); $('airbnbCleaning') && ($('airbnbCleaning').value = sums.airbnb.c.toFixed(2)); }
+  if(sums.booking){ $('bookingHousing') && ($('bookingHousing').value = sums.booking.h.toFixed(2)); $('bookingCleaning') && ($('bookingCleaning').value = sums.booking.c.toFixed(2)); }
+  if(sums.direct){ $('directHousing') && ($('directHousing').value = sums.direct.h.toFixed(2)); $('directCleaning') && ($('directCleaning').value = sums.direct.c.toFixed(2)); }
+  calcClosing();
+}
+
+async function prepareOwnerEmail(){
+  const pid = $('cProperty')?.value;
+  const m = $('cMonth')?.value;
+  if(!pid || !m) return alert('Choisis un bien et un mois.');
+  const pRes = await supabaseClient.from('properties').select('name,owners(full_name,email)').eq('id', pid).single();
+  if(pRes.error) return alert('Erreur bien: ' + pRes.error.message);
+  const email = pRes.data?.owners?.email;
+  if(!email) return alert('Ce propriétaire n’a pas d’email renseigné.');
+  const subject = encodeURIComponent(`Relevé propriétaire ${pRes.data.name || ''} - ${m}`);
+  const body = encodeURIComponent(`Bonjour ${pRes.data?.owners?.full_name || ''},\n\nVous trouverez ci-joint le relevé propriétaire du mois ${m}.\n\nBien cordialement,\nConciergerie Zenata`);
+  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+}
+
+/*************************************************
+ * AUTH / ADMIN
+ *************************************************/
+async function ensureAdmin(){
+  const { data: userRes, error: userErr } = await supabaseClient.auth.getUser();
+  const user = userRes?.user;
+
+  if (userErr || !user) return { ok:false, reason:"no_user" };
+
+  const { data, error } = await supabaseClient
+    .from('admin_users')
+    .select('user_id, role')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("admin_users select error:", error);
+    return { ok:false, reason:"admin_check_failed", error };
+  }
+  if (!data) return { ok:false, reason:"not_admin" };
+
+  return { ok:true, user, role: data.role };
+}
+
+function showLogin(msg=""){
+  $('app')?.classList.add('hidden');
+  $('login')?.classList.remove('hidden');
+  if($('authMsg')) $('authMsg').textContent = msg;
+}
+
+function showApp(user){
+  $('login')?.classList.add('hidden');
+  $('app')?.classList.remove('hidden');
+  if($('whoami')) $('whoami').textContent = user?.email || "admin";
+}
+
+/*************************************************
+ * NAV
+ *************************************************/
+function setTab(tab){
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.nav-item[data-tab="${tab}"]`)?.classList.add('active');
+
+  document.querySelectorAll('.tab').forEach(t => t.classList.add('hidden'));
+  $(`tab-${tab}`)?.classList.remove('hidden');
+
+  const titles = {
+    overview: ["Résumé", "Les chiffres importants, sans jargon."],
+    properties: ["Biens", "Tout est géré par bien : dépenses, consommables, clôture."],
+    expenses: ["Dépenses", "Ajoute une dépense en 10 secondes. Justificatif optionnel. 🔒 si mois verrouillé."],
+    closing: ["Clôture du mois", "Choisir → vérifier → clôturer → verrouiller."],
+    owners: ["Propriétaires", "Qui doit recevoir combien."],
+    cash: ["Trésorerie", "Combien on a en banque et d’où ça vient."],
+    settings: ["Réglages", "Règles simples. Pas de complexité inutile."]
+  };
+
+  const t = titles[tab] || ["Finance", ""];
+  if($('pageTitle')) $('pageTitle').textContent = t[0];
+  if($('pageSub')) $('pageSub').textContent = t[1];
+}
+
+/*************************************************
+ * BASIC DATA LOADERS (minimal)
+ * (Tu peux garder tes versions existantes si tu veux)
+ *************************************************/
+async function loadPropertiesDropdown(selectId){
+  const el = $(selectId);
+  if(!el) return;
+
+  const { data, error } = await supabaseClient
+    .from('properties')
+    .select('id,name')
+    .order('name', { ascending:true })
+    .limit(500);
+
+  if(error){ console.error(error); return; }
+  el.innerHTML = (data||[]).map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+}
+
+/*************************************************
+ * EXPENSES V2 (CRUD + receipts)
+ *************************************************/
+let EXP_PROPS = [];
+let editingExpenseId = null;
+let editingReceiptPath = null;
+let editingLocked = false;
+
+function fmtDate(d){ return d || "—"; }
+function pillYesNo(v){
+  return v ? `<span class="pill yes">Oui</span>` : `<span class="pill no">Non</span>`;
+}
+function pillLock(v){
+  return v ? `<span class="pill lock">🔒 Verrouillé</span>` : ``;
+}
+function propNameById(id){
+  return (EXP_PROPS.find(p => p.id === id)?.name) || "—";
+}
+
+async function loadExpenseProperties(){
+  const { data, error } = await supabaseClient
+    .from('properties')
+    .select('id,name')
+    .order('name', { ascending:true })
+    .limit(500);
+
+  if(error){ console.error(error); return; }
+  EXP_PROPS = data || [];
+
+  const opts = EXP_PROPS.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+  if($('fProperty')) $('fProperty').innerHTML = `<option value="all">Tous</option>` + opts;
+  if($('mProperty')) $('mProperty').innerHTML = opts;
+}
+
+function openExpenseModal(row=null){
+  $('expModal')?.classList.remove('hidden');
+  if($('mMsg')) $('mMsg').textContent = "";
+
+  const today = new Date().toISOString().slice(0,10);
+
+  if($('mDate')) $('mDate').value = row?.expense_date || today;
+  if($('mAmount')) $('mAmount').value = row?.amount ?? "";
+  if($('mDesc')) $('mDesc').value = row?.description ?? "";
+  if($('mBillToOwner')) $('mBillToOwner').value = String(row?.bill_to_owner ?? true);
+  if($('mMarkup')) $('mMarkup').value = row?.owner_markup_rate ?? 0;
+  if($('mFile')) $('mFile').value = "";
+
+  if(row){
+    editingExpenseId = row.id;
+    editingReceiptPath = row.receipt_path || null;
+    editingLocked = !!row.locked;
+
+    if($('modalTitle')) $('modalTitle').textContent = "Modifier une dépense";
+    $('btnDeleteExpense')?.classList.toggle('hidden', editingLocked);
+    if($('mProperty')) $('mProperty').value = row.property_id;
+  } else {
+    editingExpenseId = null;
+    editingReceiptPath = null;
+    editingLocked = false;
+
+    if($('modalTitle')) $('modalTitle').textContent = "Ajouter une dépense";
+    $('btnDeleteExpense')?.classList.add('hidden');
+
+    // default property from filter
+    const fp = $('fProperty')?.value;
+    if(fp && fp !== 'all' && $('mProperty')) $('mProperty').value = fp;
+  }
+}
+
+function closeExpenseModal(){
+  $('expModal')?.classList.add('hidden');
+  editingExpenseId = null;
+  editingReceiptPath = null;
+  editingLocked = false;
+}
+
+async function uploadReceipt(propertyId, expenseId, file){
+  const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
+  const path = `expenses/${propertyId}/${expenseId}.${ext}`;
+
+  const { error } = await supabaseClient
+    .storage
+    .from('expenses-receipts')
+    .upload(path, file, { upsert: true });
+
+  if(error) throw error;
+  return path;
+}
+
+async function downloadReceipt(path){
+  const { data, error } = await supabaseClient
+    .storage
+    .from('expenses-receipts')
+    .createSignedUrl(path, 60);
+
+  if(error) throw error;
+  window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+}
+
+async function loadExpensesV2(){
+  const msg = $('expListMsg');
+  if(msg) msg.textContent = "Chargement…";
+
+  const fProp = $('fProperty')?.value || "all";
+  const fMonth = $('fMonth')?.value || "";
+  const fSearch = ($('fSearch')?.value || "").trim().toLowerCase();
+  const fBillable = $('fBillable')?.value || "all";
+
+  let q = supabaseClient
+    .from('expenses')
+    .select('id,property_id,expense_date,description,amount,bill_to_owner,owner_markup_rate,receipt_path,locked')
+    .order('expense_date', { ascending:false })
+    .limit(300);
+
+  if(fProp !== 'all') q = q.eq('property_id', fProp);
+
+  const r = fMonth ? monthRange(fMonth) : null;
+  if(r) q = q.gte('expense_date', r.start).lte('expense_date', r.end);
+
+  if(fBillable === 'billable') q = q.eq('bill_to_owner', true);
+  if(fBillable === 'not_billable') q = q.eq('bill_to_owner', false);
+
+  const { data, error } = await q;
+  if(error){
+    console.error(error);
+    if(msg) msg.textContent = "Erreur chargement: " + error.message;
+    return;
+  }
+
+  let rows = data || [];
+  if(fSearch){
+    rows = rows.filter(r =>
+      (r.description||"").toLowerCase().includes(fSearch) ||
+      propNameById(r.property_id).toLowerCase().includes(fSearch)
+    );
+  }
+
+  const tbody = $('tblExpensesV2')?.querySelector('tbody');
+  if(!tbody) return;
+
+  tbody.innerHTML = rows.map(r => {
+    const hasReceipt = !!r.receipt_path;
+    const lock = !!r.locked;
+    return `
+      <tr class="${lock ? 'lockedRow':''}">
+        <td>${fmtDate(r.expense_date)}</td>
+        <td class="muted">${propNameById(r.property_id)}</td>
+        <td>
+          <b>${r.description || '—'}</b>
+          ${pillLock(lock)}
+        </td>
+        <td><b>${money(r.amount)}</b></td>
+        <td>${pillYesNo(!!r.bill_to_owner)}</td>
+        <td>
+          ${hasReceipt ? `<button class="iconbtn" data-dl="${encodeURIComponent(r.receipt_path)}">📎</button>` : `<span class="muted">—</span>`}
+        </td>
+        <td>
+          <div class="row-actions">
+            <button class="iconbtn" data-edit="${r.id}">⋮</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('') || `<tr><td colspan="7" class="muted">Aucune dépense</td></tr>`;
+
+  // download
+  document.querySelectorAll('[data-dl]').forEach(btn => {
+    btn.onclick = async () => {
+      try { await downloadReceipt(decodeURIComponent(btn.dataset.dl)); }
+      catch(e){ alert("Erreur téléchargement: " + (e?.message||e)); }
+    };
+  });
+
+  // edit
+  const map = new Map(rows.map(r => [r.id, r]));
+  document.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.onclick = () => openExpenseModal(map.get(btn.dataset.edit));
+  });
+
+  if(msg) msg.textContent = `${rows.length} dépense(s)`;
+}
+
+async function saveExpense(){
+  const propertyId = $('mProperty')?.value;
+  const expenseDate = $('mDate')?.value;
+  const amount = Number($('mAmount')?.value || 0);
+  const description = ($('mDesc')?.value || "").trim();
+  const billToOwner = ($('mBillToOwner')?.value || "true") === "true";
+  const markup = Number($('mMarkup')?.value || 0);
+  const file = $('mFile')?.files?.[0] || null;
+
+  const mMsg = $('mMsg');
+  if(!propertyId){ if(mMsg) mMsg.textContent = "Choisis un bien."; return; }
+  if(!expenseDate){ if(mMsg) mMsg.textContent = "Choisis une date."; return; }
+  if(!(amount > 0)){ if(mMsg) mMsg.textContent = "Montant invalide."; return; }
+  if(!description){ if(mMsg) mMsg.textContent = "Ajoute une description."; return; }
+
+  if(mMsg) mMsg.textContent = "Enregistrement…";
+
+  try {
+    if(editingExpenseId){
+      if(editingLocked){
+        if(mMsg) mMsg.textContent = "Cette dépense est verrouillée (mois clôturé).";
+        return;
+      }
+
+      const { error: e1 } = await supabaseClient
+        .from('expenses')
+        .update({
+          property_id: propertyId,
+          expense_date: expenseDate,
+          amount,
+          description,
+          bill_to_owner: billToOwner,
+          owner_markup_rate: markup
+        })
+        .eq('id', editingExpenseId);
+
+      if(e1) throw e1;
+
+      if(file){
+        const path = await uploadReceipt(propertyId, editingExpenseId, file);
+        const { error: e2 } = await supabaseClient
+          .from('expenses')
+          .update({ receipt_path: path })
+          .eq('id', editingExpenseId);
+        if(e2) throw e2;
+        editingReceiptPath = path;
+      }
+
+      if(mMsg) mMsg.textContent = "Modifié ✅";
+    } else {
+      const { data, error: e1 } = await supabaseClient
+        .from('expenses')
+        .insert([{
+          property_id: propertyId,
+          expense_date: expenseDate,
+          amount,
+          description,
+          bill_to_owner: billToOwner,
+          owner_markup_rate: markup
+        }])
+        .select('id')
+        .single();
+
+      if(e1) throw e1;
+
+      const expenseId = data.id;
+
+      if(file){
+        const path = await uploadReceipt(propertyId, expenseId, file);
+        const { error: e2 } = await supabaseClient
+          .from('expenses')
+          .update({ receipt_path: path })
+          .eq('id', expenseId);
+        if(e2) throw e2;
+      }
+
+      if(mMsg) mMsg.textContent = "Ajouté ✅";
+    }
+
+    await loadExpensesV2();
+    setTimeout(closeExpenseModal, 200);
+
+  } catch (e){
+    console.error(e);
+    if(mMsg) mMsg.textContent = "Erreur: " + (e?.message || e);
+  }
+}
+
+async function deleteExpense(){
+  const mMsg = $('mMsg');
+  if(!editingExpenseId) return;
+  if(editingLocked){ if(mMsg) mMsg.textContent = "Dépense verrouillée: suppression impossible."; return; }
+
+  const ok = confirm("Supprimer cette dépense ? (action irréversible)");
+  if(!ok) return;
+
+  if(mMsg) mMsg.textContent = "Suppression…";
+
+  try {
+    if(editingReceiptPath){
+      await supabaseClient.storage.from('expenses-receipts').remove([editingReceiptPath]);
+    }
+
+    const { error } = await supabaseClient
+      .from('expenses')
+      .delete()
+      .eq('id', editingExpenseId);
+
+    if(error) throw error;
+
+    if(mMsg) mMsg.textContent = "Supprimé ✅";
+    await loadExpensesV2();
+    setTimeout(closeExpenseModal, 200);
+
+  } catch (e){
+    console.error(e);
+    if(mMsg) mMsg.textContent = "Erreur: " + (e?.message || e);
+  }
+}
+
+/*************************************************
+ * LOGIN ACTIONS
+ *************************************************/
+let loginInFlight = false;
+
+async function loginEmailPassword(){
+  if(loginInFlight) return;
+  loginInFlight = true;
+
+  const email = $('authEmail')?.value?.trim();
+  const password = $('authPassword')?.value;
+
+  if($('authMsg')) $('authMsg').textContent = "Connexion…";
+  $('btnLogin') && ($('btnLogin').disabled = true);
+  $('btnMagic') && ($('btnMagic').disabled = true);
+
+  try {
+    const res = await supabaseClient.auth.signInWithPassword({ email, password });
+    if(res?.error){
+      console.error(res.error);
+      if($('authMsg')) $('authMsg').textContent = "Erreur: " + res.error.message;
+      return;
+    }
+    if($('authMsg')) $('authMsg').textContent = "Connecté ✅";
+    await boot();
+  } catch (e){
+    console.error(e);
+    if($('authMsg')) $('authMsg').textContent = "Erreur: " + (e?.message || e);
+  } finally {
+    loginInFlight = false;
+    $('btnLogin') && ($('btnLogin').disabled = false);
+    $('btnMagic') && ($('btnMagic').disabled = false);
+  }
+}
+
+let otpInFlight = false;
+
+async function magicLink(){
+  if(otpInFlight) return;
+  otpInFlight = true;
+
+  const email = $('authEmail')?.value?.trim();
+  if(!email){ if($('authMsg')) $('authMsg').textContent = "Entre ton email."; otpInFlight=false; return; }
+
+  if($('authMsg')) $('authMsg').textContent = "Envoi du lien…";
+  $('btnLogin') && ($('btnLogin').disabled = true);
+  $('btnMagic') && ($('btnMagic').disabled = true);
+
+  try {
+    const { error } = await supabaseClient.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href }
+    });
+    if(error){
+      console.error(error);
+      if($('authMsg')) $('authMsg').textContent = "Erreur: " + error.message;
+      return;
+    }
+    if($('authMsg')) $('authMsg').textContent = "Lien envoyé ✅ (si SMTP configuré).";
+  } finally {
+    otpInFlight = false;
+    $('btnLogin') && ($('btnLogin').disabled = false);
+    $('btnMagic') && ($('btnMagic').disabled = false);
+  }
+}
+
+/*************************************************
+ * PROPERTIES (Biens)
+ *************************************************/
+async function loadPropertiesList(){
+  const tbody = $('tblProps')?.querySelector('tbody');
+  const msg = $('propsMsg');
+  if(msg) msg.textContent = "Chargement…";
+  if(!tbody) return;
+
+  const q = ($('propSearch')?.value || "").trim().toLowerCase();
+
+  // On prend aussi owner via relation si possible
+  const { data, error } = await supabaseClient
+    .from('properties')
+    .select('id,name,owner_id,owners(full_name,email)')
+    .order('name', { ascending:true })
+    .limit(500);
+
+  if(error){
+    console.error(error);
+    if(msg) msg.textContent = "Erreur: " + error.message;
+    return;
+  }
+
+  let rows = data || [];
+  if(q) rows = rows.filter(p => (p.name||"").toLowerCase().includes(q));
+
+  tbody.innerHTML = rows.map(p => `
+    <tr>
+      <td><b>${p.name || "—"}</b></td>
+      <td class="muted">${p.owners?.full_name || "—"}</td>
+      <td class="row-actions">
+        <button class="iconbtn" data-prop-exp="${p.id}">Dépenses</button>
+        <button class="iconbtn" data-prop-close="${p.id}">Clôturer</button>
+      </td>
+    </tr>
+  `).join('') || `<tr><td colspan="3" class="muted">Aucun bien</td></tr>`;
+
+  // Actions
+  document.querySelectorAll('[data-prop-exp]').forEach(b => {
+    b.onclick = async () => {
+      setTab('expenses');
+      $('fProperty').value = b.dataset.propExp;
+      await loadExpensesV2();
+    };
+  });
+
+  document.querySelectorAll('[data-prop-close]').forEach(b => {
+    b.onclick = () => {
+      setTab('closing');
+      // Si tu as un select property dans closing :
+      if($('selProperty')) $('selProperty').value = b.dataset.propClose;
+      // previewClosing si tu l’as
+      if(typeof previewClosing === 'function') previewClosing();
+    };
+  });
+
+  if(msg) msg.textContent = `${rows.length} bien(s)`;
+}
+
+async function loadDashboard(){
+  const now = new Date();
+  const m = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const start = `${m}-01`;
+  const end = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+
+  const { data } = await supabaseClient
+    .from('monthly_closings')
+    .select('housing_revenue_total, commission_amount, net_owner_amount')
+    .gte('period_start', start)
+    .lte('period_end', end)
+    .eq('status','locked');
+
+  const rows = data || [];
+  const housing = rows.reduce((s,x)=>s+Number(x.housing_revenue_total||0),0);
+  const commission = rows.reduce((s,x)=>s+Number(x.commission_amount||0),0);
+  const toPay = rows.reduce((s,x)=>s+Number(x.net_owner_amount||0),0);
+  const margin = commission;
+
+  $('kpiHousing').textContent = money(housing);
+  $('kpiCommission').textContent = money(commission);
+  $('kpiToPay').textContent = money(toPay);
+  $('kpiMargin').textContent = money(margin);
+}
+
+
+/*************************************************
+ * OWNERS (Propriétaires)
+ *************************************************/
+async function loadOwnersList(){
+  const tbody = $('tblOwners')?.querySelector('tbody');
+  const msg = $('ownersMsg');
+  if(msg) msg.textContent = "Chargement…";
+  if(!tbody) return;
+
+  const q = ($('ownerSearch')?.value || "").trim().toLowerCase();
+
+  const { data, error } = await supabaseClient
+    .from('owners')
+    .select('id,full_name,email,phone,created_at')
+    .order('created_at', { ascending:false })
+    .limit(500);
+
+  if(error){
+    console.error(error);
+    if(msg) msg.textContent = "Erreur: " + error.message;
+    return;
+  }
+
+  let rows = data || [];
+  if(q){
+    rows = rows.filter(o =>
+      (o.full_name||"").toLowerCase().includes(q) ||
+      (o.email||"").toLowerCase().includes(q) ||
+      (o.phone||"").toLowerCase().includes(q)
+    );
+  }
+
+  tbody.innerHTML = rows.map(o => `
+    <tr>
+      <td><b>${o.full_name || "—"}</b></td>
+      <td class="muted">${o.email || "—"}</td>
+      <td class="muted">${o.phone || "—"}</td>
+    </tr>
+  `).join('') || `<tr><td colspan="3" class="muted">Aucun propriétaire</td></tr>`;
+
+  if(msg) msg.textContent = `${rows.length} propriétaire(s)`;
+}
+
+/*************************************************
+ * CLOSING – UX + LOGIC
+ *************************************************/
+const COMMISSION_RATE = 0.20;
+
+function calcClosing(){
+  const aH = Number($('airbnbHousing').value||0);
+  const bH = Number($('bookingHousing').value||0);
+  const dH = Number($('directHousing')?.value||0);
+  const housing = aH + bH + dH;
+  const cleaning = Number($('airbnbCleaning')?.value||0) + Number($('bookingCleaning')?.value||0) + Number($('directCleaning')?.value||0);
+
 
 
   const consum = Number($('cConsumables').value||0);
