@@ -31,6 +31,226 @@ function monthRange(yyyyMm){
   return { start: start.toISOString().slice(0,10), end: end.toISOString().slice(0,10) };
 }
 
+function escapeHtml(v){
+  return String(v ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+
+function nightsBetween(start, end){
+  if(!start || !end) return 0;
+  const a = new Date(start + 'T00:00:00');
+  const b = new Date(end + 'T00:00:00');
+  const d = Math.round((b - a) / 86400000);
+  return Math.max(0, d);
+}
+
+const QUICK_EXPENSE_ITEMS = [
+  { label:'Netflix', category:'Abonnements', hint:'0 ou 25 DH' },
+  { label:'Liquide vaisselle', category:'Cuisine', hint:'0–20 DH' },
+  { label:'Éponge', category:'Cuisine', hint:'0–5 DH' },
+  { label:'Essuie-tout', category:'Cuisine', hint:'0–10 DH' },
+  { label:'Liquide machine à laver', category:'Linge', hint:'0–25 DH' },
+  { label:'Clinex', category:'Accueil', hint:'0–20 DH' },
+  { label:'Eau de javel', category:'Ménage', hint:'0–10 DH' },
+  { label:'Eau Sanicroix', category:'Ménage', hint:'0–12 DH' },
+  { label:'Bouteilles d’eau', category:'Accueil', hint:'0–25 DH' },
+  { label:'Capsules', category:'Accueil', hint:'0–35 DH' },
+  { label:'Bonbons', category:'Accueil', hint:'0–15 DH' },
+  { label:'Chocolat', category:'Accueil', hint:'0–15 DH' },
+  { label:'Fruits', category:'Accueil', hint:'0–20 DH' },
+  { label:'Papier toilette', category:'Salle de bain', hint:'0–25 DH' },
+  { label:'Gel douche', category:'Salle de bain', hint:'0–30 DH' },
+  { label:'Shampoing', category:'Salle de bain', hint:'0–30 DH' },
+  { label:'Savon mains', category:'Salle de bain', hint:'0–20 DH' },
+  { label:'Sac poubelle', category:'Cuisine', hint:'0–20 DH' },
+  { label:'Serpillère', category:'Ménage', hint:'0–30 DH' },
+  { label:'Torchon', category:'Cuisine', hint:'0–25 DH' }
+];
+
+let nightRows = [];
+
+function renderQuickExpenses(){
+  const box = $('quickExpenseGrid');
+  if(!box) return;
+  const groups = QUICK_EXPENSE_ITEMS.reduce((acc, item) => {
+    (acc[item.category] ||= []).push(item);
+    return acc;
+  }, {});
+  box.innerHTML = Object.entries(groups).map(([cat, items]) => `
+    <div class="quick-group">
+      <div class="quick-title">${escapeHtml(cat)}</div>
+      ${items.map((it, idx) => {
+        const key = `${cat}-${idx}`.replace(/[^a-z0-9]/gi,'_');
+        const valueAttr = it.defaultAmount ? ` value="${Number(it.defaultAmount)}"` : '';
+        const placeholder = it.hint || '0';
+        return `<div class="quick-row">
+          <span>${escapeHtml(it.label)} <small>${escapeHtml(placeholder)}</small></span>
+          <input data-qexp-desc="${escapeHtml(it.label)}" type="number" step="0.01" placeholder="${escapeHtml(placeholder)}"${valueAttr} />
+        </div>`;
+      }).join('')}
+    </div>
+  `).join('');
+}
+
+async function saveQuickExpenses(){
+  const pid = $('cProperty')?.value;
+  const m = $('cMonth')?.value;
+  if(!pid || !m){ $('quickExpenseMsg').textContent = 'Choisis un bien et un mois.'; return; }
+  const r = monthRange(m);
+  if(!r) return;
+  const inputs = [...document.querySelectorAll('[data-qexp-desc]')];
+  const rows = inputs
+    .map(input => ({ description: input.dataset.qexpDesc, amount: Number(input.value || 0) }))
+    .filter(x => x.amount > 0)
+    .map(x => ({
+      property_id: pid,
+      expense_date: r.end,
+      description: x.description,
+      amount: x.amount,
+      bill_to_owner: true,
+      owner_markup_rate: 0,
+      locked: false
+    }));
+  if(!rows.length){ $('quickExpenseMsg').textContent = 'Aucun montant renseigné.'; return; }
+  $('quickExpenseMsg').textContent = 'Enregistrement…';
+  const { error } = await supabaseClient.from('expenses').insert(rows);
+  if(error){ $('quickExpenseMsg').textContent = 'Erreur: ' + error.message; return; }
+  inputs.forEach(i => i.value = '');
+  await loadMonthExpenses();
+  calcClosing();
+  if(typeof loadExpensesV2 === 'function') await loadExpensesV2();
+  $('quickExpenseMsg').textContent = `${rows.length} dépense(s) ajoutée(s) ✅`;
+}
+
+function renderNightRows(){
+  const tbody = $('tblNights')?.querySelector('tbody');
+  if(!tbody) return;
+  tbody.innerHTML = nightRows.map((r, i) => `
+    <tr>
+      <td>
+        <select data-night-field="platform" data-night-index="${i}">
+          <option value="airbnb" ${r.platform==='airbnb'?'selected':''}>Airbnb</option>
+          <option value="booking" ${r.platform==='booking'?'selected':''}>Booking</option>
+          <option value="direct" ${r.platform==='direct'?'selected':''}>Hors plateforme</option>
+          <option value="other" ${r.platform==='other'?'selected':''}>Autre</option>
+        </select>
+      </td>
+      <td><input data-night-field="checkin" data-night-index="${i}" type="date" value="${r.checkin||''}" /></td>
+      <td><input data-night-field="checkout" data-night-index="${i}" type="date" value="${r.checkout||''}" /></td>
+      <td><input data-night-field="housing_amount" data-night-index="${i}" type="number" step="0.01" value="${r.housing_amount ?? ''}" /></td>
+      <td><input data-night-field="cleaning_amount" data-night-index="${i}" type="number" step="0.01" value="${r.cleaning_amount ?? ''}" /></td>
+      <td><button class="iconbtn" data-remove-night="${i}">✕</button></td>
+    </tr>
+  `).join('') || `<tr><td colspan="6" class="muted">Aucune nuitée. Clique sur “+ Nuitée”.</td></tr>`;
+
+  document.querySelectorAll('[data-night-field]').forEach(el => {
+    el.oninput = el.onchange = () => {
+      const idx = Number(el.dataset.nightIndex);
+      const field = el.dataset.nightField;
+      nightRows[idx][field] = ['housing_amount','cleaning_amount'].includes(field) ? Number(el.value || 0) : el.value;
+      updateNightStats();
+    };
+  });
+  document.querySelectorAll('[data-remove-night]').forEach(btn => {
+    btn.onclick = () => { nightRows.splice(Number(btn.dataset.removeNight), 1); renderNightRows(); updateNightStats(); };
+  });
+  updateNightStats();
+}
+
+function addNightRow(){
+  const m = $('cMonth')?.value;
+  const defaultStart = m ? `${m}-01` : new Date().toISOString().slice(0,10);
+  nightRows.push({ platform:'airbnb', checkin:defaultStart, checkout:'', housing_amount:0, cleaning_amount:0 });
+  renderNightRows();
+}
+
+function updateNightStats(){
+  const nights = nightRows.reduce((s,r)=>s+nightsBetween(r.checkin, r.checkout),0);
+  const housing = nightRows.reduce((s,r)=>s+Number(r.housing_amount||0),0);
+  if($('nightTotal')) $('nightTotal').textContent = String(nights);
+  if($('bookingCount')) $('bookingCount').textContent = String(nightRows.length);
+  if($('adrValue')) $('adrValue').textContent = nights ? money(housing/nights) : '—';
+}
+
+async function loadReservationsDetail(){
+  const pid = $('cProperty')?.value;
+  const m = $('cMonth')?.value;
+  if(!pid || !m) return;
+  const r = monthRange(m);
+  $('nightMsg') && ($('nightMsg').textContent = '');
+  const { data, error } = await supabaseClient
+    .from('reservation_nights')
+    .select('id,platform,checkin,checkout,housing_amount,cleaning_amount')
+    .eq('property_id', pid)
+    .gte('checkin', r.start)
+    .lte('checkin', r.end)
+    .order('checkin', { ascending:true });
+  if(error){
+    console.warn('reservation_nights not ready:', error.message);
+    nightRows = [];
+    renderNightRows();
+    if($('nightMsg')) $('nightMsg').textContent = 'Table reservation_nights absente. Lance le SQL fourni pour activer la sauvegarde.';
+    return;
+  }
+  nightRows = (data || []).map(x => ({...x}));
+  renderNightRows();
+}
+
+async function saveReservationsDetail(){
+  const pid = $('cProperty')?.value;
+  const m = $('cMonth')?.value;
+  if(!pid || !m){ $('nightMsg').textContent = 'Choisis un bien et un mois.'; return; }
+  const range = monthRange(m);
+  const clean = nightRows.filter(r => r.checkin && r.checkout).map(r => ({
+    property_id: pid,
+    platform: r.platform || 'airbnb',
+    checkin: r.checkin,
+    checkout: r.checkout,
+    nights: nightsBetween(r.checkin, r.checkout),
+    housing_amount: Number(r.housing_amount||0),
+    cleaning_amount: Number(r.cleaning_amount||0)
+  }));
+  $('nightMsg').textContent = 'Enregistrement…';
+  const del = await supabaseClient.from('reservation_nights')
+    .delete()
+    .eq('property_id', pid)
+    .gte('checkin', range.start)
+    .lte('checkin', range.end);
+  if(del.error){ $('nightMsg').textContent = 'Erreur table reservation_nights: ' + del.error.message; return; }
+  if(clean.length){
+    const ins = await supabaseClient.from('reservation_nights').insert(clean);
+    if(ins.error){ $('nightMsg').textContent = 'Erreur: ' + ins.error.message; return; }
+  }
+  $('nightMsg').textContent = 'Détail des nuitées enregistré ✅';
+}
+
+function syncPlatformTotalsFromNights(){
+  if(!nightRows.length) return;
+  const sums = nightRows.reduce((acc,r)=>{
+    const k = r.platform || 'other';
+    acc[k] ||= {h:0,c:0};
+    acc[k].h += Number(r.housing_amount||0);
+    acc[k].c += Number(r.cleaning_amount||0);
+    return acc;
+  }, {});
+  if(sums.airbnb){ $('airbnbHousing') && ($('airbnbHousing').value = sums.airbnb.h.toFixed(2)); $('airbnbCleaning') && ($('airbnbCleaning').value = sums.airbnb.c.toFixed(2)); }
+  if(sums.booking){ $('bookingHousing') && ($('bookingHousing').value = sums.booking.h.toFixed(2)); $('bookingCleaning') && ($('bookingCleaning').value = sums.booking.c.toFixed(2)); }
+  if(sums.direct){ $('directHousing') && ($('directHousing').value = sums.direct.h.toFixed(2)); $('directCleaning') && ($('directCleaning').value = sums.direct.c.toFixed(2)); }
+  calcClosing();
+}
+
+async function prepareOwnerEmail(){
+  const pid = $('cProperty')?.value;
+  const m = $('cMonth')?.value;
+  if(!pid || !m) return alert('Choisis un bien et un mois.');
+  const pRes = await supabaseClient.from('properties').select('name,owners(full_name,email)').eq('id', pid).single();
+  if(pRes.error) return alert('Erreur bien: ' + pRes.error.message);
+  const email = pRes.data?.owners?.email;
+  if(!email) return alert('Ce propriétaire n’a pas d’email renseigné.');
+  const subject = encodeURIComponent(`Relevé propriétaire ${pRes.data.name || ''} - ${m}`);
+  const body = encodeURIComponent(`Bonjour ${pRes.data?.owners?.full_name || ''},\n\nVous trouverez ci-joint le relevé propriétaire du mois ${m}.\n\nBien cordialement,\nConciergerie Zenata`);
+  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+}
+
 /*************************************************
  * AUTH / ADMIN
  *************************************************/
@@ -616,8 +836,9 @@ const COMMISSION_RATE = 0.20;
 function calcClosing(){
   const aH = Number($('airbnbHousing').value||0);
   const bH = Number($('bookingHousing').value||0);
-  const housing = aH + bH;
-  const cleaning = Number($('airbnbCleaning')?.value||0) + Number($('bookingCleaning')?.value||0);
+  const dH = Number($('directHousing')?.value||0);
+  const housing = aH + bH + dH;
+  const cleaning = Number($('airbnbCleaning')?.value||0) + Number($('bookingCleaning')?.value||0) + Number($('directCleaning')?.value||0);
 
 
 
@@ -657,14 +878,20 @@ async function loadClosingDefaults(){
       .maybeSingle();
     $('cConsumables').value = Number(data?.consumables_flat_mad||0);
     await loadMonthExpenses();
+    await loadReservationsDetail();
     calcClosing();
   };
 
   $('cMonth').onchange = async () => {
     await loadMonthExpenses();
+    await loadReservationsDetail();
     calcClosing();
-    await loadClosingSaved();
+    if(typeof loadClosingSaved === 'function') await loadClosingSaved();
   };
+
+  renderQuickExpenses();
+  renderNightRows();
+  await loadReservationsDetail();
 }
 
 async function loadMonthExpenses(){
@@ -720,18 +947,20 @@ async function saveClosing(){
   const aF = Number($('airbnbFees').value||0);
   const bH = Number($('bookingHousing').value||0);
   const bF = Number($('bookingFees').value||0);
+  const dH = Number($('directHousing')?.value||0);
+  const dF = Number($('directFees')?.value||0);
 
-  // (temp) ménage si tu l’ajoutes (voir section 2)
   const aC = Number($('airbnbCleaning')?.value || 0);
   const bC = Number($('bookingCleaning')?.value || 0);
-  const cleaningCollected = aC + bC;
+  const dC = Number($('directCleaning')?.value || 0);
+  const cleaningCollected = aC + bC + dC;
 
   // Déductions
   const consum = Number($('cConsumables').value||0);
   const exp = Number($('cExpenses').value||0);
 
   // Règle: commission sur logement uniquement (recommandé)
-  const housing = aH + bH;
+  const housing = aH + bH + dH;
   const commission = housing * COMMISSION_RATE;
 
   // Net propriétaire: logement - commission - consommables - dépenses
@@ -744,6 +973,7 @@ async function saveClosing(){
   const pRows = [
     { property_id: pid, platform:'airbnb', period_start:start, period_end:end, housing_revenue:aH, platform_fees:aF, cleaning_collected: aC },
     { property_id: pid, platform:'booking', period_start:start, period_end:end, housing_revenue:bH, platform_fees:bF, cleaning_collected: bC },
+    { property_id: pid, platform:'direct', period_start:start, period_end:end, housing_revenue:dH, platform_fees:dF, cleaning_collected: dC },
   ];
 
   let r = await supabaseClient
@@ -779,7 +1009,7 @@ async function saveClosing(){
 
       housing_revenue_total: housing,
       cleaning_collected_total: cleaningCollected, // ✅ si colonne existe (sinon enlève)
-      platform_fees_total: (aF + bF),
+      platform_fees_total: (aF + bF + dF),
 
       commission_rate: COMMISSION_RATE,
       commission_amount: commission,
@@ -873,6 +1103,22 @@ async function ownerStatement(){
 
   const air = payouts.find(x=>x.platform==='airbnb') || {};
   const boo = payouts.find(x=>x.platform==='booking') || {};
+  const dir = payouts.find(x=>x.platform==='direct') || {};
+
+  let reservations = [];
+  try {
+    const nRes = await supabaseClient
+      .from('reservation_nights')
+      .select('platform,checkin,checkout,nights,housing_amount,cleaning_amount')
+      .eq('property_id', pid)
+      .gte('checkin', start)
+      .lte('checkin', end)
+      .order('checkin', { ascending:true });
+    reservations = nRes.data || [];
+  } catch(e) { reservations = []; }
+
+  const nightsTotal = reservations.reduce((s,x)=>s+Number(x.nights||0),0);
+  const bookingsTotal = reservations.length;
 
   const housingTotal = Number(clo.housing_revenue_total||0);
   const cleaningTotal = Number(clo.cleaning_collected_total||0);
@@ -974,6 +1220,16 @@ async function ownerStatement(){
         </div>
 
         <div class="card">
+          <div class="title">Dashboard du mois</div>
+          <div class="row"><span>Réservations</span><b>${bookingsTotal || '—'}</b></div>
+          <div class="row"><span>Nuitées</span><b>${nightsTotal || '—'}</b></div>
+          <div class="row"><span>Prix moyen / nuit</span><b>${nightsTotal ? money(housingTotal/nightsTotal) : '—'}</b></div>
+          <div class="row"><span>Commission</span><b>${Math.round(Number(clo.commission_rate||0)*100)}%</b></div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:14px">
+        <div class="card">
           <div class="title">Résumé (clair)</div>
           <div class="row"><span>Revenus logement</span><b>${money(housingTotal)}</b></div>
           <div class="row"><span>Commission Zenata</span><b>-${money(clo.commission_amount||0)}</b></div>
@@ -1010,6 +1266,12 @@ async function ownerStatement(){
               <td class="right">-${money(boo.cleaning_collected||0)}</td>
               <td class="right">-${money(boo.platform_fees||0)}</td>
             </tr>
+            <tr>
+              <td><span class="pill">Hors plateforme</span></td>
+              <td class="right">${money(dir.housing_revenue||0)}</td>
+              <td class="right">-${money(dir.cleaning_collected||0)}</td>
+              <td class="right">-${money(dir.platform_fees||0)}</td>
+            </tr>
           </tbody>
           <tfoot>
             <tr>
@@ -1021,6 +1283,22 @@ async function ownerStatement(){
           </tfoot>
         </table>
         <div class="note">Cash collecté (logement + ménage) : <b>${money(housingTotal)}</b> (avant frais plateformes)</div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="title">Détail des nuitées</div>
+        <table>
+          <thead><tr><th>Plateforme</th><th>Du</th><th>Au</th><th class="right">Nuits</th><th class="right">Montant</th></tr></thead>
+          <tbody>
+            ${reservations.length ? reservations.map(x => `<tr>
+              <td><span class="pill">${escapeHtml(x.platform || '—')}</span></td>
+              <td>${x.checkin || ''}</td>
+              <td>${x.checkout || ''}</td>
+              <td class="right">${Number(x.nights||0)}</td>
+              <td class="right">${money(x.housing_amount||0)}</td>
+            </tr>`).join('') : `<tr><td colspan="5" class="muted">Détail des nuitées non renseigné</td></tr>`}
+          </tbody>
+        </table>
       </div>
 
       <div class="card" style="margin-top:14px">
@@ -1229,10 +1507,14 @@ function wire(){
 
   // Closing
 $('btnCloseMonth') && ($('btnCloseMonth').onclick = saveClosing);
-['airbnbHousing','airbnbFees','bookingHousing','bookingFees','cConsumables'].forEach(id=>{
+['airbnbHousing','airbnbFees','airbnbCleaning','bookingHousing','bookingFees','bookingCleaning','directHousing','directFees','directCleaning','cConsumables'].forEach(id=>{
   $(id) && ($(id).oninput = calcClosing);
 });
   $('btnOwnerStatement') && ($('btnOwnerStatement').onclick = ownerStatement);
+  $('btnEmailOwner') && ($('btnEmailOwner').onclick = prepareOwnerEmail);
+  $('btnAddNight') && ($('btnAddNight').onclick = addNightRow);
+  $('btnSaveNights') && ($('btnSaveNights').onclick = async () => { syncPlatformTotalsFromNights(); await saveReservationsDetail(); });
+  $('btnSaveQuickExpenses') && ($('btnSaveQuickExpenses').onclick = saveQuickExpenses);
 
 
 

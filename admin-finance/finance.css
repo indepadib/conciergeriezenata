@@ -174,3 +174,23 @@ input:focus, select:focus{border-color: rgba(122,167,255,.5)}
 .summary div{display:flex; justify-content:space-between}
 .summary .total{font-size:18px}
 .actions{display:flex; align-items:center; gap:12px}
+
+
+/* Finance V2 - closing UX */
+.card-head-inline{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:10px}
+.mini-platform{margin-top:12px; padding:12px; border:1px solid var(--line); border-radius:16px; background:rgba(255,255,255,.02)}
+.compact-grid .field{margin:6px 0}
+.soft-wrap{border-color:rgba(255,255,255,.06)}
+.night-kpis{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:12px 0}
+.night-kpis div{border:1px solid var(--line); border-radius:14px; padding:10px 12px; background:rgba(255,255,255,.02)}
+.night-kpis span{display:block; color:var(--muted); font-size:12px; margin-bottom:4px}
+.night-kpis b{font-size:18px}
+.quick-expense-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:12px}
+.quick-group{border:1px solid var(--line); border-radius:16px; padding:12px; background:rgba(255,255,255,.02)}
+.quick-title{font-weight:1000; margin-bottom:8px}
+.quick-row{display:grid; grid-template-columns:1fr 120px; gap:10px; align-items:center; padding:7px 0; border-top:1px solid rgba(255,255,255,.05)}
+.quick-row:first-of-type{border-top:none}
+.quick-row input{padding:8px 10px; border-radius:12px}
+.quick-row small{display:block; margin-top:2px; color:#8a9a9a; font-size:.78rem; font-weight:700}
+#tblNights input,#tblNights select{min-width:120px; padding:8px 10px; border-radius:12px}
+@media (max-width:900px){.quick-expense-grid{grid-template-columns:1fr}.night-kpis{grid-template-columns:1fr}.card-head-inline{flex-direction:column}.quick-row{grid-template-columns:1fr}}
